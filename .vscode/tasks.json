@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run VisualVM (Simulated)",
+            "type": "shell",
+            "command": "C:\\Users\\Public\\wpilib\\visualvm_22\\bin\\visualvm --jdkhome \"C:\\Users\\Public\\wpilib\\2026\\jdk\"",
+            "problemMatcher": [],
+            "isBackground": true
+        }
+    ]
+}

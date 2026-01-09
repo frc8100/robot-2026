@@ -2,14 +2,27 @@
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.server.launchMode": "Standard",
   "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "bin/": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true,
+    "**/*~": true
   },
   "java.test.config": [
     {
       "name": "WPIlibUnitTests",
       "workingDirectory": "${workspaceFolder}/build/jni/release",
-      "vmargs": [ "-Djava.library.path=${workspaceFolder}/build/jni/release" ],
+      "vmargs": [
+        "-Djava.library.path=${workspaceFolder}/build/jni/release"
+      ],
       "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release" ,
+        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
         "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
       }
     },
@@ -44,7 +57,39 @@
     "javax.smartcardio.*",
     "edu.wpi.first.math.proto.*",
     "edu.wpi.first.math.**.proto.*",
-    "edu.wpi.first.math.**.struct.*",
+    "edu.wpi.first.math.**.struct.*"
   ],
-  "java.dependency.enableDependencyCheckup": false
+  "[java]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+  },
+  "wpilib.selectDefaultSimulateExtension": true,
+  "cSpell.words": [
+    "APRILTAG",
+    "CANCODER",
+    "CTRE",
+    "DEADBAND",
+    "Debouncer",
+    "debouncers",
+    "dtheta",
+    "feedforward",
+    "Feedforwards",
+    "hashtable",
+    "hashtables",
+    "Holonomic",
+    "kalman",
+    "maplesim",
+    "odometry",
+    "pathfind",
+    "Pathfinding",
+    "Quasistatic",
+    "Reefscape",
+    "setpoint",
+    "setpoints",
+    "statemachine",
+    "teleop",
+    "unitless",
+    "wpilibj"
+],
+  "wpilib.skipSelectSimulateExtension": false
 }
