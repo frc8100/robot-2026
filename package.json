@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "prettier": "prettier --write \"src/**/*.java\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "prettier-plugin-java": "^2.6.4"
+  }
+}
