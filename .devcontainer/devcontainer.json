@@ -1,0 +1,10 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "postCreateCommand": "cd /opt && wget 'https://github.com/wpilibsuite/vscode-wpilib/releases/download/v2025.3.2/vscode-wpilib-2025.3.2.vsix' && cd \"/workspaces/reefscape-bot-2025\" && npm install && echo \"Run the following to install WPILib extensions:\" && echo \"code --install-extension /opt/vscode-wpilib-2025.3.2.vsix\"",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": ["vscjava.vscode-java-pack", "vscjava.vscode-gradle"]
+    }
+  }
+}

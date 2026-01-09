@@ -1,0 +1,38 @@
+{
+    "name": "WCP Competitive Concept 2025",
+    "sourceUrl": "https://cad.onshape.com/documents/b044c7e4bf391a8df86b5cb3/w/f666ddf7862f74d284b81c47/e/53aaaa2acbb2834a77996106",
+    "disableSimplification": false,
+    "rotations": [
+        { "axis": "x", "degrees": 90 },
+        { "axis": "y", "degrees": 0 },
+        { "axis": "z", "degrees": 90 }
+    ],
+    "position": [0, 0, 0],
+    "cameras": [],
+    "components": [
+        {
+            "zeroedRotations": [
+                { "axis": "x", "degrees": 145 },
+                { "axis": "y", "degrees": 0 },
+                { "axis": "z", "degrees": -90 }
+            ],
+            "zeroedPosition": []
+        },
+        {
+            "zeroedRotations": [
+                { "axis": "x", "degrees": 90 },
+                { "axis": "y", "degrees": 0 },
+                { "axis": "z", "degrees": 90 }
+            ],
+            "zeroedPosition": []
+        },
+        {
+            "zeroedRotations": [
+                { "axis": "x", "degrees": 90 },
+                { "axis": "y", "degrees": 0 },
+                { "axis": "z", "degrees": 90 }
+            ],
+            "zeroedPosition": []
+        }
+    ]
+}
