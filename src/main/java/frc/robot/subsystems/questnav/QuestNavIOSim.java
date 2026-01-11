@@ -69,7 +69,8 @@ public class QuestNavIOSim implements QuestNavIO {
                 getSimulatedPose().transformBy(QuestNavSubsystem.ROBOT_TO_QUEST),
                 Timer.getTimestamp(),
                 Timer.getTimestamp(),
-                frameCounter
+                frameCounter,
+                inputs.isTracking
             ),
         };
 

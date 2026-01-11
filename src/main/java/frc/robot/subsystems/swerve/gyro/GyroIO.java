@@ -20,9 +20,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
-import frc.util.MutableUnitsFromLog;
 import org.littletonrobotics.junction.AutoLog;
-import org.littletonrobotics.junction.LogTable;
 
 /**
  * The IO interface for the gyro. Can be implemented by the real gyro or a simulated gyro.
@@ -75,28 +73,6 @@ public interface GyroIO {
          * The odometry yaw positions. Should correspond with the timestamps {@link #odometryYawTimestamps}.
          */
         public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
-    }
-
-    /**
-     * The auto-logged gyro inputs with a fixed fromLog method for mutable units.
-     */
-    public static class GyroIOInputsAutoLoggedFixed extends GyroIOInputsAutoLogged {
-
-        @Override
-        public void fromLog(LogTable table) {
-            // Default generated code
-            connected = table.get("Connected", connected);
-            yawPosition = table.get("YawPosition", yawPosition);
-            isTipping = table.get("IsTipping", isTipping);
-            velocityAntiTipping = table.get("VelocityAntiTipping", velocityAntiTipping);
-            odometryYawTimestamps = table.get("OdometryYawTimestamps", odometryYawTimestamps);
-            odometryYawPositions = table.get("OdometryYawPositions", odometryYawPositions);
-
-            // Fixed code for mutable units
-            MutableUnitsFromLog.updateMutableMeasureFromLog(table, "YawVelocityRadPerSec", yawVelocityRadPerSec);
-            MutableUnitsFromLog.updateMutableMeasureFromLog(table, "PitchRadians", pitchRadians);
-            MutableUnitsFromLog.updateMutableMeasureFromLog(table, "RollRadians", rollRadians);
-        }
     }
 
     /**

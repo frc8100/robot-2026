@@ -20,8 +20,6 @@ import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.SparkBaseConfig;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.measure.Unit;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
