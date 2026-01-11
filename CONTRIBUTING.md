@@ -125,7 +125,7 @@ For more details on source control, see the [Git documentation](https://git-scm.
 
 ## Code Structure
 
-> [!INFO]
+> [!NOTE]
 > The main code is located in the [`src/main/java/frc`](src/main/java/frc) directory.
 
 The codebase uses several design patterns:
