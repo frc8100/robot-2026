@@ -17,15 +17,6 @@ import frc.robot.subsystems.questnav.QuestNavIO;
 import frc.robot.subsystems.questnav.QuestNavIOReal;
 import frc.robot.subsystems.questnav.QuestNavIOSim;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
-import frc.robot.subsystems.superstructure.SuperstructureConstants;
-import frc.robot.subsystems.superstructure.claw.Claw;
-import frc.robot.subsystems.superstructure.claw.ClawIO;
-import frc.robot.subsystems.superstructure.claw.ClawIOSpark;
-import frc.robot.subsystems.superstructure.claw.ClawSim;
-import frc.robot.subsystems.superstructure.elevator.Elevator;
-import frc.robot.subsystems.superstructure.elevator.ElevatorIO;
-import frc.robot.subsystems.superstructure.elevator.ElevatorIOSim;
-import frc.robot.subsystems.superstructure.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveDrive;
@@ -65,8 +56,6 @@ public class RobotContainer {
     private final Vision visionSubsystem;
     private final QuestNavSubsystem questNavSubsystem;
     private final Swerve swerveSubsystem;
-    private final Claw clawSubsystem;
-    private final Elevator elevatorSubsystem;
 
     private final RobotActions robotActions;
 
@@ -105,9 +94,6 @@ public class RobotContainer {
                         swerveSubsystem
                     )
                 );
-
-                clawSubsystem = new Claw(new ClawIOSpark());
-                elevatorSubsystem = new Elevator(new ElevatorIOSpark());
                 break;
             default:
             case SIM:
@@ -164,11 +150,6 @@ public class RobotContainer {
                     )
                 );
 
-                // Create a simulated claw
-                clawSubsystem = new ClawSim();
-
-                elevatorSubsystem = new Elevator(new ElevatorIOSim());
-
                 // TODO: Add behavior chooser
                 // Create an opponent robot simulation
                 // OpponentRobotSim opponentRobotSim1 = new OpponentRobotSim(
@@ -207,46 +188,19 @@ public class RobotContainer {
                 );
                 questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIO() {});
                 visionSubsystem = new Vision(swerveSubsystem, questNavSubsystem, new VisionIO() {});
-                clawSubsystem = new Claw(new ClawIO() {});
-                elevatorSubsystem = new Elevator(new ElevatorIO() {});
                 break;
         }
 
         SwerveDrive.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
 
         // Set up auto routines
-        robotActions = new RobotActions(swerveSubsystem, elevatorSubsystem, clawSubsystem, visionSubsystem);
+        robotActions = new RobotActions(swerveSubsystem, visionSubsystem);
 
         // Set up teleop swerve command
         swerveSubsystem.setDefaultCommand(swerveSubsystem.stateMachine.getRunnableCommand(swerveSubsystem));
 
         // Register named commands
-        NamedCommands.registerCommand(
-            "ResetSuperstructure",
-            robotActions.setUpSuperstructure(SuperstructureConstants.Level.INITIAL_POSITION)
-        );
-
-        NamedCommands.registerCommand(
-            "SetupSuperstructureL1Auto",
-            robotActions.setUpSuperstructure(SuperstructureConstants.Level.L1_AUTO)
-        );
-        NamedCommands.registerCommand(
-            "SetupSuperstructureL2",
-            robotActions.setUpSuperstructure(SuperstructureConstants.Level.L2)
-        );
-        NamedCommands.registerCommand(
-            "SetupSuperstructureL3",
-            robotActions.setUpSuperstructure(SuperstructureConstants.Level.L3)
-        );
-        NamedCommands.registerCommand(
-            "SetupSuperstructureL4",
-            robotActions.setUpSuperstructure(SuperstructureConstants.Level.L4)
-        );
-
-        NamedCommands.registerCommand("ScoreL4", robotActions.doClawMovementsForL4());
-        NamedCommands.registerCommand("ScoreCoral", clawSubsystem.runOuttakeUntilCoralIsNotInClaw());
-
-        NamedCommands.registerCommand("IntakeCoral", clawSubsystem.runIntakeUntilCoralIsInClaw());
+        // TODO
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -255,13 +209,7 @@ public class RobotContainer {
             setupSysIdRoutines();
         }
 
-        autoChooser.addOption("Coral and Go To All Reefs Test", robotActions.getCoralAndGoToAllReefsTest());
-
         autoChooser.addDefaultOption("Actually move forward", robotActions.actuallyMoveForward());
-        autoChooser.addOption("Push another robot forward", robotActions.pushAnotherRobotForward());
-
-        autoChooser.addOption("runIntakeUntilCoralIsInClaw", clawSubsystem.runIntakeUntilCoralIsInClaw());
-        autoChooser.addOption("runOuttakeUntilCoralIsNotInClaw", clawSubsystem.runOuttakeUntilCoralIsNotInClaw());
 
         // Command to refresh the config
         SmartDashboard.putData("RefreshTunableConfig", TunableValue.getRefreshConfigCommand());
@@ -353,25 +301,15 @@ public class RobotContainer {
      */
     public void simulationPeriodic() {
         // Check all the subsystems are simulated
-        if (!(swerveSubsystem instanceof SwerveSim && clawSubsystem instanceof ClawSim)) {
-            throw new IllegalStateException("Subsystems are not simulated");
-        }
-
-        // Update the simulation
-        ((ClawSim) clawSubsystem).simulationPeriodic((SwerveSim) swerveSubsystem, elevatorSubsystem);
+        // if (!(swerveSubsystem instanceof SwerveSim && clawSubsystem instanceof ClawSim)) {
+        //     throw new IllegalStateException("Subsystems are not simulated");
+        // }
     }
 
     /**
      * Run in `Robot.periodic()`.
      */
-    public void periodic() {
-        // Update telemetry for claw position
-        Logger.recordOutput("ComponentPositions/Claw", clawSubsystem.getPose(elevatorSubsystem.getStage2Pose()));
-        Logger.recordOutput(
-            "ComponentPositions/CoralInClaw",
-            clawSubsystem.getCoralInClawPosition(swerveSubsystem, elevatorSubsystem)
-        );
-    }
+    public void periodic() {}
 
     /**
      * Sets the vision subsystem state to {@link Vision.VisionState#BEFORE_MATCH}.

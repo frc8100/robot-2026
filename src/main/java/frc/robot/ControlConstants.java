@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
-import frc.robot.subsystems.superstructure.claw.ClawConstants;
 
 /**
  * Declares the key values for different values.
@@ -144,116 +143,5 @@ public class ControlConstants {
             strafeAxis = Joystick.AxisType.kX.value;
             rotationAxis = Joystick.AxisType.kZ.value;
         }
-    }
-
-    /**
-     * The controls for the claw.
-     */
-    public static final class Claw {
-
-        private Claw() {}
-
-        /**
-         * The controller used for the claw.
-         * Temporarily the same as the driver controller.
-         */
-        public static final Joystick clawController = new Joystick(1);
-
-        // public static final JoystickButton
-
-        // Buttons for the intake/outtake
-        private static final int intakeBackAxis = XboxController.Axis.kLeftTrigger.value;
-        private static final int intakeOutAxis = XboxController.Axis.kRightTrigger.value;
-
-        /**
-         * Returns the intake or outtake input depending on which one is bigger.
-         * This does not include deadband.
-         * @return A double from [-1, 1]. If it is outtake, it will be negative, otherwise it will be positive.
-         */
-        public static final double getIntakeOrOuttake() {
-            // Get controller input
-            double intakeInput = clawController.getRawAxis(intakeBackAxis);
-            double outtakeInput = clawController.getRawAxis(intakeOutAxis);
-
-            // Get the larger of them
-            if (intakeInput >= outtakeInput) {
-                return ClawConstants.IntakeOuttakeDirection.BACK.getDirection() * intakeInput;
-            } else {
-                return ClawConstants.IntakeOuttakeDirection.OUTTAKE.getDirection() * outtakeInput;
-            }
-        }
-
-        public static final int upButton = XboxController.Button.kB.value;
-        public static final int downButton = XboxController.Button.kA.value;
-
-        public static final int upDownAxis = XboxController.Axis.kRightY.value;
-
-        /**
-         * Amount to increase by per frame
-         */
-        public static final double clawIncreaseAmount = 0.0325;
-
-        public static final double slowAmount = 0.4;
-
-        public static final double getUpOrDown() {
-            return -clawController.getRawAxis(upDownAxis) * (clawController.getRawButton(slowButton) ? slowAmount : 1);
-        }
-
-        public static final int zeroEncoder = XboxController.Button.kLeftBumper.value;
-        public static final int slowButton = XboxController.Button.kRightBumper.value;
-    }
-
-    /**
-     * The controls for the elevator.
-     */
-    public static final class Elevator {
-
-        private Elevator() {}
-
-        /**
-         * The controller used for the elevator.
-         * Temporarily the same as the driver controller.
-         */
-        public static final Joystick elevatorController = Claw.clawController;
-
-        public static final int zeroEncoder = XboxController.Button.kLeftBumper.value;
-
-        public static final int slowButton = XboxController.Button.kRightBumper.value;
-        public static final double slowAmount = 0.4;
-
-        private static final int upDownAxis = XboxController.Axis.kLeftY.value;
-
-        public static final double getUpOrDown() {
-            return (
-                -elevatorController.getRawAxis(upDownAxis) *
-                (elevatorController.getRawButton(slowButton) ? slowAmount : 1)
-            );
-        }
-    }
-
-    /**
-     * The controls for the superstructure.
-     */
-    public static final class Superstructure {
-
-        private Superstructure() {}
-
-        /**
-         * The controller used for the superstructure.
-         * Temporarily the same as the driver controller.
-         */
-        public static final Joystick superstructureController = Claw.clawController;
-
-        public static final POVButton moveToL4 = new POVButton(superstructureController, 90);
-        public static final POVButton moveToL3 = new POVButton(superstructureController, 180);
-        public static final POVButton moveToL2 = new POVButton(superstructureController, 270);
-        public static final POVButton moveToL1 = new POVButton(superstructureController, 0);
-
-        public static final int intakeAlgaeFromL2 = XboxController.Button.kA.value;
-        public static final int intakeAlgaeFromL3 = XboxController.Button.kB.value;
-
-        public static final int clawOuttakeForL4 = XboxController.Button.kY.value;
-
-        public static final int launchAlgae = XboxController.Button.kX.value;
     }
 }

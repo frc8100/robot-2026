@@ -12,7 +12,6 @@ import frc.robot.RobotActions;
 import frc.robot.RobotActions.FieldLocations;
 import frc.robot.RobotActions.GlobalState;
 import frc.robot.RobotActions.ScoreCoralPayload;
-import frc.robot.subsystems.superstructure.SuperstructureConstants;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachine.StateWithPayload;

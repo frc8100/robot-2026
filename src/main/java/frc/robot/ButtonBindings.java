@@ -9,9 +9,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.superstructure.SuperstructureConstants;
-import frc.robot.subsystems.superstructure.claw.Claw;
-import frc.robot.subsystems.superstructure.elevator.Elevator;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
 import frc.robot.subsystems.vision.Vision;
@@ -107,8 +104,6 @@ public class ButtonBindings {
     // Subsystem references
     private final RobotActions autoRoutines;
     private final Swerve swerveSubsystem;
-    private final Elevator elevatorSubsystem;
-    private final Claw clawSubsystem;
     private final Vision visionSubsystem;
 
     private final Controller driverController = new Controller(0);
@@ -119,8 +114,6 @@ public class ButtonBindings {
 
         // Get subsystems from AutoRoutines
         this.swerveSubsystem = autoRoutines.swerveSubsystem;
-        this.elevatorSubsystem = autoRoutines.elevatorSubsystem;
-        this.clawSubsystem = autoRoutines.clawSubsystem;
         this.visionSubsystem = autoRoutines.visionSubsystem;
     }
 
@@ -132,61 +125,22 @@ public class ButtonBindings {
         driverController
             .getJoystickButton(ControlConstants.mainDriveControls.zeroGyroButton)
             .onTrue(Commands.runOnce(swerveSubsystem::zeroGyro));
-
         // Toggle drive to coral station state
-        StateCycle<SwerveState, Supplier<Pose2d>> toggleDriveToCoralStation =
-            swerveSubsystem.stateMachine.createStateCycleWithPayload(
-                List.of(
-                    new StateMachine.StateWithPayload<>(SwerveState.FULL_DRIVER_CONTROL, null),
-                    new StateMachine.StateWithPayload<>(
-                        SwerveState.DRIVE_TO_POSE_PATHFINDING,
-                        RobotActions.FieldLocations.CORAL_STATION_1::getPose
-                    )
-                ),
-                StateCycle.StateCycleBehavior.RELY_ON_INDEX
-            );
+        // StateCycle<SwerveState, Supplier<Pose2d>> toggleDriveToCoralStation =
+        //     swerveSubsystem.stateMachine.createStateCycleWithPayload(
+        //         List.of(
+        //             new StateMachine.StateWithPayload<>(SwerveState.FULL_DRIVER_CONTROL, null),
+        //             new StateMachine.StateWithPayload<>(
+        //                 SwerveState.DRIVE_TO_POSE_PATHFINDING,
+        //                 RobotActions.FieldLocations.CORAL_STATION_1::getPose
+        //             )
+        //         ),
+        //         StateCycle.StateCycleBehavior.RELY_ON_INDEX
+        //     );
 
-        driverController
-            .getJoystickButton(XboxController.Button.kA)
-            .onTrue(Commands.runOnce(toggleDriveToCoralStation::scheduleNextState));
-
-        // Claw
-        operatorController
-            .getJoystickButton(ControlConstants.Claw.zeroEncoder)
-            .onTrue(Commands.runOnce(() -> clawSubsystem.io.zeroEncoder(0)));
-        operatorController
-            .getJoystickButton(ControlConstants.Superstructure.clawOuttakeForL4)
-            .whileTrue(autoRoutines.doClawMovementsForL4());
-
-        // Elevator
-        operatorController
-            .getJoystickButton(ControlConstants.Elevator.zeroEncoder)
-            .onTrue(Commands.runOnce(() -> elevatorSubsystem.io.zeroEncoder(0)));
-
-        // Superstructure
-        operatorController
-            .getPOVButton(Controller.POVButtonDirection.UP)
-            .whileTrue(autoRoutines.setUpSuperstructure(SuperstructureConstants.Level.INITIAL_POSITION));
-        operatorController
-            .getPOVButton(Controller.POVButtonDirection.LEFT)
-            .whileTrue(autoRoutines.setUpSuperstructure(SuperstructureConstants.Level.L2));
-        operatorController
-            .getPOVButton(Controller.POVButtonDirection.DOWN)
-            .whileTrue(autoRoutines.setUpSuperstructure(SuperstructureConstants.Level.L3));
-        operatorController
-            .getPOVButton(Controller.POVButtonDirection.RIGHT)
-            .whileTrue(autoRoutines.setUpSuperstructure(SuperstructureConstants.Level.L4));
-
-        // Algae presets
-        operatorController
-            .getJoystickButton(ControlConstants.Superstructure.intakeAlgaeFromL2)
-            .whileTrue(autoRoutines.intakeAlgae(SuperstructureConstants.Level.ALGAE_L2));
-        operatorController
-            .getJoystickButton(ControlConstants.Superstructure.intakeAlgaeFromL3)
-            .whileTrue(autoRoutines.intakeAlgae(SuperstructureConstants.Level.ALGAE_L3));
-        operatorController
-            .getJoystickButton(ControlConstants.Superstructure.launchAlgae)
-            .whileTrue(autoRoutines.launchAlgae());
+        // driverController
+        //     .getJoystickButton(XboxController.Button.kA)
+        //     .onTrue(Commands.runOnce(toggleDriveToCoralStation::scheduleNextState));
     }
 
     public void configureSimulationBindings() {
@@ -208,14 +162,5 @@ public class ButtonBindings {
     /**
      * Assigns default commands to subsystems.
      */
-    public void assignDefaultCommands() {
-        clawSubsystem.setDefaultCommand(
-            clawSubsystem.getRunAndAngleCommand(
-                ControlConstants.Claw::getIntakeOrOuttake,
-                ControlConstants.Claw::getUpOrDown
-            )
-        );
-
-        elevatorSubsystem.setDefaultCommand(elevatorSubsystem.getUpOrDown(ControlConstants.Elevator::getUpOrDown));
-    }
+    public void assignDefaultCommands() {}
 }
