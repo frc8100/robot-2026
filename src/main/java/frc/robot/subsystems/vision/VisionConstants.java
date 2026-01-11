@@ -13,6 +13,7 @@
 
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
@@ -21,7 +22,6 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.measure.Distance;
-import java.util.List;
 import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.SimCameraProperties;
 
@@ -43,24 +43,14 @@ public class VisionConstants {
      * A type of game piece observation that can be detected by the neural detector.
      */
     public enum GamePieceObservationType {
-        CORAL(
-            "Coral",
-            1,
-            new TargetModel(Inches.of(11.875).in(Meters), Inches.of(4).in(Meters), Inches.of(4).in(Meters)),
-            Inches.of(2)
-        ),
-        ALGAE("Algae", 2, new TargetModel(Inches.of(16.25).in(Meters)), Inches.of(16.25 / 2));
+        FUEL("Fuel", 1, new TargetModel(Centimeters.of(15).in(Meters)), Centimeters.of(7.5));
 
         /**
          * @param classID - The class ID from the neural detector.
-         * @return The GamePieceObservationType for the given class ID, or null if not found.
+         * @return The GamePieceObservationType for the given class ID (starting at 1), or null if not found.
          */
         public static GamePieceObservationType fromClassID(int classID) {
-            return switch (classID) {
-                case 1 -> CORAL;
-                case 2 -> ALGAE;
-                default -> CORAL;
-            };
+            return FUEL;
         }
 
         /**
@@ -70,11 +60,7 @@ public class VisionConstants {
          * @return The GamePieceObservationType for the given array index.
          */
         public static GamePieceObservationType fromArrayIndex(int index) {
-            return switch (index) {
-                case 0 -> CORAL;
-                case 1 -> ALGAE;
-                default -> CORAL;
-            };
+            return FUEL;
         }
 
         /**
@@ -82,11 +68,7 @@ public class VisionConstants {
          * @return The GamePieceObservationType for the given class name, or null if not found.
          */
         public static GamePieceObservationType fromClassName(String className) {
-            return switch (className) {
-                case "Coral" -> CORAL;
-                case "Algae" -> ALGAE;
-                default -> CORAL;
-            };
+            return FUEL;
         }
 
         /**
@@ -131,26 +113,6 @@ public class VisionConstants {
             this.heightOffFloor = heightOffFloor;
         }
     }
-
-    /**
-     * A list of all the tag IDs on the reefs, for localization purposes.
-     */
-    public static final List<Integer> REEF_APRILTAG_IDS = List.of(
-        // Red
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        // Blue
-        17,
-        18,
-        19,
-        20,
-        21,
-        22
-    );
 
     /**
      * Camera names, must match names configured on coprocessor

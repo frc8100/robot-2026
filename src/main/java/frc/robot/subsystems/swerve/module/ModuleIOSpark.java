@@ -37,8 +37,8 @@ import frc.robot.subsystems.swerve.OdometryThread;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveModuleSpecificConstants;
 import frc.robot.subsystems.swerve.SwerveModuleSpecificConstants.RobotSwerveModuleConstants;
-import frc.util.CoupledYAMSSubsystemIO;
 import frc.util.SparkUtil;
+import frc.util.SubsystemIOUtil;
 import frc.util.TunableValue;
 import java.util.Queue;
 
@@ -213,7 +213,7 @@ public class ModuleIOSpark implements ModuleIO {
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
         // Update drive inputs
-        inputs.driveMotorConnected = CoupledYAMSSubsystemIO.updateDataFromSpark(
+        inputs.driveMotorConnected = SubsystemIOUtil.updateDataFromSpark(
             inputs.driveMotorData,
             driveMotor,
             relativeDriveEncoder,
@@ -227,7 +227,7 @@ public class ModuleIOSpark implements ModuleIO {
 
         // Update turn inputs
         inputs.turnAbsolutePosition = getAngle();
-        inputs.turnMotorConnected = CoupledYAMSSubsystemIO.updateDataFromSpark(
+        inputs.turnMotorConnected = SubsystemIOUtil.updateDataFromSpark(
             inputs.turnMotorData,
             angleMotor,
             relativeAngleEncoder,

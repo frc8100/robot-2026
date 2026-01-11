@@ -15,15 +15,14 @@ package frc.robot.subsystems.swerve.module;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.util.CoupledYAMSSubsystemIO;
+import frc.util.SubsystemIOUtil.SparkMotorControllerData;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ModuleIO {
     @AutoLog
     public static class ModuleIOInputs {
 
-        public CoupledYAMSSubsystemIO.SparkMotorControllerData driveMotorData =
-            new CoupledYAMSSubsystemIO.SparkMotorControllerData();
+        public SparkMotorControllerData driveMotorData = new SparkMotorControllerData();
 
         public boolean driveMotorConnected = true;
 
@@ -32,8 +31,7 @@ public interface ModuleIO {
          */
         public double driveFFVolts = 0.0;
 
-        public CoupledYAMSSubsystemIO.SparkMotorControllerData turnMotorData =
-            new CoupledYAMSSubsystemIO.SparkMotorControllerData();
+        public SparkMotorControllerData turnMotorData = new SparkMotorControllerData();
 
         public boolean turnMotorConnected = true;
 
