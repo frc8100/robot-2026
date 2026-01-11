@@ -1,17 +1,16 @@
 {
   "hubs": [
     {
-      "x": 391,
-      "y": 140,
-      "width": 1100,
-      "height": 650,
+      "x": 226,
+      "y": 134,
+      "width": 1411,
+      "height": 806,
       "state": {
         "sidebar": {
-          "width": 300,
+          "width": 348,
           "expanded": [
             "/AdvantageKit/Drive/Module1/TurnPosition",
             "/Tuning/Claw",
-            "/photonvision/limelight",
             "/Tuning/Drive",
             "/AdvantageKit/RealOutputs/Align/positions",
             "/AdvantageKit/RealOutputs/Align/Positions",
@@ -36,20 +35,39 @@
             "/RealOutputs/SysId",
             "/RealOutputs/SysId/FFCharacterization",
             "/AdvantageKit",
-            "/AdvantageKit/RealOutputs/Swerve/States",
             "/AdvantageKit/RealOutputs/Swerve/States/Measured/0",
             "/AdvantageKit/RealOutputs/Swerve/States/Setpoints/0",
             "/AdvantageKit/Drive/Module0",
-            "/AdvantageKit/RealOutputs/Vision",
             "/AdvantageKit/QuestNav/UnreadPoseFrames",
             "/AdvantageKit/RealOutputs",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/LatestPoses/0",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/LatestPoses/0/translation",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/1/latestPose",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/1/latestPose/translation",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/1/estimatedPose",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/2",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/2/estimatedPose",
+            "/photonvision",
+            "/PathPlanner/targetPose/translation",
+            "/PathPlanner/currentPose/rotation",
+            "/PathPlanner/currentPose/translation",
+            "/PathPlanner/targetPose",
+            "/AdvantageKit/LocalADStarAK",
             "/AdvantageKit/RealOutputs/Vision/GamePieces",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral",
-            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/LatestPoses"
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0/estimatedPose",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0/estimatedPose/rotation",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0/estimatedPose/translation",
+            "/AdvantageKit/RealOutputs/Simulation/Claw",
+            "/AdvantageKit/RealOutputs/Swerve",
+            "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds",
+            "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Measured"
           ]
         },
         "tabs": {
-          "selected": 3,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -65,30 +83,20 @@
               "controller": {
                 "sources": [
                   {
-                    "type": "robot",
+                    "type": "ghost",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Field",
                     "logType": "Pose2d",
                     "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "swerveStates",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Measured",
-                    "logType": "SwerveModuleState[]",
-                    "visible": true,
                     "options": {
-                      "color": "#ff0000",
-                      "arrangement": "0,1,2,3"
+                      "color": "#ffff00"
                     }
                   },
                   {
-                    "type": "ghost",
+                    "type": "robot",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
                     "logType": "Pose2d",
                     "visible": true,
-                    "options": {
-                      "color": "#00ff00"
-                    }
+                    "options": {}
                   },
                   {
                     "type": "vision",
@@ -98,6 +106,16 @@
                     "options": {
                       "color": "#00ff00",
                       "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "swerveStates",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Measured",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000",
+                      "arrangement": "0,1,2,3"
                     }
                   },
                   {
@@ -142,6 +160,15 @@
                     "visible": false,
                     "options": {
                       "color": "#ff8c00"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AP/Target",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ffff"
                     }
                   }
                 ],
@@ -203,6 +230,15 @@
                     "visible": true,
                     "options": {
                       "color": "#0000ff"
+                    }
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AP/Speeds",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00"
                     }
                   },
                   {
@@ -322,7 +358,7 @@
                     "type": "gamePiece",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Simulation/Field/Coral",
                     "logType": "Pose3d[]",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "variant": "Coral"
                     }
@@ -331,7 +367,7 @@
                     "type": "gamePiece",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Simulation/Field/Algae",
                     "logType": "Pose3d[]",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "variant": "Algae"
                     }
@@ -380,14 +416,14 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -1.7983216668043052,
-                  4.071401764486272,
-                  -2.1198684401927648
+                  9.387546476317064,
+                  4.500262897319754,
+                  4.042215789259306
                 ],
                 "cameraTarget": [
-                  -2.0853926215349814,
-                  3.312863642713955,
-                  -1.5348811029211415
+                  5.815128936384762,
+                  0.13515334001721407,
+                  -1.52868576724372
                 ]
               },
               "controlsHeight": 245
@@ -401,9 +437,29 @@
                     "type": "stepped",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Magnitude",
                     "logType": "Number",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Accelerations/0",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#c0b487",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Measured/omega",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#3b875a",
                       "size": "normal"
                     }
                   }
@@ -426,6 +482,26 @@
                     "visible": false,
                     "options": {
                       "color": "#80588e",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Accelerations/0",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#e48b32",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Measured/omega",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#858584",
                       "size": "normal"
                     }
                   }
