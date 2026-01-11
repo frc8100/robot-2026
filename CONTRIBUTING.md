@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is open to contributions. If you would like to contribute, please follow the guidelines below.
+This repository is primarily open to contributions by FRC 8100 team members. If you would like to contribute, please follow the guidelines below.
 
 ## Dependencies
 
@@ -8,11 +8,22 @@ Dependencies are automatically installed unless specified otherwise. The followi
 
  - [AdvantageKit](https://docs.advantagekit.org/)
      - For use with [AdvantageScope](https://docs.advantagescope.org/)
+ - [Autopilot](https://therekrab.github.io/autopilot/)
+      - For path following
+ - [CTRE Phoenix 6](https://v6.docs.ctr-electronics.com/en/stable/)
+     - For use with Pigeon2 IMU and CANCoders
+ - [Maple Sim](https://shenzhen-robotics-alliance.github.io/maple-sim/)
+     - Simulation library
  - [PathplannerLib](https://pathplanner.dev/pathplannerlib.html)
      - For use with [PathPlanner](https://pathplanner.dev/home.html) (needs to be installed separately)
- - [CTRE Phoenix 6](https://v6.docs.ctr-electronics.com/en/stable/)
+ - [PhotonVision](https://docs.photonvision.org/en/latest/)
+     - Simulation of vision
+ - [QuestNav](https://questnav.gg/)
+     - For use with QuestNav for localization
  - [REVLib](https://docs.revrobotics.com/revlib)
  - [Limelight](https://docs.limelightvision.io/docs/docs-limelight/apis/limelight-lib)
+ - [YAMS](https://yagsl.gitbook.io/yams)
+     - For developing subsystems
 
 ## Getting Started
 
@@ -111,6 +122,16 @@ If any changes are made on this repository, you also need to pull/sync the chang
 > Also, see [this article](https://www.atlassian.com/git) and [this article](https://product.hubspot.com/blog/git-and-github-tutorial-for-beginners) for more info about git.
 
 For more details on source control, see the [Git documentation](https://git-scm.com/doc).
+
+## Code Structure
+
+> [!INFO]
+> The main code is located in the [`src/main/java/frc`](src/main/java/frc) directory.
+
+The codebase uses several design patterns:
+ - [Advantagekit IO structure](https://docs.advantagekit.org/getting-started/what-is-advantagekit/)
+    - Subsystems have their own `IO` classes, which each can have multiple implementations (e.g., real robot, simulation, etc.)
+ - [Command-based programming](https://docs.wpilib.org/en/stable/docs/software/commandbased/index.html) with custom state machines ([`src/main/java/frc/util/statemachine/StateMachine.java`](src/main/java/frc/util/statemachine/StateMachine.java))
 
 ## Troubleshooting
 
