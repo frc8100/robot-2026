@@ -22,14 +22,15 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
 import java.nio.ByteBuffer;
-import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.local.SparkWrapper;
 
 /**
- * IO interface for coupled YAMS subsystems using Spark motor controllers.
- * - A coupled YAMS subsystem is one that only uses one motor controller to control a mechanism.
+ * Utility class for subsystem IO.
  */
-public interface CoupledYAMSSubsystemIO {
+public final class SubsystemIOUtil {
+
+    private SubsystemIOUtil() {}
+
     /**
      * The data structure for Spark motor controllers.
      */
@@ -294,9 +295,4 @@ public interface CoupledYAMSSubsystemIO {
 
         return !SparkUtil.sparkStickyFault;
     }
-
-    /**
-     * @return The motor controller used by the subsystem.
-     */
-    public abstract SmartMotorController getMotorController();
 }
