@@ -139,38 +139,37 @@ public class RobotActions {
     public RobotActions(Swerve swerveSubsystem, Vision visionSubsystem) {
         this.swerveSubsystem = swerveSubsystem;
         this.visionSubsystem = visionSubsystem;
-
         // test
-        globalStateMachine.onStateChange(
-            GlobalState.INTAKE_CORAL_FROM_STATION,
-            IntakeCoralPayload.class,
-            (previousState, payload) -> {
-                // debug
-                System.out.println("Switched to INTAKE_CORAL_FROM_STATION state with payload:");
-                System.out.println("Target Coral Station: " + payload.targetCoralStation());
+        // globalStateMachine.onStateChange(
+        //     GlobalState.INTAKE_CORAL_FROM_STATION,
+        //     IntakeCoralPayload.class,
+        //     (previousState, payload) -> {
+        //         // debug
+        //         System.out.println("Switched to INTAKE_CORAL_FROM_STATION state with payload:");
+        //         System.out.println("Target Coral Station: " + payload.targetCoralStation());
 
-                swerveSubsystem.stateMachine.scheduleStateChange(
-                    new StateWithPayload<>(
-                        Swerve.SwerveState.DRIVE_TO_POSE_PATHFINDING,
-                        payload.targetCoralStation()::getPose
-                    )
-                );
-            }
-        );
+        //         swerveSubsystem.stateMachine.scheduleStateChange(
+        //             new StateWithPayload<>(
+        //                 Swerve.SwerveState.DRIVE_TO_POSE_PATHFINDING,
+        //                 payload.targetCoralStation()::getPose
+        //             )
+        //         );
+        //     }
+        // );
 
-        globalStateMachine.onStateChange(GlobalState.SCORE_CORAL, ScoreCoralPayload.class, (previousState, payload) -> {
-            // debug
-            System.out.println("Switched to SCORE_CORAL state with payload:");
-            System.out.println("Target Branch: " + payload.targetReefLocation());
-            System.out.println("Target Level: " + payload.targetLevel());
+        // globalStateMachine.onStateChange(GlobalState.SCORE_CORAL, ScoreCoralPayload.class, (previousState, payload) -> {
+        //     // debug
+        //     System.out.println("Switched to SCORE_CORAL state with payload:");
+        //     System.out.println("Target Branch: " + payload.targetReefLocation());
+        //     System.out.println("Target Level: " + payload.targetLevel());
 
-            swerveSubsystem.stateMachine.scheduleStateChange(
-                new StateWithPayload<>(
-                    Swerve.SwerveState.DRIVE_TO_POSE_PATHFINDING,
-                    payload.targetReefLocation()::getPose
-                )
-            );
-        });
+        //     swerveSubsystem.stateMachine.scheduleStateChange(
+        //         new StateWithPayload<>(
+        //             Swerve.SwerveState.DRIVE_TO_POSE_PATHFINDING,
+        //             payload.targetReefLocation()::getPose
+        //         )
+        //     );
+        // });
     }
 
     /**

@@ -46,6 +46,7 @@ import frc.util.statemachine.StateMachineState;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -92,14 +93,28 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         FULL_AUTONOMOUS_PATH_FOLLOWING,
     }
 
+    public record SwervePayload(
+        Supplier<Pose2d> poseSupplier,
+        BooleanSupplier shouldRotateToPoseSupplier,
+        Supplier<Pose2d> poseToRotateToSupplier
+    ) {
+        /**
+         * Creates a SwervePayload that does not rotate to the target pose.
+         * @param poseSupplier - The supplier of the target pose.
+         */
+        public static SwervePayload fromPoseSupplierNoRotate(Supplier<Pose2d> poseSupplier) {
+            return new SwervePayload(poseSupplier, () -> false, () -> Pose2d.kZero);
+        }
+    }
+
     /**
      * The state machine for the swerve subsystem.
      * The payload is the target pose for the robot when in {@link SwerveState#DRIVE_TO_POSE}.
      */
-    public final StateMachine<SwerveState, Supplier<Pose2d>> stateMachine = new StateMachine<
-        SwerveState,
-        Supplier<Pose2d>
-    >(SwerveState.class, "Swerve")
+    public final StateMachine<SwerveState, SwervePayload> stateMachine = new StateMachine<SwerveState, SwervePayload>(
+        SwerveState.class,
+        "Swerve"
+    )
         .withDefaultState(new StateMachineState<>(SwerveState.FULL_DRIVER_CONTROL, "Manual"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_PATHFINDING, "InitialPathfinding"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_PID, "PIDAlignment"))

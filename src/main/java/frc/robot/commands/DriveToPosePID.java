@@ -12,9 +12,12 @@ import com.therekrab.autopilot.Autopilot;
 import com.therekrab.autopilot.Autopilot.APResult;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.util.PoseUtil;
 import java.util.Optional;
@@ -26,6 +29,19 @@ import org.littletonrobotics.junction.Logger;
  * Uses a PID controller to drive the robot to a specified pose. Does not use path finding/obstacle avoidance.
  */
 public class DriveToPosePID {
+
+    /**
+     * Gets the rotation target in radians to face the target pose from the robot pose. Only considers translation, not rotation.
+     * @param robotPose - The current robot pose.
+     * @param targetPose - The target pose.
+     * @return The rotation target in radians.
+     */
+    public static double getRotationTargetRadians(Pose2d robotPose, Pose2d targetPose) {
+        Translation2d deltaTranslation = robotPose.getTranslation().minus(targetPose.getTranslation());
+
+        Rotation2d targetRotation = deltaTranslation.getAngle();
+        return targetRotation.getRadians();
+    }
 
     /**
      * A record containing whether the robot is at each target.
@@ -60,6 +76,8 @@ public class DriveToPosePID {
     private static final Angle finalAlignmentAngleTolerance = Degrees.of(360);
 
     private final Swerve swerveSubsystem;
+
+    private SwervePayload currentPayload;
 
     /**
      * A supplier that provides the target pose to drive to.
@@ -102,6 +120,7 @@ public class DriveToPosePID {
     public DriveToPosePID(Swerve swerveSubsystem, Supplier<Pose2d> targetPoseSupplier) {
         this.swerveSubsystem = swerveSubsystem;
         this.targetPoseSupplier = targetPoseSupplier;
+        this.currentPayload = SwervePayload.fromPoseSupplierNoRotate(this.targetPoseSupplier);
 
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
         rotationController.reset();
@@ -198,16 +217,22 @@ public class DriveToPosePID {
      */
     public ChassisSpeeds getChassisSpeeds() {
         boolean poseChanged = hasPoseChanged();
+        boolean shouldRotateToTarget = currentPayload.shouldRotateToPoseSupplier().getAsBoolean();
 
         Pose2d currentPose = swerveSubsystem.getPose();
 
+        // Calculate translation chassis speeds from autopilot
         APResult autopilotResult = autopilot.calculate(
             currentPose,
             swerveSubsystem.getChassisSpeeds(),
             autopilotTarget
         );
 
-        var test = ChassisSpeeds.fromFieldRelativeSpeeds(
+        // double rotationTargetRad = shouldRotateToTarget
+        //     ? lastTargetPose.getRotation().getRadians()
+        //     : currentPose.getRotation().getRadians();
+
+        ChassisSpeeds outputSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
             autopilotResult.vx(),
             autopilotResult.vy(),
             RadiansPerSecond.of(
@@ -221,6 +246,6 @@ public class DriveToPosePID {
 
         Logger.recordOutput("AP/Target", autopilotTarget.getReference());
 
-        return test;
+        return outputSpeeds;
     }
 }
