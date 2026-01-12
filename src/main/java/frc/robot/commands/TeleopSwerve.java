@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.ControlConstants;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import java.util.Optional;
@@ -227,18 +228,20 @@ public class TeleopSwerve {
         );
     }
 
-    private void handleInitialPathfinding(Optional<Supplier<Pose2d>> targetPoseSupplier) {
+    private void handleInitialPathfinding(Optional<SwervePayload> payloadOptional) {
         if (
             // The pathfinding command is already running
             pathFindToPoseCommand != null ||
             // No target pose supplier
-            targetPoseSupplier.isEmpty()
+            payloadOptional.isEmpty()
         ) {
             // Skip
             return;
         }
 
-        Pose2d targetPose = targetPoseSupplier.get().get();
+        SwervePayload payload = payloadOptional.get();
+        Supplier<Pose2d> targetPoseSupplier = payload.poseSupplier();
+        Pose2d targetPose = targetPoseSupplier.get();
 
         Logger.recordOutput(swerveSubsystem.stateMachine.dashboardKey + "/TargetPose", targetPose);
 
@@ -265,7 +268,7 @@ public class TeleopSwerve {
         CommandScheduler.getInstance().schedule(pathFindToPoseCommand);
     }
 
-    private void handleFinalAlignment(Optional<Supplier<Pose2d>> targetPoseSupplier) {
+    private void handleFinalAlignment(Optional<SwervePayload> payloadOptional) {
         driveToPoseCommand.setOptionalPoseSupplier(targetPoseSupplier);
 
         // Run final alignment
