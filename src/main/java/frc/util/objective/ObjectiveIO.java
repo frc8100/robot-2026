@@ -43,6 +43,22 @@ public interface ObjectiveIO {
         }
 
         /**
+         * Converts a {@link DriverStation.Alliance} to the opposite {@link ActiveHub}.
+         * @param alliance - The alliance to convert.
+         * @return The corresponding ActiveHub.
+         */
+        public static ActiveHub fromOppositeAlliance(DriverStation.Alliance alliance) {
+            switch (alliance) {
+                case Red:
+                    return BLUE;
+                case Blue:
+                    return RED;
+                default:
+                    return ALL;
+            }
+        }
+
+        /**
          * Checks if the given hub is active for the given alliance.
          * @param hub - The hub to check.
          * @param alliance - The alliance to check.
@@ -87,4 +103,8 @@ public interface ObjectiveIO {
     }
 
     public default void updateInputs(ObjectiveIOInputs inputs) {}
+
+    public default void resetForAuto() {}
+
+    public default void resetForTeleop() {}
 }
