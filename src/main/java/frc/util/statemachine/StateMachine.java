@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 // "An idiot admires complexity, a genius admires simplicity"
 
@@ -112,6 +111,11 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
      * Can be null.
      */
     private TPayload currentPayload = null;
+
+    /**
+     * The payload associated with the current state, wrapped in an Optional for caching.
+     */
+    private Optional<TPayload> currentPayloadOptional = Optional.empty();
 
     /**
      * The default state of the subsystem.
@@ -299,6 +303,7 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
 
     private void setStateAndUpdate(StateWithPayload<TStateEnum, TPayload> stateWithPayload) {
         currentPayload = stateWithPayload.payload;
+        currentPayloadOptional = Optional.ofNullable(currentPayload);
         setStateAndUpdate(stateWithPayload.state);
     }
 
@@ -398,7 +403,6 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
             return Commands.waitUntil(
                 () -> scheduledStateChange == null && currentState != null && currentState.enumType == newState
             );
-            // CommandScheduler.getInstance().clearComposedCommands();
         }
     }
 
@@ -507,7 +511,7 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
      * @return The payload associated with the current state, if any.
      */
     public Optional<TPayload> getCurrentPayload() {
-        return Optional.ofNullable(currentPayload);
+        return currentPayloadOptional;
     }
 
     /**

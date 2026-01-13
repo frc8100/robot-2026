@@ -127,6 +127,7 @@ public class StateCycle<TStateEnum extends Enum<TStateEnum>, TPayload> {
             return Optional.of(states.get(currentIndex));
         } catch (IndexOutOfBoundsException e) {
             // Should never happen, but just in case
+            e.printStackTrace();
             return Optional.empty();
         }
     }
