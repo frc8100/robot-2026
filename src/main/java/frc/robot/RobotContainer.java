@@ -102,8 +102,9 @@ public class RobotContainer {
                     // Use an empty arena for SysId to reduce obstacles
                     SimulatedArena.overrideInstance(new EmptySimulationArena());
                 } else {
-                    // Use the reefscape arena for normal sim
-                    SimulatedArena.overrideInstance(new Arena2025Reefscape());
+                    // TODO: Use rebuilt arena when maple sim updates
+                    // SimulatedArena.overrideInstance(new Arena2025Reefscape());
+                    SimulatedArena.overrideInstance(new EmptySimulationArena());
                 }
 
                 SimulatedArena.getInstance().placeGamePiecesOnField();

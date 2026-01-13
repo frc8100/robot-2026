@@ -36,6 +36,11 @@ public class TeleopSwerve {
      */
     public final DriveToPosePID driveToPoseCommand;
 
+    /**
+     * The auto-aim command.
+     */
+    public final AimToTarget autoAim = new AimToTarget();
+
     private Command pathFindToPoseCommand = null;
 
     /**
@@ -98,7 +103,7 @@ public class TeleopSwerve {
         this.speedDial = speedDial;
         this.logValues = logValues;
 
-        driveToPoseCommand = new DriveToPosePID(this.swerveSubsystem, this.swerveSubsystem::getPose);
+        driveToPoseCommand = new DriveToPosePID(this.swerveSubsystem, this.autoAim);
 
         logCurrentStates();
 
@@ -112,6 +117,7 @@ public class TeleopSwerve {
 
         // Bindings
         swerveSubsystem.stateMachine.whileState(SwerveState.FULL_DRIVER_CONTROL, this::driveFullDriverControl);
+        swerveSubsystem.stateMachine.whileState(SwerveState.AUTO_AIM, this::handleAutoAim);
         swerveSubsystem.stateMachine.whileState(SwerveState.DRIVE_TO_POSE_PATHFINDING, this::handleInitialPathfinding);
         swerveSubsystem.stateMachine.whileState(SwerveState.DRIVE_TO_POSE_PID, this::handleFinalAlignment);
         swerveSubsystem.stateMachine.whileState(SwerveState.DRIVE_TO_POSE_AT_TARGET, this::handleAtTarget);
@@ -140,12 +146,9 @@ public class TeleopSwerve {
         double translationInput = translationSupplier.getAsDouble();
         double strafeInput = strafeSupplier.getAsDouble();
         double rotationInput = rotationSupplier.getAsDouble();
-
-        /**
-         * The constant to multiply each value by
-         */
         double speedMultiplier = speedDial.getAsDouble();
 
+        // Apply deadband and scale to max speed
         double vxMetersPerSecond =
             MathUtil.applyDeadband(translationInput, SwerveConstants.DRIVE_STICK_DEADBAND) *
             speedMultiplier *
@@ -159,13 +162,6 @@ public class TeleopSwerve {
             MathUtil.applyDeadband(rotationInput, SwerveConstants.DRIVE_STICK_DEADBAND) *
             speedMultiplier *
             SwerveConstants.ANGULAR_VELOCITY_FOR_TELEOP.in(RadiansPerSecond);
-
-        // Log the values
-        if (logValues) {
-            Logger.recordOutput("Swerve/TranslationInput", translationInput);
-            Logger.recordOutput("Swerve/StrafeInput", strafeInput);
-            Logger.recordOutput("Swerve/RotationInput", rotationInput);
-        }
 
         return swerveSubsystem.getSpeedsFromTranslation(
             vxMetersPerSecond,
@@ -228,6 +224,34 @@ public class TeleopSwerve {
         );
     }
 
+    /**
+     * Handles auto-aiming.
+     */
+    private void handleAutoAim(Optional<SwervePayload> payloadOptional) {
+        ChassisSpeeds desiredChassisSpeeds = getChassisSpeedsFromControls();
+
+        if (!payloadOptional.isPresent()) {
+            // No target, just drive normally
+            swerveSubsystem.runVelocityChassisSpeeds(desiredChassisSpeeds);
+            return;
+        }
+
+        // Override rotation with auto-aim
+        Pose2d robotPose = swerveSubsystem.getPose();
+        Pose2d targetPose = payloadOptional.get().poseToRotateToSupplier().get();
+
+        desiredChassisSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond(
+            robotPose,
+            targetPose,
+            desiredChassisSpeeds
+        );
+
+        swerveSubsystem.runVelocityChassisSpeeds(desiredChassisSpeeds);
+    }
+
+    /**
+     * Handles the initial pathfinding to the target pose.
+     */
     private void handleInitialPathfinding(Optional<SwervePayload> payloadOptional) {
         if (
             // The pathfinding command is already running
@@ -268,8 +292,11 @@ public class TeleopSwerve {
         CommandScheduler.getInstance().schedule(pathFindToPoseCommand);
     }
 
+    /**
+     * Handles the final alignment to the target pose.
+     */
     private void handleFinalAlignment(Optional<SwervePayload> payloadOptional) {
-        driveToPoseCommand.setOptionalPoseSupplier(targetPoseSupplier);
+        driveToPoseCommand.setOptionalPayload(payloadOptional);
 
         // Run final alignment
         swerveSubsystem.runVelocityChassisSpeeds(applyInputNudge(driveToPoseCommand.getChassisSpeeds()));
@@ -282,6 +309,9 @@ public class TeleopSwerve {
         logCurrentStates();
     }
 
+    /**
+     * Handles being at the target pose.
+     */
     private void handleAtTarget() {
         // If the robot is ever not at the target, go back to final alignment
         if (!driveToPoseCommand.atTarget.getAsBoolean()) {

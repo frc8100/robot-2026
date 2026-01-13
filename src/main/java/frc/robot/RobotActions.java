@@ -1,5 +1,8 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
+
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import frc.robot.commands.DriveToPosePID;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.util.PoseUtil;
@@ -26,28 +30,18 @@ import java.util.function.Supplier;
 public class RobotActions {
 
     /**
-     * The types of field locations.
-     */
-    public enum FieldLocationType {
-        LEFT_REEF,
-        RIGHT_REEF,
-        CORAL_STATION,
-        PROCESSOR,
-    }
-
-    /**
      * Locations of the robot to interact with the field elements.
      * Pose is relative to the blue alliance.
      */
     public enum FieldLocations {
-        REEF_1L(new Pose2d(3.74, 5, Rotation2d.fromDegrees(-60)), FieldLocationType.LEFT_REEF, 19, 6);
+        /**
+         * The center of the hub.
+         */
+        // TODO: refine measurement
+        HUB(new Pose2d(Inches.of(158.6 + (47.0 / 2.0)), Meters.of(4), Rotation2d.kZero));
 
-        private final Pose2d pose;
-        private final FieldLocationType type;
-
-        // TODO: AprilTag IDs
-        public final int blueAprilTagId;
-        public final int redAprilTagId;
+        private final Pose2d blueAlliancePose;
+        private final Pose2d redAlliancePose;
 
         /**
          * @return The pose of the location. Automatically flips if necessary.
@@ -55,27 +49,27 @@ public class RobotActions {
          * Also takes into account the current alliance color.
          */
         public Pose2d getPose(boolean shouldFlip) {
-            return (shouldFlip && PoseUtil.shouldFlip()) ? FlippingUtil.flipFieldPose(pose) : pose;
+            return (shouldFlip && PoseUtil.shouldFlip()) ? redAlliancePose : blueAlliancePose;
         }
 
         public Pose2d getPose() {
             return getPose(true);
         }
 
-        /**
-         * @return The type of the location.
-         */
-        public FieldLocationType getType() {
-            return type;
-        }
-
-        private FieldLocations(Pose2d pose, FieldLocationType type, int blueAprilTagId, int redAprilTagId) {
-            this.pose = pose;
-            this.type = type;
-            this.blueAprilTagId = blueAprilTagId;
-            this.redAprilTagId = redAprilTagId;
+        private FieldLocations(Pose2d pose) {
+            this.blueAlliancePose = pose;
+            this.redAlliancePose = FlippingUtil.flipFieldPose(pose);
         }
     }
+
+    /**
+     * Payload to point (auto aim) to the hub.
+     */
+    public static final SwervePayload POINT_TO_HUB_PAYLOAD = new SwervePayload(
+        FieldLocations.HUB::getPose,
+        () -> SwervePayload.RotationMode.ONLY_ROTATE_TO_POSE_NO_DRIVE_TO_POSE,
+        FieldLocations.HUB::getPose
+    );
 
     /**
      * List of global states for the robot.
@@ -88,9 +82,9 @@ public class RobotActions {
         SCORE_CORAL,
 
         /**
-         * Climbing. No scoring actions allowed.
+         * Climbing.
          */
-        ENDGAME,
+        CLIMBING,
     }
 
     /**
@@ -124,7 +118,7 @@ public class RobotActions {
         .withDefaultState(new StateMachineState<>(GlobalState.IDLE, "Idle"))
         .withState(new StateMachineState<>(GlobalState.INTAKE_CORAL_FROM_STATION, "IntakeCoralStation"))
         .withState(new StateMachineState<>(GlobalState.SCORE_CORAL, "ScoreCoral"))
-        .withState(new StateMachineState<>(GlobalState.ENDGAME, "Endgame"));
+        .withState(new StateMachineState<>(GlobalState.CLIMBING, "Endgame"));
 
     public final ObjectiveTracker objectiveTracker = new ObjectiveTracker(this);
 
@@ -170,59 +164,6 @@ public class RobotActions {
         //         )
         //     );
         // });
-    }
-
-    /**
-     * @return A command to pathfind to a given location.
-     * @param location - The location to pathfind to. See {@link FieldLocations} for possible locations.
-     * @param shouldAlignToReef - Whether or not to align to the reef tag after pathfinding.
-     */
-    public Command pathFindToLocation(FieldLocations location) {
-        return pathFindToLocation(location::getPose);
-    }
-
-    /**
-     * @return A command to pathfind to a given pose using pathplanner.
-     * @param pose - The pose to pathfind to. Automatically flips if necessary.
-     */
-    public Command pathFindToLocation(Supplier<Pose2d> pose) {
-        // return AutoBuilder.pathfindToPose(pose, SwerveConfig.pathConstraints);
-        // return new DeferredCommand(() -> new DriveToPose(swerveSubsystem, () -> pose), Set.of(swerveSubsystem));
-        return new DeferredCommand(
-            () ->
-                new PathfindingCommand(
-                    pose.get(),
-                    SwerveConstants.pathConstraints,
-                    swerveSubsystem::getPose,
-                    swerveSubsystem::getChassisSpeeds,
-                    (speeds, feedforwards) -> swerveSubsystem.runVelocityChassisSpeeds(speeds),
-                    DriveToPosePID.driveController,
-                    SwerveConstants.getRobotConfig()
-                ),
-            Set.of(swerveSubsystem)
-        );
-        // return new DeferredCommand(
-        //     () ->
-        //         // Use PathPlanner path finding for initial pathfinding
-        //         AutoBuilder.pathfindToPose(pose.get(), SwerveConfig.pathConstraints)
-        //             .raceWith(
-        //                 Commands.waitUntil(() ->
-        //                     // Path find until close enough for final alignment
-        //                     PoseUtil.isNear(
-        //                         swerveSubsystem.getPose(),
-        //                         pose.get(),
-        //                         // Start final alignment when within this distance plus a bit based on current speed
-        //                         Meters.of(0.4 + swerveSubsystem.getVelocityMagnitude().in(MetersPerSecond) * 0.4),
-        //                         Degrees.of(360)
-        //                     )
-        //                 )
-        //             )
-        //             // Use DriveToPose for final alignment
-        //             .andThen(new DriveToPose(swerveSubsystem, pose)),
-        //     Set.of(swerveSubsystem)
-        // );
-
-        // return Commands.none();
     }
 
     /**

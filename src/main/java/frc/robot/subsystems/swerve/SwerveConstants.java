@@ -227,6 +227,11 @@ public class SwerveConstants {
         .withErrorTheta(angleTolerance)
         .withBeelineRadius(beelineRadius);
 
+    // Auto aim config
+    public static final AngularVelocity MAX_AUTO_AIM_ROBOT_ANGULAR_VELOCITY = RadiansPerSecond.of(6.0);
+    // TODO: Maybe scale this based off distance (further = less tolerance)
+    public static final Angle AUTO_AIM_ANGLE_TOLERANCE = Degrees.of(4.0);
+
     // Tipping config
     /**
      * Whether the output from anti-tipping is enabled.
@@ -246,8 +251,9 @@ public class SwerveConstants {
     public static final LinearVelocity MAX_ANTI_TIP_VELOCITY = MetersPerSecond.of(2.75);
 
     // Path Planner Values
-    public static final Mass ROBOT_MASS = Pounds.of(100);
+    public static final Mass ROBOT_MASS = Pounds.of(110);
     public static final double WHEEL_COF = 1.2;
+    // TODO: measure this
     public static final MomentOfInertia ROBOT_MOI = KilogramSquareMeters.of(3.9506340342);
 
     public static final Pose2d initialPose = new Pose2d(7.576, 2.29, Rotation2d.fromDegrees(180));
