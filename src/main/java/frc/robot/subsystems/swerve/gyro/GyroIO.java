@@ -40,24 +40,24 @@ public interface GyroIO {
         /**
          * The yaw position of the gyro as a Rotation2d.
          */
-        public Rotation2d yawPosition = new Rotation2d();
+        public Rotation2d yawPosition = Rotation2d.kZero;
 
         /**
-         * The change in yaw position of the gyro in radians per second.
+         * The change in yaw position of the gyro.
          */
-        public MutAngularVelocity yawVelocityRadPerSec = RadiansPerSecond.mutable(0.0);
+        public MutAngularVelocity yawVelocity = RadiansPerSecond.mutable(0.0);
 
         /**
          * The pitch position of the gyro.
          * Not measured in simulation.
          */
-        public MutAngle pitchRadians = Degrees.mutable(0.0);
+        public MutAngle pitch = Degrees.mutable(0.0);
 
         /**
          * The roll position of the gyro.
          * Not measured in simulation.
          */
-        public MutAngle rollRadians = Degrees.mutable(0.0);
+        public MutAngle roll = Degrees.mutable(0.0);
 
         public boolean isTipping = false;
 
@@ -85,5 +85,5 @@ public interface GyroIO {
      * Zeros the angle of the gyro.
      * @param deg - The angle to zero the gyro to.
      */
-    public default void zeroGyro(double deg) {}
+    public default void setYaw(double deg) {}
 }
