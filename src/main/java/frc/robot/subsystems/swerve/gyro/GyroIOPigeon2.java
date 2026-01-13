@@ -88,15 +88,15 @@ public class GyroIOPigeon2 implements GyroIO {
 
         // Update from status signals
         inputs.yawPosition = Rotation2d.fromDegrees(yaw.getValueAsDouble());
-        inputs.yawVelocityRadPerSec.mut_replace(yawVelocity.getValueAsDouble(), DegreesPerSecond);
+        inputs.yawVelocity.mut_replace(yawVelocity.getValueAsDouble(), DegreesPerSecond);
 
         if (SwerveConstants.IS_GYRO_RECORD_PITCH_ROLL_TIPPING_STATE) {
             // Update pitch and roll only if configured to do so
-            inputs.pitchRadians.mut_replace(pitch.getValueAsDouble(), Degrees);
-            inputs.rollRadians.mut_replace(roll.getValueAsDouble(), Degrees);
+            inputs.pitch.mut_replace(pitch.getValueAsDouble(), Degrees);
+            inputs.roll.mut_replace(roll.getValueAsDouble(), Degrees);
 
             // Update anti-tipping
-            antiTipping.calculate(inputs.pitchRadians, inputs.rollRadians);
+            antiTipping.calculate(inputs.pitch, inputs.roll);
             inputs.isTipping = antiTipping.isTipping();
             inputs.velocityAntiTipping = antiTipping.getVelocityAntiTipping();
         }
@@ -110,7 +110,7 @@ public class GyroIOPigeon2 implements GyroIO {
     }
 
     @Override
-    public void zeroGyro(double deg) {
+    public void setYaw(double deg) {
         // Invert the gyro if necessary
         if (SwerveConstants.IS_GYRO_INVERTED) {
             deg = -deg;
