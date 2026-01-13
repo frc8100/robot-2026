@@ -22,6 +22,8 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Filesystem;
+import java.nio.file.Path;
 import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.SimCameraProperties;
 
@@ -35,9 +37,22 @@ public class VisionConstants {
     /**
      * The AprilTag field layout. Note: see TU 12
      */
-    public static final AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(
-        AprilTagFields.k2025ReefscapeWelded
-    );
+    // public static final AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(
+    //     AprilTagFields.k2025ReefscapeWelded
+    // );
+    public static AprilTagFieldLayout aprilTagLayout;
+
+    // TODO: Use official field layout when available
+    static {
+        try {
+            aprilTagLayout = new AprilTagFieldLayout(
+                Path.of(Filesystem.getDeployDirectory().getPath(), "apriltags", "2026-rebuilt-welded.json")
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+        }
+    }
 
     /**
      * A type of game piece observation that can be detected by the neural detector.
