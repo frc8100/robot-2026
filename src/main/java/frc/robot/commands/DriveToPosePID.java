@@ -3,16 +3,12 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 import com.therekrab.autopilot.APTarget;
 import com.therekrab.autopilot.Autopilot;
 import com.therekrab.autopilot.Autopilot.APResult;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -31,19 +27,6 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPosePID {
 
     /**
-     * Gets the rotation target in radians to face the target pose from the robot pose. Only considers translation, not rotation.
-     * @param robotPose - The current robot pose.
-     * @param targetPose - The target pose.
-     * @return The rotation target in radians.
-     */
-    public static double getRotationTargetRadians(Pose2d robotPose, Pose2d targetPose) {
-        Translation2d deltaTranslation = robotPose.getTranslation().minus(targetPose.getTranslation());
-
-        Rotation2d targetRotation = deltaTranslation.getAngle();
-        return targetRotation.getRadians();
-    }
-
-    /**
      * A record containing whether the robot is at each target.
      */
     public record IsAtTargets(
@@ -59,10 +42,10 @@ public class DriveToPosePID {
      * The PID controller shared by all instances of this command.
      * Note: If multiple instances of this command are used simultaneously with different targets, this may cause issues.
      */
-    public static final PPHolonomicDriveController driveController = new PPHolonomicDriveController(
-        SwerveConstants.PP_ENDING_TRANSLATION_PID,
-        SwerveConstants.PP_ROTATION_PID
-    );
+    // public static final PPHolonomicDriveController driveController = new PPHolonomicDriveController(
+    //     SwerveConstants.PP_ENDING_TRANSLATION_PID,
+    //     SwerveConstants.PP_ROTATION_PID
+    // );
 
     private final PIDController rotationController = new PIDController(
         SwerveConstants.PP_ROTATION_PID.kP,
@@ -76,6 +59,7 @@ public class DriveToPosePID {
     private static final Angle finalAlignmentAngleTolerance = Degrees.of(360);
 
     private final Swerve swerveSubsystem;
+    private final AimToTarget aimToTarget;
 
     private SwervePayload currentPayload;
 
@@ -102,7 +86,7 @@ public class DriveToPosePID {
     /**
      * The goal state for the drive controller.
      */
-    private final PathPlannerTrajectoryState goalState = new PathPlannerTrajectoryState();
+    // private final PathPlannerTrajectoryState goalState = new PathPlannerTrajectoryState();
 
     private Pose2d lastTargetPose = Pose2d.kZero;
     private APTarget autopilotTarget = new APTarget(lastTargetPose);
@@ -115,11 +99,11 @@ public class DriveToPosePID {
     /**
      * Creates a new DriveToPose command.
      * @param swerveSubsystem - The swerve drive subsystem.
-     * @param targetPoseSupplier - A supplier that provides the target pose to drive to. See {@link #targetPoseSupplier}.
      */
-    public DriveToPosePID(Swerve swerveSubsystem, Supplier<Pose2d> targetPoseSupplier) {
+    public DriveToPosePID(Swerve swerveSubsystem, AimToTarget aimToTarget) {
         this.swerveSubsystem = swerveSubsystem;
-        this.targetPoseSupplier = targetPoseSupplier;
+        this.aimToTarget = aimToTarget;
+        this.targetPoseSupplier = swerveSubsystem::getPose;
         this.currentPayload = SwervePayload.fromPoseSupplierNoRotate(this.targetPoseSupplier);
 
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
@@ -194,21 +178,22 @@ public class DriveToPosePID {
     }
 
     /**
-     * Sets a new target pose supplier.
-     * @param newTargetPoseSupplier - The new target pose supplier.
+     * Sets a new payload.
+     * @param newPayload - The new payload.
      */
-    public void setPoseSupplier(Supplier<Pose2d> newTargetPoseSupplier) {
-        this.targetPoseSupplier = newTargetPoseSupplier;
+    public void setPayload(SwervePayload newPayload) {
+        this.currentPayload = newPayload;
+        this.targetPoseSupplier = newPayload.poseSupplier();
     }
 
     /**
      * Sets a new target pose supplier.
-     * @param newTargetPoseSupplier - The new target pose supplier.
+     * @param newPayload - The new target pose supplier.
      */
-    public void setOptionalPoseSupplier(Optional<Supplier<Pose2d>> newTargetPoseSupplier) {
-        this.targetPoseSupplier = newTargetPoseSupplier.isPresent()
-            ? newTargetPoseSupplier.get()
-            : swerveSubsystem::getPose;
+    public void setOptionalPayload(Optional<SwervePayload> newPayload) {
+        if (newPayload.isPresent()) {
+            setPayload(newPayload.get());
+        }
     }
 
     /**
@@ -217,7 +202,10 @@ public class DriveToPosePID {
      */
     public ChassisSpeeds getChassisSpeeds() {
         boolean poseChanged = hasPoseChanged();
-        boolean shouldRotateToTarget = currentPayload.shouldRotateToPoseSupplier().getAsBoolean();
+        boolean shouldRotateToTarget = currentPayload
+            .shouldRotateToPoseSupplier()
+            .get()
+            .equals(SwervePayload.RotationMode.ROTATE_AND_DRIVE_TO_POSE);
 
         Pose2d currentPose = swerveSubsystem.getPose();
 
@@ -228,19 +216,26 @@ public class DriveToPosePID {
             autopilotTarget
         );
 
-        // double rotationTargetRad = shouldRotateToTarget
-        //     ? lastTargetPose.getRotation().getRadians()
-        //     : currentPose.getRotation().getRadians();
+        // If the pose has changed, reset the rotation controller to avoid windup
+        if (poseChanged && !shouldRotateToTarget) {
+            rotationController.reset();
+        }
+
+        double rotationSpeed = shouldRotateToTarget
+            ? aimToTarget.getRotationOutputRadiansPerSecond(
+                currentPose,
+                lastTargetPose,
+                swerveSubsystem.getChassisSpeeds()
+            )
+            : rotationController.calculate(
+                currentPose.getRotation().getRadians(),
+                autopilotResult.targetAngle().getRadians()
+            );
 
         ChassisSpeeds outputSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-            autopilotResult.vx(),
-            autopilotResult.vy(),
-            RadiansPerSecond.of(
-                rotationController.calculate(
-                    currentPose.getRotation().getRadians(),
-                    autopilotResult.targetAngle().getRadians()
-                )
-            ),
+            autopilotResult.vx().in(MetersPerSecond),
+            autopilotResult.vy().in(MetersPerSecond),
+            rotationSpeed,
             currentPose.getRotation()
         );
 

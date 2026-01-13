@@ -1,7 +1,6 @@
 package frc.robot.subsystems.swerve;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -17,7 +16,6 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -46,7 +44,6 @@ import frc.util.statemachine.StateMachineState;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -66,6 +63,11 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
          * The driver has full control over swerve. No autonomous actions are taken.
          */
         FULL_DRIVER_CONTROL,
+
+        /**
+         * The drive can control translation while the robot auto-aims to a target.
+         */
+        AUTO_AIM,
 
         /**
          * The robot is driving to a target pose.
@@ -93,17 +95,44 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         FULL_AUTONOMOUS_PATH_FOLLOWING,
     }
 
+    /**
+     * The payload for the swerve state machine.
+     * @param poseSupplier - The supplier of the target pose.
+     * @param shouldRotateToPoseSupplier - The supplier of whether the robot should rotate to the target pose. See {@link SwervePayload.RotationMode}.
+     * @param poseToRotateToSupplier - The supplier of the pose to rotate to.
+     */
     public record SwervePayload(
         Supplier<Pose2d> poseSupplier,
-        BooleanSupplier shouldRotateToPoseSupplier,
+        Supplier<SwervePayload.RotationMode> shouldRotateToPoseSupplier,
         Supplier<Pose2d> poseToRotateToSupplier
     ) {
+        /**
+         * The rotation mode for the swerve drive when driving to a pose.
+         */
+        public enum RotationMode {
+            /**
+             * Only rotate to the target pose, do not drive to the target pose.
+             */
+            ONLY_ROTATE_TO_POSE_NO_DRIVE_TO_POSE,
+
+            /**
+             * Rotate and drive to the target pose.
+             */
+            ROTATE_AND_DRIVE_TO_POSE,
+
+            /**
+             * Only drive to the target pose, do not rotate to the target pose.
+             * Default mode.
+             */
+            ONLY_DRIVE_NO_ROTATE,
+        }
+
         /**
          * Creates a SwervePayload that does not rotate to the target pose.
          * @param poseSupplier - The supplier of the target pose.
          */
         public static SwervePayload fromPoseSupplierNoRotate(Supplier<Pose2d> poseSupplier) {
-            return new SwervePayload(poseSupplier, () -> false, () -> Pose2d.kZero);
+            return new SwervePayload(poseSupplier, () -> RotationMode.ONLY_DRIVE_NO_ROTATE, () -> Pose2d.kZero);
         }
     }
 
@@ -116,12 +145,14 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         "Swerve"
     )
         .withDefaultState(new StateMachineState<>(SwerveState.FULL_DRIVER_CONTROL, "Manual"))
+        .withState(new StateMachineState<>(SwerveState.AUTO_AIM, "AutoAim"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_PATHFINDING, "InitialPathfinding"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_PID, "PIDAlignment"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_AT_TARGET, "AtTarget"))
         .withState(new StateMachineState<>(SwerveState.FULL_AUTONOMOUS_PATH_FOLLOWING, "FollowPath"))
         .withReturnToDefaultStateOnDisable(true);
 
+    // TODO: In replay, this::isSimulation does not capture correctly; fix this
     private final SwerveFeedForwards swerveFeedForwards = new SwerveFeedForwards(this::isSimulation);
 
     private final SwerveSetpointGenerator setpointGenerator = new SwerveSetpointGenerator(
@@ -427,6 +458,7 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
     /**
      * @return The magnitude of the robot's velocity. Calculated from {@link #getChassisSpeeds()}.
      */
+    @AutoLogOutput(key = "Swerve/ChassisSpeeds/Magnitude")
     public LinearVelocity getVelocityMagnitude() {
         return cachedVelocityMagnitude;
     }
@@ -434,7 +466,6 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
     /**
      * @return The velocity magnitude of the robot in meters per second.
      */
-    @AutoLogOutput(key = "Swerve/ChassisSpeeds/Magnitude")
     public double getVelocityMagnitudeAsDouble() {
         ChassisSpeeds speeds = getChassisSpeeds();
 
@@ -450,7 +481,7 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
      */
     public double[] getOrientationToPublish() {
         cachedOrientationPublish[0] = getRotation().getDegrees();
-        cachedOrientationPublish[1] = gyroInputs.yawVelocityRadPerSec.in(DegreesPerSecond);
+        cachedOrientationPublish[1] = gyroInputs.yawVelocity.in(DegreesPerSecond);
         // cachedOrientationPublish[2] = gyroInputs.pitchRadians.in(Degrees);
         // cachedOrientationPublish[3] = 0.0;
         // cachedOrientationPublish[4] = gyroInputs.rollRadians.in(Degrees);

@@ -39,13 +39,12 @@ public class ControlConstants {
          */
         public Drive(Joystick driverController) {
             this.driverController = driverController;
-
             // Register toggle modes
-            getJoystickButtonOf(robotCentricButton).onTrue(
-                Commands.runOnce(() -> isCurrentlyRobotCentric = !isCurrentlyRobotCentric)
-            );
+            // getJoystickButtonOf(robotCentricButton).onTrue(
+            //     Commands.runOnce(() -> isCurrentlyRobotCentric = !isCurrentlyRobotCentric)
+            // );
 
-            robotRelativeMoveForward = new POVButton(driverController, 0);
+            // robotRelativeMoveForward = new POVButton(driverController, 0);
         }
 
         // Toggle modes
@@ -85,9 +84,9 @@ public class ControlConstants {
         /**
          * When held, makes the robot move robot centric.
          */
-        public final int robotCentricButton = XboxController.Button.kX.value;
+        // public final int robotCentricButton = XboxController.Button.kX.value;
 
-        public POVButton robotRelativeMoveForward;
+        // public POVButton robotRelativeMoveForward;
 
         /**
          * @return The translation (x)

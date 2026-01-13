@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
 import frc.robot.subsystems.vision.Vision;
 import frc.util.statemachine.StateCycle;
@@ -107,7 +108,8 @@ public class ButtonBindings {
     private final Vision visionSubsystem;
 
     private final Controller driverController = new Controller(0);
-    private final Controller operatorController = new Controller(1);
+
+    // private final Controller operatorController = new Controller(1);
 
     public ButtonBindings(RobotActions autoRoutines) {
         this.autoRoutines = autoRoutines;
@@ -125,6 +127,20 @@ public class ButtonBindings {
         driverController
             .getJoystickButton(ControlConstants.mainDriveControls.zeroGyroButton)
             .onTrue(Commands.runOnce(swerveSubsystem::zeroGyro));
+
+        // Auto-aim toggle
+        StateCycle<SwerveState, SwervePayload> toggleDriveToCoralStation =
+            swerveSubsystem.stateMachine.createStateCycleWithPayload(
+                List.of(
+                    new StateMachine.StateWithPayload<>(SwerveState.FULL_DRIVER_CONTROL, null),
+                    new StateMachine.StateWithPayload<>(SwerveState.AUTO_AIM, RobotActions.POINT_TO_HUB_PAYLOAD)
+                ),
+                StateCycle.StateCycleBehavior.RELY_ON_INDEX
+            );
+
+        driverController
+            .getJoystickButton(XboxController.Button.kX)
+            .onTrue(Commands.runOnce(toggleDriveToCoralStation::scheduleNextState));
         // Toggle drive to coral station state
         // StateCycle<SwerveState, Supplier<Pose2d>> toggleDriveToCoralStation =
         //     swerveSubsystem.stateMachine.createStateCycleWithPayload(
