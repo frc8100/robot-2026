@@ -8,8 +8,11 @@ public interface IntakeIO {
     public static class IntakeIOInputs {
 
         // Motor controller data for the intake motor
-        public SparkMotorControllerData motorData = new SparkMotorControllerData();
-        public boolean motorConnected = true;
+        public SparkMotorControllerData deployMotorData = new SparkMotorControllerData();
+        public boolean deployMotorConnected = true;
+
+        public SparkMotorControllerData intakeMotorData = new SparkMotorControllerData();
+        public boolean intakeMotorConnected = true;
 
         /**
          * Whether the intake is currently deployed.
