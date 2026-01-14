@@ -191,12 +191,16 @@ public class ObjectiveTracker extends SubsystemBase {
 
     private Objective currentlyScheduledObjective = null;
 
+    private final ObjectiveIO io;
+    private final ObjectiveIOInputsAutoLogged inputs = new ObjectiveIOInputsAutoLogged();
+
     /**
      * Constructs an ObjectiveTracker given the robot actions.
      * @param robotActions - The robot actions instance.
      */
-    public ObjectiveTracker(RobotActions robotActions) {
+    public ObjectiveTracker(RobotActions robotActions, ObjectiveIO objectiveIO) {
         this.robotActions = robotActions;
+        this.io = objectiveIO;
 
         // Initialize objective alerts
         for (int i = 0; i < MAX_OBJECTIVES; i++) {
@@ -343,6 +347,10 @@ public class ObjectiveTracker extends SubsystemBase {
      */
     @Override
     public void periodic() {
+        // Update the IO inputs
+        io.updateInputs(inputs);
+        Logger.processInputs("Objective", inputs);
+
         // Only run if enabled
         if (DriverStation.isDisabled()) {
             return;

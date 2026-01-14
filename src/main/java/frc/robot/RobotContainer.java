@@ -29,6 +29,7 @@ import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIOSpark;
 import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.Vision.VisionState;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -37,6 +38,8 @@ import frc.robot.subsystems.vision.VisionSim;
 import frc.robot.subsystems.vision.VisionSim.NeuralDetectorSimPipeline;
 import frc.util.EmptySimulationArena;
 import frc.util.TunableValue;
+import frc.util.objective.ObjectiveIO;
+import frc.util.objective.ObjectiveIODashboard;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
@@ -58,6 +61,8 @@ public class RobotContainer {
     private final Swerve swerveSubsystem;
 
     private final RobotActions robotActions;
+
+    private ObjectiveIO objectiveIO = new ObjectiveIO() {};
 
     /**
      * The simulation of the robot's drive. Set to null if not in simulation mode.
@@ -94,6 +99,8 @@ public class RobotContainer {
                         swerveSubsystem
                     )
                 );
+
+                objectiveIO = new ObjectiveIODashboard();
                 break;
             default:
             case SIM:
@@ -151,6 +158,8 @@ public class RobotContainer {
                     )
                 );
 
+                objectiveIO = new ObjectiveIODashboard();
+
                 // TODO: Add behavior chooser
                 // Create an opponent robot simulation
                 // OpponentRobotSim opponentRobotSim1 = new OpponentRobotSim(
@@ -189,13 +198,14 @@ public class RobotContainer {
                 );
                 questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIO() {});
                 visionSubsystem = new Vision(swerveSubsystem, questNavSubsystem, new VisionIO() {});
+                objectiveIO = new ObjectiveIO() {};
                 break;
         }
 
         SwerveDrive.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
 
         // Set up auto routines
-        robotActions = new RobotActions(swerveSubsystem, visionSubsystem);
+        robotActions = new RobotActions(swerveSubsystem, visionSubsystem, objectiveIO);
 
         // Set up teleop swerve command
         swerveSubsystem.setDefaultCommand(swerveSubsystem.stateMachine.getRunnableCommand(swerveSubsystem));
@@ -316,15 +326,32 @@ public class RobotContainer {
      * Sets the vision subsystem state to {@link Vision.VisionState#BEFORE_MATCH}.
      * See {@link Vision.VisionState} for more details.
      */
+    // TODO: find other way to trigger it
     public void setVisionStateToBeforeMatch() {
         visionSubsystem.stateMachine.scheduleStateChange(Vision.VisionState.BEFORE_MATCH);
     }
 
     /**
-     * Sets the vision subsystem state to {@link Vision.VisionState#DURING_MATCH}.
-     * See {@link Vision.VisionState} for more details.
+     * Runs initialization code for autonomous mode.
      */
-    public void setVisionStateToMatchStart() {
+    public void autonomousInit() {
+        // Set vision to during match
         visionSubsystem.stateMachine.scheduleStateChange(Vision.VisionState.DURING_MATCH);
+
+        // Reset objective
+        objectiveIO.resetForAuto();
+    }
+
+    /**
+     * Runs initialization code for teleop mode.
+     */
+    public void teleopInit() {
+        // Should already be during match, but just in case
+        if (!visionSubsystem.stateMachine.is(VisionState.DURING_MATCH)) {
+            visionSubsystem.stateMachine.scheduleStateChange(Vision.VisionState.DURING_MATCH);
+        }
+
+        // Reset objective
+        objectiveIO.resetForTeleop();
     }
 }

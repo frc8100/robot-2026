@@ -17,6 +17,7 @@ import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.util.PoseUtil;
+import frc.util.objective.ObjectiveIO;
 import frc.util.objective.ObjectiveTracker;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachine.StateWithPayload;
@@ -120,7 +121,7 @@ public class RobotActions {
         .withState(new StateMachineState<>(GlobalState.SCORE_CORAL, "ScoreCoral"))
         .withState(new StateMachineState<>(GlobalState.CLIMBING, "Endgame"));
 
-    public final ObjectiveTracker objectiveTracker = new ObjectiveTracker(this);
+    public final ObjectiveTracker objectiveTracker;
 
     // References to subsystems
     // Public because of use in configuring controls
@@ -130,9 +131,11 @@ public class RobotActions {
     /**
      * Creates a new AutoRoutines object given required subsystems.
      */
-    public RobotActions(Swerve swerveSubsystem, Vision visionSubsystem) {
+    public RobotActions(Swerve swerveSubsystem, Vision visionSubsystem, ObjectiveIO objectiveIO) {
         this.swerveSubsystem = swerveSubsystem;
         this.visionSubsystem = visionSubsystem;
+
+        this.objectiveTracker = new ObjectiveTracker(this, objectiveIO);
         // test
         // globalStateMachine.onStateChange(
         //     GlobalState.INTAKE_CORAL_FROM_STATION,
