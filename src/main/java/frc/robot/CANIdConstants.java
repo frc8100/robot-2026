@@ -40,6 +40,10 @@ public class CANIdConstants {
         };
     }
 
+    // Intake
+    public static final int DEPLOY_MOTOR_ID = 17;
+    public static final int INTAKE_MOTOR_ID = 17;
+
     /**
      * List of all CAN IDs in the order the CAN bus is wired, starting from the PDP and ending at the RoboRIO.
      * This is used to detect connection disruptions.
