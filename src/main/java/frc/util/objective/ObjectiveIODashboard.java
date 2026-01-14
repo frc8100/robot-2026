@@ -3,8 +3,12 @@ package frc.util.objective;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import org.littletonrobotics.junction.Logger;
 
 public class ObjectiveIODashboard implements ObjectiveIO {
 
@@ -34,6 +38,22 @@ public class ObjectiveIODashboard implements ObjectiveIO {
 
     private final Timer matchTimer = new Timer();
 
+    // Dashboard keys
+    public static final String OBJECTIVE_DASHBOARD_KEY = "/ObjectiveTracker";
+    public static final String DASHBOARD_PUBLISH_OBJECTIVE_KEY = "PublishObjective";
+
+    private final NetworkTable objectiveTable;
+
+    // Subscribers/publishers
+    private final StringSubscriber publishObjectiveSubscriber;
+
+    public ObjectiveIODashboard() {
+        // Initialize tables
+        objectiveTable = NetworkTableInstance.getDefault().getTable(OBJECTIVE_DASHBOARD_KEY);
+
+        publishObjectiveSubscriber = objectiveTable.getStringTopic(DASHBOARD_PUBLISH_OBJECTIVE_KEY).subscribe("");
+    }
+
     // TODO: call these methods
     @Override
     public void resetForAuto() {
@@ -48,6 +68,15 @@ public class ObjectiveIODashboard implements ObjectiveIO {
 
     @Override
     public void updateInputs(ObjectiveIOInputs inputs) {
+        // if (publishObjectiveSubscriber.readQueue().length > 0) {
+        //     inputs.sentObjective = publishObjectiveSubscriber.get();
+        // }
+
+        // Only update if timer has started
+        if (!matchTimer.isRunning()) {
+            return;
+        }
+
         if (DriverStation.isAutonomous()) {
             inputs.activeHub = ObjectiveIO.ActiveHub.ALL;
             return;
@@ -75,11 +104,14 @@ public class ObjectiveIODashboard implements ObjectiveIO {
         SwitchSetting activeSwitchSetting = switches[switches.length - 1];
 
         for (SwitchSetting setting : switches) {
+            // Find the first setting where the time since teleop is less than the runs until time
             if (timeSinceTeleopSeconds < setting.runsUntilTimeSeconds) {
                 activeSwitchSetting = setting;
+                break;
             }
         }
 
+        // Set active hub based on switch setting
         switch (activeSwitchSetting.active) {
             case INITIAL_ACTIVE:
                 inputs.activeHub = initialAlliance;

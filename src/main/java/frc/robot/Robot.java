@@ -134,8 +134,7 @@ public class Robot extends LoggedRobot {
             SimulatedArena.getInstance().resetFieldForAuto();
         }
 
-        // TODO: also run this on teleop init when not in competition, or other way to trigger it
-        robotContainer.setVisionStateToMatchStart();
+        robotContainer.autonomousInit();
 
         autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -159,6 +158,12 @@ public class Robot extends LoggedRobot {
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
+    }
+
+    /** This function is called once when teleop is enabled. */
+    @Override
+    public void teleopInit() {
+        robotContainer.teleopInit();
     }
 
     /** This function is called periodically during operator control. */
