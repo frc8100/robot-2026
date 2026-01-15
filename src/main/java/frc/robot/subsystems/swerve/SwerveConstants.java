@@ -229,8 +229,6 @@ public class SwerveConstants {
 
     // Auto aim config
     public static final AngularVelocity MAX_AUTO_AIM_ROBOT_ANGULAR_VELOCITY = RadiansPerSecond.of(6.0);
-    // TODO: Maybe scale this based off distance (further = less tolerance)
-    public static final Angle AUTO_AIM_ANGLE_TOLERANCE = Degrees.of(4.0);
 
     // Tipping config
     /**

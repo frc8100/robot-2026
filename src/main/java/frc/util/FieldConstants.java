@@ -1,5 +1,6 @@
 package frc.util;
 
+import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
@@ -27,6 +28,14 @@ public class FieldConstants {
      */
     public static final Distance fieldWidth = Meters.of(VisionConstants.aprilTagLayout.getFieldWidth());
 
+    public static final Distance hubDiameter = Inches.of(41.7);
+
+    /**
+     * The diameter of fuel.
+     */
+    public static final Distance fuelDiameter = Centimeters.of(15);
+    public static final Distance hubRadiusForShooting = hubDiameter.minus(fuelDiameter).div(2);
+
     // static {
     //     Logger.recordOutput("Test/FieldLength", fieldLength);
     //     Logger.recordOutput("Test/fieldWidth", fieldWidth);
@@ -36,11 +45,6 @@ public class FieldConstants {
      * Where the starting line is on the field, measured from the inside of the starting line.
      */
     public static final Distance startingLineX = Inches.of(299.438);
-
-    /**
-     * The diameter of the algae.
-     */
-    public static final Distance algaeDiameter = Inches.of(16);
 
     public static class Processor {
 
