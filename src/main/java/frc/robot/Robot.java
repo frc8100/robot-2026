@@ -200,7 +200,8 @@ public class Robot extends LoggedRobot {
         Logger.recordOutput("Odometry/OpponentRobotPoses", OpponentRobotSim.getOpponentRobotPoses());
 
         // Log game pieces
-        Logger.recordOutput("Simulation/Field/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
-        Logger.recordOutput("Simulation/Field/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+        // TODO: change when maplesim 2026 is released
+        // Fuel at home
+        Logger.recordOutput("Simulation/Field/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Note"));
     }
 }

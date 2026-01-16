@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import frc.robot.commands.DriveToPosePID;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.SwerveConstants;
@@ -127,13 +129,23 @@ public class RobotActions {
     // Public because of use in configuring controls
     public final Swerve swerveSubsystem;
     public final Vision visionSubsystem;
+    public final Intake intakeSubsystem;
+    public final Shooter shooterSubsystem;
 
     /**
      * Creates a new AutoRoutines object given required subsystems.
      */
-    public RobotActions(Swerve swerveSubsystem, Vision visionSubsystem, ObjectiveIO objectiveIO) {
+    public RobotActions(
+        Swerve swerveSubsystem,
+        Vision visionSubsystem,
+        Intake intakeSubsystem,
+        Shooter shooterSubsystem,
+        ObjectiveIO objectiveIO
+    ) {
         this.swerveSubsystem = swerveSubsystem;
         this.visionSubsystem = visionSubsystem;
+        this.intakeSubsystem = intakeSubsystem;
+        this.shooterSubsystem = shooterSubsystem;
 
         this.objectiveTracker = new ObjectiveTracker(this, objectiveIO);
         // test

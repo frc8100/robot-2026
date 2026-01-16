@@ -13,10 +13,17 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.SwerveSysidRoutines;
 import frc.robot.subsystems.CANIdConnections;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOSim;
+import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.questnav.QuestNavIO;
 import frc.robot.subsystems.questnav.QuestNavIOReal;
 import frc.robot.subsystems.questnav.QuestNavIOSim;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
+import frc.robot.subsystems.shooter.ShooterIOSim;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveDrive;
@@ -59,6 +66,8 @@ public class RobotContainer {
     private final Vision visionSubsystem;
     private final QuestNavSubsystem questNavSubsystem;
     private final Swerve swerveSubsystem;
+    private final Intake intakeSubsystem;
+    private final Shooter shooterSubsystem;
 
     private final RobotActions robotActions;
 
@@ -99,6 +108,11 @@ public class RobotContainer {
                         swerveSubsystem
                     )
                 );
+
+                intakeSubsystem = new Intake(new IntakeIOSpark());
+
+                // TODO: add ShooterIOSpark
+                shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
 
                 objectiveIO = new ObjectiveIODashboard();
                 break;
@@ -158,6 +172,9 @@ public class RobotContainer {
                     )
                 );
 
+                intakeSubsystem = new Intake(new IntakeIOSim(driveSimulation));
+                shooterSubsystem = new Shooter(new ShooterIOSim(swerveSubsystem, driveSimulation), swerveSubsystem);
+
                 objectiveIO = new ObjectiveIODashboard();
 
                 // TODO: Add behavior chooser
@@ -198,6 +215,8 @@ public class RobotContainer {
                 );
                 questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIO() {});
                 visionSubsystem = new Vision(swerveSubsystem, questNavSubsystem, new VisionIO() {});
+                intakeSubsystem = new Intake(new IntakeIO() {});
+                shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
                 objectiveIO = new ObjectiveIO() {};
                 break;
         }
@@ -205,7 +224,13 @@ public class RobotContainer {
         SwerveDrive.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
 
         // Set up auto routines
-        robotActions = new RobotActions(swerveSubsystem, visionSubsystem, objectiveIO);
+        robotActions = new RobotActions(
+            swerveSubsystem,
+            visionSubsystem,
+            intakeSubsystem,
+            shooterSubsystem,
+            objectiveIO
+        );
 
         // Set up teleop swerve command
         swerveSubsystem.setDefaultCommand(swerveSubsystem.stateMachine.getRunnableCommand(swerveSubsystem));

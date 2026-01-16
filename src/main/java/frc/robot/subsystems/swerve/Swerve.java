@@ -33,7 +33,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.ControlConstants;
+import frc.robot.RobotActions.FieldLocations;
+import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.Module;
@@ -57,6 +60,11 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
     public static final Lock odometryLock = new ReentrantLock();
 
     private final TeleopSwerve teleopSwerve;
+
+    /**
+     * The auto-aim command.
+     */
+    public final AimToTarget autoAim = new AimToTarget();
 
     public enum SwerveState {
         /**
@@ -583,5 +591,8 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
             // Apply update
             poseEstimator.updateWithTime(sampleTimestamps[sampleIndex], rawGyroRotation, modulePositions);
         }
+        // Update aim to target
+        // autoAim.updateCalculatedResult(getPose(), FieldLocations.HUB.getPose(), cachedSpeeds);
+        // autoAim.latestCalculationResult.log();
     }
 }

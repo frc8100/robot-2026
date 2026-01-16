@@ -1,6 +1,10 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.swerve.Swerve;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import org.littletonrobotics.junction.Logger;
@@ -44,13 +48,28 @@ public class Shooter extends SubsystemBase {
     private final ShooterIO io;
     private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
 
-    public Shooter(ShooterIO io) {
+    private final Swerve swerveSubsystem;
+
+    public Shooter(ShooterIO io, Swerve swerveSubsystem) {
         this.io = io;
+        this.swerveSubsystem = swerveSubsystem;
+    }
+
+    public void testShoot() {
+        io.testShoot();
+    }
+
+    public void setTargetExitVelocity(double velocityMetersPerSecond) {
+        io.setTargetExitVelocity(velocityMetersPerSecond);
     }
 
     @Override
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
+
+        setTargetExitVelocity(
+            swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond)
+        );
     }
 }
