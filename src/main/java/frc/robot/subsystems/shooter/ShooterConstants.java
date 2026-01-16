@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -30,4 +31,7 @@ public final class ShooterConstants {
         new Translation3d(Inches.of(12.0), Inches.of(0.0), Inches.of(6)),
         Rotation3d.kZero
     );
+    public static final Translation2d positionFromRobotCenter2d = positionFromRobotCenter
+        .getTranslation()
+        .toTranslation2d();
 }

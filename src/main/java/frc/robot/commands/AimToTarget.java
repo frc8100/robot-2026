@@ -52,13 +52,13 @@ public class AimToTarget {
 
         // Binary search bounds
         double velocityLowerBound = 1.0;
-        double vUpperBound = 30.0;
+        double velocityUpperBound = 30.0;
 
         double timeToTargetSeconds = 0.0;
 
         for (int i = 0; i < 15; i++) {
             // Midpoint velocity
-            double midpointVelocity = 0.5 * (velocityLowerBound + vUpperBound);
+            double midpointVelocity = 0.5 * (velocityLowerBound + velocityUpperBound);
 
             // Calculate horizontal speed towards target, accounting for radial velocity
             double horizontalSpeed = midpointVelocity * cosHorizontalComponent + radialVelocityMetersPerSecond;
@@ -86,14 +86,14 @@ public class AimToTarget {
 
             // Adjust bounds based on whether the height at the target is above or below the target height
             if (heightAtTarget > targetHeightOffset) {
-                vUpperBound = midpointVelocity;
+                velocityUpperBound = midpointVelocity;
             } else {
                 velocityLowerBound = midpointVelocity;
             }
         }
 
         // Return the average of the bounds as the solution
-        return new ExitVelocityCalculationResult(0.5 * (velocityLowerBound + vUpperBound), timeToTargetSeconds);
+        return new ExitVelocityCalculationResult(0.5 * (velocityLowerBound + velocityUpperBound), timeToTargetSeconds);
     }
 
     /**

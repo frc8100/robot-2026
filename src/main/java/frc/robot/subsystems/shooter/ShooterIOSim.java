@@ -33,7 +33,7 @@ public class ShooterIOSim implements ShooterIO {
             // Specify the position of the chassis when the note is launched
             swerveSubsystem.getActualPose().getTranslation(),
             // Specify the translation of the shooter from the robot center (in the shooter’s reference frame)
-            ShooterConstants.positionFromRobotCenter.getTranslation().toTranslation2d(),
+            ShooterConstants.positionFromRobotCenter2d,
             // Specify the field-relative speed of the chassis, adding it to the initial velocity of the projectile
             driveTrain.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
             // The shooter facing direction is the same as the robot’s facing direction
@@ -45,8 +45,7 @@ public class ShooterIOSim implements ShooterIO {
             new Rotation2d(swerveSubsystem.autoAim.latestCalculationResult.getRotationTarget()),
             // Initial height of the flying note
             ShooterConstants.positionFromRobotCenter.getMeasureZ(),
-            // The launch speed is proportional to the RPM; assumed to be 16 meters/second at 6000 RPM
-            // velocityRPM / 6000 * 20,
+            // The launch speed
             storedExitVelocity,
             // The angle at which the note is launched
             ShooterConstants.exitAngle
