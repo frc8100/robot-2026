@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.ControlConstants;
+import frc.robot.RobotActions.FieldLocations;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
@@ -35,11 +36,6 @@ public class TeleopSwerve {
      * The drive to pose command used for final alignment.
      */
     public final DriveToPosePID driveToPoseCommand;
-
-    /**
-     * The auto-aim command.
-     */
-    public final AimToTarget autoAim = new AimToTarget();
 
     private Command pathFindToPoseCommand = null;
 
@@ -103,7 +99,7 @@ public class TeleopSwerve {
         this.speedDial = speedDial;
         this.logValues = logValues;
 
-        driveToPoseCommand = new DriveToPosePID(this.swerveSubsystem, this.autoAim);
+        driveToPoseCommand = new DriveToPosePID(this.swerveSubsystem, swerveSubsystem.autoAim);
 
         logCurrentStates();
 
@@ -240,7 +236,12 @@ public class TeleopSwerve {
         Pose2d robotPose = swerveSubsystem.getPose();
         Pose2d targetPose = payloadOptional.get().poseToRotateToSupplier().get();
 
-        desiredChassisSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond(
+        // TODO: also update this in DriveToPosePID
+        // TODO: If this is not updated, shooter will not set target speed correctly
+        swerveSubsystem.autoAim.updateCalculatedResult(robotPose, targetPose, desiredChassisSpeeds);
+        swerveSubsystem.autoAim.latestCalculationResult.log();
+
+        desiredChassisSpeeds.omegaRadiansPerSecond = swerveSubsystem.autoAim.getRotationOutputRadiansPerSecond(
             robotPose,
             targetPose,
             desiredChassisSpeeds

@@ -36,6 +36,8 @@ public class FieldConstants {
     public static final Distance fuelDiameter = Centimeters.of(15);
     public static final Distance hubRadiusForShooting = hubDiameter.minus(fuelDiameter).div(2);
 
+    public static final Distance hubTargetHeight = Inches.of(72);
+
     // static {
     //     Logger.recordOutput("Test/FieldLength", fieldLength);
     //     Logger.recordOutput("Test/fieldWidth", fieldWidth);
