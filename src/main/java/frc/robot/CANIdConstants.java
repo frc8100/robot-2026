@@ -8,7 +8,7 @@ public class CANIdConstants {
 
     private CANIdConstants() {}
 
-    public static final int PIGEON_ID = 17;
+    public static final int PIGEON_ID = 13;
 
     /**
      * Swerve Module CAN IDs to be used when creating swerve modules.
@@ -19,10 +19,10 @@ public class CANIdConstants {
     public static record SwerveModuleCanIDs(int driveMotorID, int angleMotorID, int canCoderID) {}
 
     // Swerve Module CAN IDs
-    public static final SwerveModuleCanIDs FRONT_LEFT_MODULE_CAN_IDS = new SwerveModuleCanIDs(12, 3, 14);
-    public static final SwerveModuleCanIDs FRONT_RIGHT_MODULE_CAN_IDS = new SwerveModuleCanIDs(5, 2, 13);
-    public static final SwerveModuleCanIDs BACK_LEFT_MODULE_CAN_IDS = new SwerveModuleCanIDs(4, 10, 15);
-    public static final SwerveModuleCanIDs BACK_RIGHT_MODULE_CAN_IDS = new SwerveModuleCanIDs(1, 8, 16);
+    public static final SwerveModuleCanIDs FRONT_LEFT_MODULE_CAN_IDS = new SwerveModuleCanIDs(1, 5, 9);
+    public static final SwerveModuleCanIDs FRONT_RIGHT_MODULE_CAN_IDS = new SwerveModuleCanIDs(2, 6, 10);
+    public static final SwerveModuleCanIDs BACK_LEFT_MODULE_CAN_IDS = new SwerveModuleCanIDs(3, 7, 11);
+    public static final SwerveModuleCanIDs BACK_RIGHT_MODULE_CAN_IDS = new SwerveModuleCanIDs(4, 8, 12);
 
     /**
      * Gets the CAN IDs for a module based on its index.
@@ -45,7 +45,7 @@ public class CANIdConstants {
     public static final int INTAKE_MOTOR_ID = 17;
 
     /**
-     * List of all CAN IDs in the order the CAN bus is wired, starting from the PDP and ending at the RoboRIO.
+     * List of all CAN IDs in the order the CAN bus is wired, starting from the RIO and ending at the PDH.
      * This is used to detect connection disruptions.
      */
     // TODO: set this
@@ -63,5 +63,8 @@ public class CANIdConstants {
         BACK_RIGHT_MODULE_CAN_IDS.driveMotorID,
         BACK_RIGHT_MODULE_CAN_IDS.angleMotorID,
         BACK_RIGHT_MODULE_CAN_IDS.canCoderID,
+        BACK_RIGHT_MODULE_CAN_IDS.canCoderID,
+
+        FRONT_LEFT_MODULE_CAN_IDS.driveMotorID,
     };
 }

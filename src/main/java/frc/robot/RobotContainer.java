@@ -109,7 +109,8 @@ public class RobotContainer {
                     )
                 );
 
-                intakeSubsystem = new Intake(new IntakeIOSpark());
+                // intakeSubsystem = new Intake(new IntakeIOSpark());
+                intakeSubsystem = new Intake(new IntakeIO() {});
 
                 // TODO: add ShooterIOSpark
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
