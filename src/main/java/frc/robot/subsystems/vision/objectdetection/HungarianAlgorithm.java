@@ -3,7 +3,7 @@ package frc.robot.subsystems.vision.objectdetection;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.vision.VisionIO.GamePieceObservation;
 import frc.robot.subsystems.vision.objectdetection.GamePiecePoseEstimator.DetectionAssociatedWithTrackedTarget;
 import java.util.ArrayList;
@@ -42,8 +42,8 @@ public class HungarianAlgorithm {
      * @return The cost of the assignment.
      */
     private double getCost(GamePieceObservation detection, TrackedVisionTarget trackedTarget) {
-        Translation3d detectionTranslation = detection.pose().getTranslation();
-        Translation3d targetTranslation = trackedTarget.getEstimatedPose().getTranslation();
+        Translation2d detectionTranslation = detection.pose().getTranslation();
+        Translation2d targetTranslation = trackedTarget.getEstimatedPose().getTranslation();
 
         // Only compare x and y distances for cost calculation (ignore z)
         return Math.hypot(

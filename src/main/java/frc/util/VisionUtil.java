@@ -29,9 +29,9 @@ public class VisionUtil {
      * @param txRad - Horizontal offset from Limelight (degrees, +right)
      * @param tyRad - Vertical offset from Limelight (degrees, +down)
      * @param targetHeight - Height of the target above the floor (≈ 0 if lying flat)
-     * @return The estimated Pose3d of the object on the field
+     * @return The estimated Pose2d of the object on the field
      */
-    public static Pose3d estimateTargetPose3d(
+    public static Pose2d estimateTargetPose2d(
         Pose2d robotPose,
         Transform3d robotToCamera,
         double txRad,
@@ -59,6 +59,6 @@ public class VisionUtil {
         // OpenCVHelp.solvePNP_SQPNP(null, null, null, null);
 
         // Return the target pose
-        return new Pose3d(new Pose2d(targetFieldTranslation, Rotation2d.kZero));
+        return new Pose2d(targetFieldTranslation, Rotation2d.kZero);
     }
 }

@@ -105,7 +105,7 @@ public interface VisionIO {
      */
     public static record GamePieceObservation(
         double timestampSeconds,
-        Pose3d pose,
+        Pose2d pose,
         double ambiguity,
         GamePieceObservationType type
     ) {}
