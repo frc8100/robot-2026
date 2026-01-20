@@ -46,6 +46,11 @@ public class Module {
     /** The index of the module. */
     public final int index;
 
+    /**
+     * The name of the module on the dashboard.
+     */
+    public final String dashboardInputsTableName;
+
     // Alerts for disconnected motors
     private final CANIdAlert driveDisconnectedAlert;
     private final CANIdAlert turnDisconnectedAlert;
@@ -59,6 +64,8 @@ public class Module {
         this.io = io;
         this.index = index;
 
+        this.dashboardInputsTableName = "Drive/Module" + Integer.toString(index);
+
         CANIdConstants.SwerveModuleCanIDs canIds = CANIdConstants.getModuleCANIdsFromIndex(index);
 
         driveDisconnectedAlert = new CANIdAlert(canIds.driveMotorID(), "DriveMotor" + Integer.toString(index));
@@ -70,7 +77,7 @@ public class Module {
     public void periodic() {
         // Update inputs
         io.updateInputs(inputs);
-        Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+        Logger.processInputs(dashboardInputsTableName, inputs);
 
         // Calculate positions for odometry
 

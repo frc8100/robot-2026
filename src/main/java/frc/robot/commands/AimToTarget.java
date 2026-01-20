@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -127,6 +128,9 @@ public class AimToTarget {
     // }
     public static class AimCalculationMutable {
 
+        protected Pose2d robotPose = Pose2d.kZero;
+        protected Pose2d targetPose = Pose2d.kZero;
+
         protected final MutAngle rotationTarget = Radians.mutable(0.0);
         protected final MutDistance distanceToTarget = Meters.mutable(0.0);
         protected final MutAngularVelocity radialVelocity = RadiansPerSecond.mutable(0.0);
@@ -194,14 +198,25 @@ public class AimToTarget {
      * @param robotPose - The current robot pose.
      * @param targetPose - The target pose.
      * @param desiredRobotRelativeSpeeds - The robot-relative chassis speeds.
+     * @param actualRobotRelativeSpeeds - The actual robot-relative chassis speeds.
      * @return A {@link AimCalculationResult}.
      */
-    public void updateCalculatedResult(Pose2d robotPose, Pose2d targetPose, ChassisSpeeds desiredRobotRelativeSpeeds) {
+    public void updateCalculatedResult(
+        Pose2d robotPose,
+        Pose2d targetPose,
+        ChassisSpeeds desiredRobotRelativeSpeeds,
+        ChassisSpeeds actualRobotRelativeSpeeds
+    ) {
         // Convert robot-relative speeds to field-relative speeds
-        ChassisSpeeds fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
-            desiredRobotRelativeSpeeds,
+        ChassisSpeeds actualFieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+            actualRobotRelativeSpeeds,
             robotPose.getRotation()
         );
+        // ChassisSpeeds desiredFieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+        //     desiredRobotRelativeSpeeds,
+        //     robotPose.getRotation()
+        // );
+        ChassisSpeeds desiredFieldRelativeSpeeds = actualFieldRelativeSpeeds;
 
         Translation2d deltaTranslation = targetPose.getTranslation().minus(robotPose.getTranslation());
 
@@ -218,12 +233,12 @@ public class AimToTarget {
 
         // Multiply field-relative speeds by direction vectors to get radial and tangential velocities
         double radialVelocityTowardsTarget =
-            fieldRelativeSpeeds.vxMetersPerSecond * directionToTarget.getX() +
-            fieldRelativeSpeeds.vyMetersPerSecond * directionToTarget.getY();
+            desiredFieldRelativeSpeeds.vxMetersPerSecond * directionToTarget.getX() +
+            desiredFieldRelativeSpeeds.vyMetersPerSecond * directionToTarget.getY();
 
         double tangentialVelocity =
-            -(fieldRelativeSpeeds.vxMetersPerSecond * tangentialDirection.getX() +
-                fieldRelativeSpeeds.vyMetersPerSecond * tangentialDirection.getY());
+            -(desiredFieldRelativeSpeeds.vxMetersPerSecond * tangentialDirection.getX() +
+                desiredFieldRelativeSpeeds.vyMetersPerSecond * tangentialDirection.getY());
 
         double deltaDistanceRate = -radialVelocityTowardsTarget;
         double deltaThetaRate = tangentialVelocity / distanceToTarget;
@@ -247,11 +262,10 @@ public class AimToTarget {
         );
         double yawLeadRadians = Math.atan2(tangentialVelocity * effectiveTime, distanceToTarget);
 
-        double maxLead = Math.asin(
-            MathUtil.clamp(tangentialVelocity / exitVelocityCalculation.exitVelocityMetersPerSecond, -0.95, 0.95)
-        );
-
-        yawLeadRadians = MathUtil.clamp(yawLeadRadians, -maxLead, maxLead);
+        // double maxLead = Math.asin(
+        //     MathUtil.clamp(tangentialVelocity / exitVelocityCalculation.exitVelocityMetersPerSecond, -0.95, 0.95)
+        // );
+        // yawLeadRadians = MathUtil.clamp(yawLeadRadians, -maxLead, maxLead);
 
         targetAngleRadians += yawLeadRadians;
 
@@ -261,6 +275,9 @@ public class AimToTarget {
             (1.0 + Math.pow((tangentialVelocity * exitVelocityCalculation.timeToTargetSeconds) / distanceToTarget, 2));
 
         // Update the latest calculation result
+        latestCalculationResult.robotPose = robotPose;
+        latestCalculationResult.targetPose = targetPose;
+
         latestCalculationResult.rotationTarget.mut_replace(targetAngleRadians, Radians);
         latestCalculationResult.distanceToTarget.mut_replace(distanceToTarget, Meters);
         latestCalculationResult.radialVelocity.mut_replace(deltaDistanceRate, RadiansPerSecond);
@@ -275,35 +292,35 @@ public class AimToTarget {
         // debug
         Logger.recordOutput("AimToTarget/YawLeadRadians", yawLeadRadians);
         Logger.recordOutput("AimToTarget/TimeToTargetSeconds", exitVelocityCalculation.timeToTargetSeconds);
+        Logger.recordOutput(
+            "AimToTarget/TargetRotationAsPose",
+            new Pose2d(robotPose.getTranslation(), new Rotation2d(latestCalculationResult.getRotationTarget()))
+        );
     }
 
     /**
      * Gets the rotation output in radians per second to face the target pose from the robot pose.
-     * @param robotPose - The current robot pose.
-     * @param targetPose - The target pose.
-     * @param desiredRobotRelativeSpeeds - The robot relative speeds.
+     * Must be called after {@link #updateCalculatedResult}.
      * @return The rotation output in radians per second.
      */
-    public double getRotationOutputRadiansPerSecond(
-        Pose2d robotPose,
-        Pose2d targetPose,
-        ChassisSpeeds desiredRobotRelativeSpeeds
-    ) {
+    public double getRotationOutputRadiansPerSecond() {
         double setpointToleranceRadians = getSetpointToleranceRadiusRadians(
-            robotPose.getTranslation().getDistance(targetPose.getTranslation())
+            latestCalculationResult.robotPose
+                .getTranslation()
+                .getDistance(latestCalculationResult.targetPose.getTranslation())
         );
 
         // Calculate the PID output
         double pidRotationOutput =
             // If we are within the setpoint tolerance, do not apply PID output
             MathUtil.isNear(
-                    robotPose.getRotation().getRadians(),
+                    latestCalculationResult.robotPose.getRotation().getRadians(),
                     latestCalculationResult.getRotationTarget().in(Radians),
                     setpointToleranceRadians
                 )
                 ? 0.0
                 : rotationController.calculate(
-                    robotPose.getRotation().getRadians(),
+                    latestCalculationResult.robotPose.getRotation().getRadians(),
                     latestCalculationResult.getRotationTarget().in(Radians)
                 );
 

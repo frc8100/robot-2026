@@ -234,7 +234,7 @@ public class RobotContainer {
         );
 
         // Set up teleop swerve command
-        swerveSubsystem.setDefaultCommand(swerveSubsystem.stateMachine.getRunnableCommand(swerveSubsystem));
+        // swerveSubsystem.setDefaultCommand(swerveSubsystem.stateMachine.getRunnableCommand(swerveSubsystem));
 
         // Register named commands
         // TODO

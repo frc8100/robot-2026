@@ -254,7 +254,7 @@ public class SwerveConstants {
     // TODO: measure this
     public static final MomentOfInertia ROBOT_MOI = KilogramSquareMeters.of(3.9506340342);
 
-    public static final Pose2d initialPose = new Pose2d(7.576, 2.29, Rotation2d.fromDegrees(180));
+    public static final Pose2d initialPose = new Pose2d(12.9, 2.29, Rotation2d.fromDegrees(0));
     public static final PathConstraints pathConstraints = new PathConstraints(
         MAX_SPEED,
         MAX_ACCELERATION,
