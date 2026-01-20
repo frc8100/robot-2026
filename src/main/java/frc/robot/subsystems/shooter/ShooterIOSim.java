@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FieldConstants;
@@ -36,6 +37,10 @@ public class ShooterIOSim implements ShooterIO {
             ShooterConstants.positionFromRobotCenter2d,
             // Specify the field-relative speed of the chassis, adding it to the initial velocity of the projectile
             driveTrain.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+            // ChassisSpeeds.fromRobotRelativeSpeeds(
+            //     swerveSubsystem.moduleStateSetpoint.robotRelativeSpeeds(),
+            //     swerveSubsystem.getActualPose().getRotation()
+            // ),
             // The shooter facing direction is the same as the robot’s facing direction
             // ShooterConstants.positionFromRobotCenter
             //     .getRotation()

@@ -33,7 +33,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.ControlConstants;
-import frc.robot.RobotActions.FieldLocations;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
@@ -43,6 +42,7 @@ import frc.robot.subsystems.swerve.module.Module;
 import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.util.SwerveFeedForwards;
 import frc.util.statemachine.StateMachine;
+import frc.util.statemachine.StateMachine.StatePeriodicAction;
 import frc.util.statemachine.StateMachineState;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -163,6 +163,9 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
     // TODO: In replay, this::isSimulation does not capture correctly; fix this
     private final SwerveFeedForwards swerveFeedForwards = new SwerveFeedForwards(this::isSimulation);
 
+    /**
+     * The setpoint generator for the swerve drive. See https://pathplanner.dev/pplib-swerve-setpoint-generator.html for more info.
+     */
     private final SwerveSetpointGenerator setpointGenerator = new SwerveSetpointGenerator(
         SwerveConstants.getRobotConfig(),
         SwerveConstants.MAX_ANGULAR_VELOCITY_OF_SWERVE_MODULE
@@ -171,7 +174,10 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
     /**
      * Previous setpoints used for {@link #setpointGenerator}.
      */
-    private SwerveSetpoint previousSetpoint = null;
+    // TODO: temporarily public for testing; make private later
+    private SwerveSetpoint moduleStateSetpoint = null;
+
+    private ChassisSpeeds setpointSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
     /**
      * The swerve modules. These are the four swerve modules on the robot. Each module has a drive
@@ -231,7 +237,11 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         () -> getVelocityMagnitudeAsDouble() < SwerveConstants.STILL_MPS
     ).debounce(SwerveConstants.TIME_AFTER_STILL_SYNC_ENCODERS.in(Seconds));
 
-    /** Creates a new Swerve subsystem. */
+    /**
+     * Creates a new Swerve subsystem.
+     * @param gyroIO - The gyro IO implementation.
+     * @param moduleIOs - The module IO implementations for each of the four swerve modules.
+     */
     public Swerve(GyroIO gyroIO, ModuleIO[] moduleIOs) {
         // Create the swerve modules
         for (int i = 0; i < 4; i++) {
@@ -307,12 +317,15 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         runVelocityChassisSpeeds(desiredChassisSpeeds);
     }
 
-    // TODO: Maybe have this method just set a setpoint variable and have all the calculations in periodic (if this is run multiple times in a loop, calculation could be off)
-    @SuppressWarnings("unused")
     @Override
     public void runVelocityChassisSpeeds(ChassisSpeeds speed) {
+        setpointSpeeds = speed;
+    }
+
+    @SuppressWarnings("unused")
+    public void runSpeeds() {
         // Skip if previous setpoint is null (should only happen on first run)
-        if (previousSetpoint == null) {
+        if (moduleStateSetpoint == null) {
             return;
         }
 
@@ -320,24 +333,25 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         if (SwerveConstants.IS_ANTI_TIPPING_ENABLED && gyroInputs.isTipping) {
             ChassisSpeeds antiTippingSpeeds = gyroInputs.velocityAntiTipping;
 
-            speed = antiTippingSpeeds;
+            setpointSpeeds = antiTippingSpeeds;
         }
 
-        // Convert the chassis speeds to swerve module states
+        // Convert the chassis speeds to swerve module states using the setpoint generator
+        moduleStateSetpoint = setpointGenerator.generateSetpoint(
+            moduleStateSetpoint,
+            setpointSpeeds,
+            Constants.LOOP_PERIOD_SECONDS
+        );
 
-        // Note: it is important to not discretize speeds before or after
-        // using the setpoint generator, as it will discretize them for you
-        previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, speed, Constants.LOOP_PERIOD_SECONDS);
-
-        SwerveModuleState[] setpointStates = previousSetpoint.moduleStates();
-        DriveFeedforwards feedforwards = previousSetpoint.feedforwards();
+        SwerveModuleState[] setpointStates = moduleStateSetpoint.moduleStates();
+        DriveFeedforwards feedforwards = moduleStateSetpoint.feedforwards();
 
         double[] feedforwardLinearForcesNewtons = feedforwards.linearForcesNewtons();
 
         // Log setpoints
         Logger.recordOutput("Swerve/States/Setpoints", setpointStates);
-        Logger.recordOutput("Swerve/ChassisSpeeds/Setpoints", previousSetpoint.robotRelativeSpeeds());
-        Logger.recordOutput("Swerve/ChassisSpeeds/SetpointsRaw", speed);
+        Logger.recordOutput("Swerve/ChassisSpeeds/Setpoints", moduleStateSetpoint.robotRelativeSpeeds());
+        Logger.recordOutput("Swerve/ChassisSpeeds/SetpointsRaw", setpointSpeeds);
         Logger.recordOutput("Swerve/ChassisSpeeds/Accelerations", feedforwards.accelerationsMPSSq());
 
         Logger.recordOutput("Swerve/States/FeedforwardLinearForces", feedforwardLinearForcesNewtons);
@@ -537,8 +551,8 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         }
 
         // Init previous setpoint if null
-        if (previousSetpoint == null) {
-            previousSetpoint = new SwerveSetpoint(getChassisSpeeds(), getModuleStates(), DriveFeedforwards.zeros(4));
+        if (moduleStateSetpoint == null) {
+            moduleStateSetpoint = new SwerveSetpoint(getChassisSpeeds(), getModuleStates(), DriveFeedforwards.zeros(4));
         }
 
         // Stop moving when disabled
@@ -591,8 +605,53 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
             // Apply update
             poseEstimator.updateWithTime(sampleTimestamps[sampleIndex], rawGyroRotation, modulePositions);
         }
+
+        // Run state machine
+        var currentState = stateMachine.getCurrentState().enumType;
+        var action = stateMachine.statePeriodicActions.get(currentState);
+
+        if (action != null) {
+            action.onPeriodic(stateMachine.getCurrentPayload());
+        }
+
         // Update aim to target
-        // autoAim.updateCalculatedResult(getPose(), FieldLocations.HUB.getPose(), cachedSpeeds);
-        // autoAim.latestCalculationResult.log();
+        if (
+            // Payload must exist for target pose
+            stateMachine.getCurrentPayload().isPresent() &&
+            // Only run auto-aim if in auto aim state or if the payload requests rotation to pose
+            (stateMachine.is(SwerveState.AUTO_AIM) ||
+                stateMachine.getCurrentPayload().get().shouldRotateToPoseSupplier().get() !=
+                SwervePayload.RotationMode.ONLY_DRIVE_NO_ROTATE)
+        ) {
+            Pose2d targetPoseToRotateTo = stateMachine.getCurrentPayload().get().poseToRotateToSupplier().get();
+
+            // TODO: optimize and move to constants
+            final int refinementSteps = 1;
+
+            SwerveSetpoint moduleStateSetpointWithoutRotation = moduleStateSetpoint;
+
+            for (int i = 0; i < refinementSteps; i++) {
+                moduleStateSetpointWithoutRotation = setpointGenerator.generateSetpoint(
+                    moduleStateSetpointWithoutRotation,
+                    setpointSpeeds,
+                    Constants.LOOP_PERIOD_SECONDS
+                );
+
+                autoAim.updateCalculatedResult(
+                    getPose(),
+                    targetPoseToRotateTo,
+                    moduleStateSetpointWithoutRotation.robotRelativeSpeeds(),
+                    getChassisSpeeds()
+                );
+
+                // Override the angular velocity setpoint with the auto-aim result
+                setpointSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond();
+            }
+
+            autoAim.latestCalculationResult.log();
+        }
+
+        // Apply outputs
+        runSpeeds();
     }
 }

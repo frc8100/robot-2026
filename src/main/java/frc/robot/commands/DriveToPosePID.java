@@ -222,11 +222,7 @@ public class DriveToPosePID {
         }
 
         double rotationSpeed = shouldRotateToTarget
-            ? aimToTarget.getRotationOutputRadiansPerSecond(
-                currentPose,
-                lastTargetPose,
-                swerveSubsystem.getChassisSpeeds()
-            )
+            ? aimToTarget.getRotationOutputRadiansPerSecond()
             : rotationController.calculate(
                 currentPose.getRotation().getRadians(),
                 autopilotResult.targetAngle().getRadians()

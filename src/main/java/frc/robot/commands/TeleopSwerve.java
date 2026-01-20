@@ -112,8 +112,9 @@ public class TeleopSwerve {
         });
 
         // Bindings
+        // TODO: make this command run before inputs/outputs are calcuated; this has a 1 frame delay between input and output currently
         swerveSubsystem.stateMachine.whileState(SwerveState.FULL_DRIVER_CONTROL, this::driveFullDriverControl);
-        swerveSubsystem.stateMachine.whileState(SwerveState.AUTO_AIM, this::handleAutoAim);
+        swerveSubsystem.stateMachine.whileState(SwerveState.AUTO_AIM, this::driveFullDriverControl);
         swerveSubsystem.stateMachine.whileState(SwerveState.DRIVE_TO_POSE_PATHFINDING, this::handleInitialPathfinding);
         swerveSubsystem.stateMachine.whileState(SwerveState.DRIVE_TO_POSE_PID, this::handleFinalAlignment);
         swerveSubsystem.stateMachine.whileState(SwerveState.DRIVE_TO_POSE_AT_TARGET, this::handleAtTarget);
@@ -223,32 +224,28 @@ public class TeleopSwerve {
     /**
      * Handles auto-aiming.
      */
-    private void handleAutoAim(Optional<SwervePayload> payloadOptional) {
-        ChassisSpeeds desiredChassisSpeeds = getChassisSpeedsFromControls();
+    // private void handleAutoAim(Optional<SwervePayload> payloadOptional) {
+    //     ChassisSpeeds desiredChassisSpeeds = getChassisSpeedsFromControls();
 
-        if (!payloadOptional.isPresent()) {
-            // No target, just drive normally
-            swerveSubsystem.runVelocityChassisSpeeds(desiredChassisSpeeds);
-            return;
-        }
+    //     if (!payloadOptional.isPresent()) {
+    //         // No target, just drive normally
+    //         swerveSubsystem.runVelocityChassisSpeeds(desiredChassisSpeeds);
+    //         return;
+    //     }
 
-        // Override rotation with auto-aim
-        Pose2d robotPose = swerveSubsystem.getPose();
-        Pose2d targetPose = payloadOptional.get().poseToRotateToSupplier().get();
+    //     // Override rotation with auto-aim
+    //     Pose2d robotPose = swerveSubsystem.getPose();
+    //     Pose2d targetPose = payloadOptional.get().poseToRotateToSupplier().get();
 
-        // TODO: also update this in DriveToPosePID
-        // TODO: If this is not updated, shooter will not set target speed correctly
-        swerveSubsystem.autoAim.updateCalculatedResult(robotPose, targetPose, desiredChassisSpeeds);
-        swerveSubsystem.autoAim.latestCalculationResult.log();
+    //     // TODO: also update this in DriveToPosePID
+    //     // TODO: If this is not updated, shooter will not set target speed correctly
+    //     swerveSubsystem.autoAim.updateCalculatedResult(robotPose, targetPose, desiredChassisSpeeds);
+    //     swerveSubsystem.autoAim.latestCalculationResult.log();
 
-        desiredChassisSpeeds.omegaRadiansPerSecond = swerveSubsystem.autoAim.getRotationOutputRadiansPerSecond(
-            robotPose,
-            targetPose,
-            desiredChassisSpeeds
-        );
+    //     desiredChassisSpeeds.omegaRadiansPerSecond = swerveSubsystem.autoAim.getRotationOutputRadiansPerSecond();
 
-        swerveSubsystem.runVelocityChassisSpeeds(desiredChassisSpeeds);
-    }
+    //     swerveSubsystem.runVelocityChassisSpeeds(desiredChassisSpeeds);
+    // }
 
     /**
      * Handles the initial pathfinding to the target pose.
