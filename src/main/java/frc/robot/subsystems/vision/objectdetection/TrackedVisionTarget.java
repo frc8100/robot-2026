@@ -4,7 +4,9 @@ import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N0;
 import edu.wpi.first.math.numbers.N1;
@@ -22,8 +24,8 @@ public class TrackedVisionTarget {
     public static record TrackedVisionTargetLoggedInfo(
         double creationTimeSeconds,
         GamePieceObservationType type,
-        Pose3d latestPose,
-        Pose3d estimatedPose,
+        Pose2d latestPose,
+        Pose2d estimatedPose,
         int hits,
         int misses
     ) {}
@@ -108,7 +110,7 @@ public class TrackedVisionTarget {
     /**
      * The latest pose of the target.
      */
-    private Pose3d latestPose;
+    private Pose2d latestPose;
 
     /**
      * A Kalman filter for estimating the pose of the vision target.
@@ -132,7 +134,7 @@ public class TrackedVisionTarget {
      * @param creationTimeSeconds - The time the target was created.
      * @param initialPose - The initial pose of the target.
      */
-    public TrackedVisionTarget(GamePieceObservationType type, double creationTimeSeconds, Pose3d initialPose) {
+    public TrackedVisionTarget(GamePieceObservationType type, double creationTimeSeconds, Pose2d initialPose) {
         this.type = type;
         this.creationTimeSeconds = creationTimeSeconds;
         this.latestPose = initialPose;
@@ -144,7 +146,7 @@ public class TrackedVisionTarget {
         // kalmanFilter.setXhat(1, initialPose.getY());
 
         smoother.overrideState(
-            new double[] { initialPose.getX(), initialPose.getY(), initialPose.getRotation().getZ() }
+            new double[] { initialPose.getX(), initialPose.getY(), initialPose.getRotation().getRadians() }
         );
     }
 
@@ -154,7 +156,7 @@ public class TrackedVisionTarget {
      * Updates the pose of the target.
      * @param newPose - The new pose of the target.
      */
-    public void addMeasurement(Pose3d newPose) {
+    public void addMeasurement(Pose2d newPose) {
         this.latestPose = newPose;
         hits++;
 
@@ -167,7 +169,7 @@ public class TrackedVisionTarget {
         // cachedMeasurement.set(1, 0, newPose.getY());
         // kalmanFilter.correct(emptyInput, cachedMeasurement);
 
-        smoother.addMeasurement(new double[] { newPose.getX(), newPose.getY(), newPose.getRotation().getZ() });
+        smoother.addMeasurement(new double[] { newPose.getX(), newPose.getY(), newPose.getRotation().getRadians() });
     }
 
     /**
@@ -183,7 +185,18 @@ public class TrackedVisionTarget {
     /**
      * @return The estimated pose of the target.
      */
-    public Pose3d getEstimatedPose() {
+    public Pose2d getEstimatedPose() {
+        return new Pose2d(
+            smoother.getCurrentState()[0],
+            smoother.getCurrentState()[1],
+            new Rotation2d(smoother.getCurrentState()[2])
+        );
+    }
+
+    /**
+     * @return The estimated 3D pose of the target.
+     */
+    public Pose3d getEstimatedPose3d() {
         return new Pose3d(
             // kalmanFilter.getXhat(0),
             // kalmanFilter.getXhat(1),

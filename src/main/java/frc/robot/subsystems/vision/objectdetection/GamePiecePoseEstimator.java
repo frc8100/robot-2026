@@ -85,7 +85,7 @@ public class GamePiecePoseEstimator {
      * @return A list of the latest observed game piece poses for the given type. If no poses have been observed, returns an empty list.
      */
     public List<Pose3d> getLatestGamePiecePoses(GamePieceObservationType type) {
-        return trackedTargetsByType.get(type).stream().map(target -> target.getEstimatedPose()).toList();
+        return trackedTargetsByType.get(type).stream().map(target -> target.getEstimatedPose3d()).toList();
     }
 
     /**
@@ -94,7 +94,7 @@ public class GamePiecePoseEstimator {
      * @return A list of the latest observed game piece poses as 2D poses for the given type. If no poses have been observed, returns an empty list.
      */
     public List<Pose2d> getLatestGamePiecePosesAs2d(GamePieceObservationType type) {
-        return trackedTargetsByType.get(type).stream().map(target -> target.getEstimatedPose().toPose2d()).toList();
+        return trackedTargetsByType.get(type).stream().map(target -> target.getEstimatedPose()).toList();
     }
 
     /**
@@ -103,12 +103,11 @@ public class GamePiecePoseEstimator {
      * @param referencePoseSupplier - A supplier that provides the reference pose.
      * @return An Optional containing the nearest observed game piece pose of the given type to the reference pose, or an empty Optional if no poses have been observed.
      */
-    public Optional<Pose3d> getNearestGamePiecePose(
+    public Optional<Pose2d> getNearestGamePiecePose(
         GamePieceObservationType type,
         Supplier<Pose2d> referencePoseSupplier
     ) {
-        List<Pose3d> poses = getLatestGamePiecePoses(type);
-
+        List<Pose2d> poses = getLatestGamePiecePosesAs2d(type);
         // Return empty if no poses are available
         if (poses.isEmpty()) {
             return Optional.empty();
@@ -116,12 +115,11 @@ public class GamePiecePoseEstimator {
 
         Pose2d referencePose = referencePoseSupplier.get();
 
-        Pose3d nearestPose = null;
+        Pose2d nearestPose = null;
         double nearestDistance = Double.MAX_VALUE;
 
-        for (Pose3d pose : poses) {
-            double distance = pose.toPose2d().getTranslation().getDistance(referencePose.getTranslation());
-
+        for (Pose2d pose : poses) {
+            double distance = pose.getTranslation().getDistance(referencePose.getTranslation());
             if (distance < nearestDistance) {
                 nearestDistance = distance;
                 nearestPose = pose;
@@ -220,7 +218,7 @@ public class GamePiecePoseEstimator {
 
             Logger.recordOutput(
                 "Vision/GamePieces/" + type.className + "/LatestPoses",
-                targets.stream().map(target -> target.getEstimatedPose()).toArray(Pose3d[]::new)
+                targets.stream().map(target -> target.getEstimatedPose3d()).toArray(Pose3d[]::new)
             );
 
             // Log tracked target info

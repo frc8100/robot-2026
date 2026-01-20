@@ -13,6 +13,7 @@
 
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -170,8 +171,8 @@ public class VisionIOLimelight implements VisionIO {
                 (int) LimelightHelpers.extractArrayEntry(rawSample.value, baseIndex)
             );
 
-            // Estimate 3D pose
-            Pose3d pose = VisionUtil.estimateTargetPose3d(
+            // Estimate pose
+            Pose2d pose = VisionUtil.estimateTargetPose2d(
                 swerveSubsystem.poseEstimator.sampleAt(timestampSeconds).orElse(swerveSubsystem.getPose()),
                 transformRobotToCamera,
                 // TODO: should tx or ty be inverted?

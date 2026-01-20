@@ -176,7 +176,14 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
 
                     gamePieceObservationsByType
                         .get(pipeline.type())
-                        .add(new GamePieceObservation(nextTimeMicroseconds / 1e6, noisyPose, 0.0, pipeline.type()));
+                        .add(
+                            new GamePieceObservation(
+                                nextTimeMicroseconds / 1e6,
+                                noisyPose.toPose2d(),
+                                0.0,
+                                pipeline.type()
+                            )
+                        );
                 }
             }
         }
