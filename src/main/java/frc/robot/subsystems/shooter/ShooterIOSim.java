@@ -1,19 +1,20 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.util.FieldConstants;
+import java.lang.reflect.Field;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
-import org.ironmaple.simulation.seasonspecific.crescendo2024.NoteOnFly;
+import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnFly;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.simulation.PhotonCameraSim;
 
 public class ShooterIOSim implements ShooterIO {
 
@@ -22,25 +23,59 @@ public class ShooterIOSim implements ShooterIO {
 
     private LinearVelocity storedExitVelocity = MetersPerSecond.of(0.0);
 
+    private static Field launchTimeField = null;
+
+    /**
+     * @return The Field object for the {@link GamePieceProjectile#calculatedHitTargetTime} field. Can be null if an error occurred.
+     */
+    private static Field getLaunchTimeField() {
+        if (launchTimeField == null) {
+            try {
+                // Use reflection to access private field
+                launchTimeField = GamePieceProjectile.class.getDeclaredField("calculatedHitTargetTime");
+                launchTimeField.setAccessible(true); // NOSONAR
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return launchTimeField;
+    }
+
     public ShooterIOSim(Swerve swerveSubsystem, AbstractDriveTrainSimulation driveTrain) {
         this.swerveSubsystem = swerveSubsystem;
         this.driveTrain = driveTrain;
     }
 
+    /**
+     * Gets the next entry time without consuming it.
+     * See {@link PhotonCameraSim#consumeNextEntryTime()}.
+     * @return The next entry time in microseconds, or empty if an error occurred or no entry time is available.
+     */
+    private OptionalDouble getLaunchTime(GamePieceProjectile projectile) {
+        try {
+            Field field = getLaunchTimeField();
+            if (field == null) {
+                return OptionalDouble.empty();
+            }
+
+            double launchTime = (double) field.get(projectile);
+            return OptionalDouble.of(launchTime);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            return OptionalDouble.empty();
+        }
+    }
+
     @Override
     public void testShoot() {
-        // note = fuel at home
-        NoteOnFly fuelOnFly = new NoteOnFly(
+        RebuiltFuelOnFly fuelOnFly = new RebuiltFuelOnFly(
             // Specify the position of the chassis when the note is launched
             swerveSubsystem.getActualPose().getTranslation(),
             // Specify the translation of the shooter from the robot center (in the shooter’s reference frame)
             ShooterConstants.positionFromRobotCenter2d,
             // Specify the field-relative speed of the chassis, adding it to the initial velocity of the projectile
             driveTrain.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-            // ChassisSpeeds.fromRobotRelativeSpeeds(
-            //     swerveSubsystem.moduleStateSetpoint.robotRelativeSpeeds(),
-            //     swerveSubsystem.getActualPose().getRotation()
-            // ),
             // The shooter facing direction is the same as the robot’s facing direction
             // ShooterConstants.positionFromRobotCenter
             //     .getRotation()
@@ -64,9 +99,13 @@ public class ShooterIOSim implements ShooterIO {
             pose3ds -> Logger.recordOutput("Shooter/FuelTrajectoryMiss", pose3ds.toArray(Pose3d[]::new))
         );
 
-        // fuelOnFly.enableBecomesGamePieceOnFieldAfterTouchGround();
-
         SimulatedArena.getInstance().addGamePieceProjectile(fuelOnFly);
+
+        // Log the launch time
+        OptionalDouble launchTimeOpt = getLaunchTime(fuelOnFly);
+        if (launchTimeOpt.isPresent()) {
+            Logger.recordOutput("Shooter/FuelLaunchTime", launchTimeOpt.getAsDouble());
+        }
     }
 
     @Override
