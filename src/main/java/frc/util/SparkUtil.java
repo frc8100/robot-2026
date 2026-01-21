@@ -21,6 +21,8 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import edu.wpi.first.wpilibj.Timer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
@@ -31,8 +33,17 @@ public class SparkUtil {
 
     private SparkUtil() {}
 
-    /** Stores whether any error was has been detected by other utility methods. */
+    /**
+     * Stores whether any error was has been detected by other utility methods.
+     */
     public static boolean sparkStickyFault = false;
+
+    private static List<REVLibError> unreadErrors = new ArrayList<>();
+
+    public static void addError(REVLibError error) {
+        unreadErrors.add(error);
+        sparkStickyFault = true;
+    }
 
     /**
      * Processes and returns a value from a Spark only if the value is valid.
@@ -41,10 +52,12 @@ public class SparkUtil {
     public static <T> T ifOkElse(SparkBase spark, Supplier<T> supplier, Supplier<T> elseSupplier) {
         T value = supplier.get();
 
-        if (spark.getLastError() == REVLibError.kOk) {
+        REVLibError error = spark.getLastError();
+
+        if (error == REVLibError.kOk) {
             return value;
         } else {
-            sparkStickyFault = true;
+            addError(spark.getLastError());
             return elseSupplier.get();
         }
     }
@@ -56,10 +69,12 @@ public class SparkUtil {
     public static <T> T ifOkElseValue(SparkBase spark, Supplier<T> supplier, T elseValue) {
         T value = supplier.get();
 
-        if (spark.getLastError() == REVLibError.kOk) {
+        REVLibError error = spark.getLastError();
+
+        if (error == REVLibError.kOk) {
             return value;
         } else {
-            sparkStickyFault = true;
+            addError(spark.getLastError());
             return elseValue;
         }
     }
@@ -78,27 +93,27 @@ public class SparkUtil {
     // }
 
     /** Processes a value from a Spark only if the value is valid. */
-    public static void ifOk(SparkBase spark, DoubleSupplier supplier, DoubleConsumer consumer) {
-        double value = supplier.getAsDouble();
-        if (spark.getLastError() == REVLibError.kOk) {
-            consumer.accept(value);
-        } else {
-            sparkStickyFault = true;
-        }
-    }
+    // public static void ifOk(SparkBase spark, DoubleSupplier supplier, DoubleConsumer consumer) {
+    //     double value = supplier.getAsDouble();
+    //     if (spark.getLastError() == REVLibError.kOk) {
+    //         consumer.accept(value);
+    //     } else {
+    //         sparkStickyFault = true;
+    //     }
+    // }
 
     /** Processes a value from a Spark only if the value is valid. */
-    public static void ifOk(SparkBase spark, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
-        double[] values = new double[suppliers.length];
-        for (int i = 0; i < suppliers.length; i++) {
-            values[i] = suppliers[i].getAsDouble();
-            if (spark.getLastError() != REVLibError.kOk) {
-                sparkStickyFault = true;
-                return;
-            }
-        }
-        consumer.accept(values);
-    }
+    // public static void ifOk(SparkBase spark, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
+    //     double[] values = new double[suppliers.length];
+    //     for (int i = 0; i < suppliers.length; i++) {
+    //         values[i] = suppliers[i].getAsDouble();
+    //         if (spark.getLastError() != REVLibError.kOk) {
+    //             sparkStickyFault = true;
+    //             return;
+    //         }
+    //     }
+    //     consumer.accept(values);
+    // }
 
     /** Attempts to run the command until no error is produced. */
     public static void tryUntilOk(SparkBase spark, int maxAttempts, Supplier<REVLibError> command) {
