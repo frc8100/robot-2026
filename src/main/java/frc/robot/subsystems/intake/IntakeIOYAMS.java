@@ -1,38 +1,19 @@
 package frc.robot.subsystems.intake;
 
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.CANIdConstants;
-import frc.util.SubsystemIOUtil;
-import yams.motorcontrollers.SmartMotorController;
-import yams.motorcontrollers.local.SparkWrapper;
+import frc.util.WrappedSpark;
 
 public class IntakeIOYAMS implements IntakeIO {
 
     // Deploy motor
     protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
-    protected final RelativeEncoder deployEncoder = deployMotor.getEncoder();
-    protected final SparkClosedLoopController deployController = deployMotor.getClosedLoopController();
-
-    protected final SparkWrapper deployMotorWrapped = new SparkWrapper(
-        deployMotor,
-        DCMotor.getNEO(1),
-        IntakeConstants.deployMotorConfig
-    );
+    protected final WrappedSpark deployMotorWrapped = new WrappedSpark(deployMotor, IntakeConstants.deployMotorConfig);
 
     // Intake motor
     protected final SparkMax intakeMotor = new SparkMax(CANIdConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
-    protected final RelativeEncoder intakeEncoder = intakeMotor.getEncoder();
-    protected final SparkClosedLoopController intakeController = intakeMotor.getClosedLoopController();
-
-    protected final SparkWrapper intakeMotorWrapped = new SparkWrapper(
-        intakeMotor,
-        DCMotor.getNEO(1),
-        IntakeConstants.intakeMotorConfig
-    );
+    protected final WrappedSpark intakeMotorWrapped = new WrappedSpark(intakeMotor, IntakeConstants.intakeMotorConfig);
 
     @Override
     public void runIntake(double speed) {
@@ -41,19 +22,7 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
-        inputs.deployMotorConnected = SubsystemIOUtil.updateDataFromWrappedSparkOrSimulation(
-            inputs.deployMotorData,
-            deployMotorWrapped,
-            deployMotor,
-            deployEncoder,
-            deployController
-        );
-        inputs.intakeMotorConnected = SubsystemIOUtil.updateDataFromWrappedSparkOrSimulation(
-            inputs.intakeMotorData,
-            intakeMotorWrapped,
-            intakeMotor,
-            intakeEncoder,
-            intakeController
-        );
+        inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
+        inputs.intakeMotorConnected = intakeMotorWrapped.updateData(inputs.intakeMotorData);
     }
 }
