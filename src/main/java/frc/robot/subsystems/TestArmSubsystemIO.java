@@ -32,9 +32,9 @@ public class TestArmSubsystemIO {
 
     /** Updates the set of loggable inputs. */
     public void updateInputs(TestArmSubsystemIOInputs inputs) {
-        inputs.isMotorConnected = SubsystemIOUtil.updateDataFromWrappedMotorController(
-            inputs.motorData,
-            sparkSmartMotorController
-        );
+        // inputs.isMotorConnected = SubsystemIOUtil.updateDataFromWrappedMotorController(
+        //     inputs.motorData,
+        //     sparkSmartMotorController
+        // );
     }
 }

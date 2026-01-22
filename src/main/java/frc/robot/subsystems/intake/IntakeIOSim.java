@@ -4,7 +4,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import org.ironmaple.simulation.IntakeSimulation;
 import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
 
-public class IntakeIOSim implements IntakeIO {
+public class IntakeIOSim extends IntakeIOYAMS {
 
     private final IntakeSimulation intakeSimulation;
 

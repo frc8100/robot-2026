@@ -151,6 +151,8 @@ public class ButtonBindings {
         driverController
             .getJoystickButton(XboxController.Button.kA)
             .onTrue(Commands.runOnce(shooterSubsystem::testShoot));
+
+        driverController.getJoystickButton(XboxController.Button.kB).whileTrue(intakeSubsystem.runIntake(0.2));
         // Toggle drive to coral station state
         // StateCycle<SwerveState, Supplier<Pose2d>> toggleDriveToCoralStation =
         //     swerveSubsystem.stateMachine.createStateCycleWithPayload(
