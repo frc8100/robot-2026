@@ -23,26 +23,52 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
+import org.littletonrobotics.junction.Logger;
 
+/**
+ * Utility methods for working with Spark motor controllers.
+ */
 public class SparkUtil {
 
     private SparkUtil() {}
 
+    private static final String ERROR_DASHBOARD_KEY = "SparkUtil/UnreadErrorsList";
+
     /**
      * Stores whether any error was has been detected by other utility methods.
      */
-    public static boolean sparkStickyFault = false;
+    private static boolean sparkStickyFault = false;
 
-    private static List<REVLibError> unreadErrors = new ArrayList<>();
+    /**
+     * Stores a list of unread REVLibErrors.
+     * Cleared in {@link #periodic()} after being logged.
+     */
+    private static final List<REVLibError> unreadErrors = new ArrayList<>();
 
+    /**
+     * Adds an error to the unread errors list and sets the sticky fault.
+     * @param error - The REVLibError to add.
+     */
     public static void addError(REVLibError error) {
         unreadErrors.add(error);
         sparkStickyFault = true;
+    }
+
+    /**
+     * Clears the sticky fault.
+     */
+    public static void clearStickyFault() {
+        sparkStickyFault = false;
+    }
+
+    /**
+     * @return Whether a sticky fault has occurred.
+     */
+    public static boolean hasStickyFault() {
+        return sparkStickyFault;
     }
 
     /**
@@ -57,7 +83,7 @@ public class SparkUtil {
         if (error == REVLibError.kOk) {
             return value;
         } else {
-            addError(spark.getLastError());
+            addError(error);
             return elseSupplier.get();
         }
     }
@@ -74,23 +100,14 @@ public class SparkUtil {
         if (error == REVLibError.kOk) {
             return value;
         } else {
-            addError(spark.getLastError());
+            addError(error);
             return elseValue;
         }
     }
 
     public static double ifOkOtherwiseZero(SparkBase spark, DoubleSupplier supplier) {
-        return ifOkElse(spark, supplier::getAsDouble, () -> 0.0);
+        return ifOkElseValue(spark, supplier::getAsDouble, 0.0);
     }
-
-    // @SuppressWarnings("unchecked")
-    // public static <U extends Measure<?>> U ifOkOtherwiseZero(
-    //     U baseUnit,
-    //     SparkBase spark,
-    //     Supplier<U> supplier
-    // ) {
-    //     return ifOkElse(spark, supplier, () -> (U) baseUnit.);
-    // }
 
     /** Processes a value from a Spark only if the value is valid. */
     // public static void ifOk(SparkBase spark, DoubleSupplier supplier, DoubleConsumer consumer) {
@@ -115,14 +132,16 @@ public class SparkUtil {
     //     consumer.accept(values);
     // }
 
-    /** Attempts to run the command until no error is produced. */
+    /**
+     * Attempts to run the command until no error is produced.
+     */
     public static void tryUntilOk(SparkBase spark, int maxAttempts, Supplier<REVLibError> command) {
         for (int i = 0; i < maxAttempts; i++) {
-            var error = command.get();
+            REVLibError error = command.get();
             if (error == REVLibError.kOk) {
                 break;
             } else {
-                sparkStickyFault = true;
+                addError(error);
             }
         }
     }
@@ -143,5 +162,19 @@ public class SparkUtil {
         }
 
         return odometryTimeStamps;
+    }
+
+    public static void warmupErrorLogging() {
+        Logger.recordOutput(ERROR_DASHBOARD_KEY, new REVLibError[] {});
+    }
+
+    /**
+     * Processes sticky faults by logging them and clearing the unread errors list.
+     */
+    public static void periodic() {
+        if (sparkStickyFault) {
+            Logger.recordOutput(ERROR_DASHBOARD_KEY, unreadErrors.toArray(new REVLibError[unreadErrors.size()]));
+            unreadErrors.clear();
+        }
     }
 }

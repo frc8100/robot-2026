@@ -221,7 +221,7 @@ public final class SubsystemIOUtil {
         SparkBase spark = (SparkBase) motorController.getMotorController();
 
         // Reset spark sticky fault
-        SparkUtil.sparkStickyFault = false;
+        SparkUtil.clearStickyFault();
 
         dataToUpdate.positionAngle.mut_replace(
             SparkUtil.ifOkElseValue(spark, motorController::getMechanismPosition, Radians.zero())
@@ -246,7 +246,7 @@ public final class SubsystemIOUtil {
             SparkUtil.ifOkElseValue(spark, motorController::getTemperature, Celsius.zero())
         );
 
-        return !SparkUtil.sparkStickyFault;
+        return !SparkUtil.hasStickyFault();
     }
 
     /**
@@ -263,7 +263,7 @@ public final class SubsystemIOUtil {
         SparkClosedLoopController closedLoopController
     ) {
         // Reset spark sticky fault
-        SparkUtil.sparkStickyFault = false;
+        SparkUtil.clearStickyFault();
 
         dataToUpdate.positionAngle.mut_replace(
             SparkUtil.ifOkOtherwiseZero(motorController, relativeEncoder::getPosition),
@@ -293,6 +293,6 @@ public final class SubsystemIOUtil {
             Celsius
         );
 
-        return !SparkUtil.sparkStickyFault;
+        return !SparkUtil.hasStickyFault();
     }
 }
