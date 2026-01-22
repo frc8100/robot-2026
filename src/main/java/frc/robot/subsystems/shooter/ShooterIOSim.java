@@ -16,8 +16,9 @@ import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnFly;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.PhotonCameraSim;
 
-public class ShooterIOSim implements ShooterIO {
+public class ShooterIOSim extends ShooterIOYAMS {
 
+    // Subsystem references
     private final Swerve swerveSubsystem;
     private final AbstractDriveTrainSimulation driveTrain;
 
@@ -43,14 +44,15 @@ public class ShooterIOSim implements ShooterIO {
     }
 
     public ShooterIOSim(Swerve swerveSubsystem, AbstractDriveTrainSimulation driveTrain) {
+        super();
         this.swerveSubsystem = swerveSubsystem;
         this.driveTrain = driveTrain;
     }
 
     /**
-     * Gets the next entry time without consuming it.
-     * See {@link PhotonCameraSim#consumeNextEntryTime()}.
-     * @return The next entry time in microseconds, or empty if an error occurred or no entry time is available.
+     * Gets the launch time of the given projectile using reflection.
+     * @param projectile - The projectile to get the launch time from.
+     * @return The launch time in seconds, or empty if an error occurred.
      */
     private OptionalDouble getLaunchTime(GamePieceProjectile projectile) {
         try {
@@ -114,5 +116,7 @@ public class ShooterIOSim implements ShooterIO {
     }
 
     @Override
-    public void updateInputs(ShooterIOInputs inputs) {}
+    public void updateInputs(ShooterIOInputs inputs) {
+        super.updateInputs(inputs);
+    }
 }
