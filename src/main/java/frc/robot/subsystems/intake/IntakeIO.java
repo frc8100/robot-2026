@@ -22,4 +22,7 @@ public interface IntakeIO {
 
     /** Updates the set of loggable inputs. */
     public default void updateInputs(IntakeIOInputs inputs) {}
+
+    // test
+    public default void runIntake(double speed) {}
 }

@@ -21,6 +21,7 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
+import frc.robot.Constants;
 import java.nio.ByteBuffer;
 import yams.motorcontrollers.local.SparkWrapper;
 
@@ -214,7 +215,7 @@ public final class SubsystemIOUtil {
      * @param motorController - The motor controller to get data from.
      * @return Whether the data was successfully updated (no sticky faults).
      */
-    public static boolean updateDataFromWrappedMotorController(
+    private static boolean updateDataFromWrappedMotorController(
         SparkMotorControllerData dataToUpdate,
         SparkWrapper motorController
     ) {
@@ -247,6 +248,23 @@ public final class SubsystemIOUtil {
         );
 
         return !SparkUtil.hasStickyFault();
+    }
+
+    public static boolean updateDataFromWrappedSparkOrSimulation(
+        SparkMotorControllerData dataToUpdate,
+        SparkWrapper wrappedMotorController,
+        SparkBase motorController,
+        RelativeEncoder relativeEncoder,
+        SparkClosedLoopController closedLoopController
+    ) {
+        // If in simulation, use the wrapped motor controller method
+        if (Constants.currentMode == Constants.Mode.SIM) {
+            // Note: shouldn't have any issues with replay because this method should not be called in replay (empty IO implementation used)
+            return updateDataFromWrappedMotorController(dataToUpdate, wrappedMotorController);
+        } else {
+            // Otherwise, use the standard Spark method
+            return updateDataFromSpark(dataToUpdate, motorController, relativeEncoder, closedLoopController);
+        }
     }
 
     /**

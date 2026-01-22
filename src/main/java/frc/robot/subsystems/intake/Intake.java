@@ -1,8 +1,12 @@
 package frc.robot.subsystems.intake;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.CANIdConstants;
+import frc.robot.subsystems.CANIdAlert;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -44,13 +48,30 @@ public class Intake extends SubsystemBase {
     private final IntakeIO io;
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
+    // Alerts for disconnected motors
+    private final CANIdAlert intakeDisconnectedAlert = new CANIdAlert(CANIdConstants.INTAKE_MOTOR_ID, "IntakeMotor");
+    private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
+
     public Intake(IntakeIO io) {
         this.io = io;
+    }
+
+    // temporary
+    public Command runIntake(double speed) {
+        return run(() -> io.runIntake(speed));
+    }
+
+    public Command runIntake(DoubleSupplier speedSupplier) {
+        return run(() -> io.runIntake(speedSupplier.getAsDouble()));
     }
 
     @Override
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
+
+        // Update alerts
+        intakeDisconnectedAlert.updateConnectionStatus(inputs.intakeMotorConnected);
+        deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
     }
 }

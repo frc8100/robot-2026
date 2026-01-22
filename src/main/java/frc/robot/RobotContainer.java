@@ -12,6 +12,7 @@ import frc.robot.commands.SwerveSysidRoutines;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSim;
+import frc.robot.subsystems.intake.IntakeIOYAMS;
 import frc.robot.subsystems.questnav.QuestNavIO;
 import frc.robot.subsystems.questnav.QuestNavIOReal;
 import frc.robot.subsystems.questnav.QuestNavIOSim;
@@ -102,8 +103,7 @@ public class RobotContainer {
                     )
                 );
 
-                // intakeSubsystem = new Intake(new IntakeIOSpark());
-                intakeSubsystem = new Intake(new IntakeIO() {});
+                intakeSubsystem = new Intake(new IntakeIOYAMS() {});
 
                 // TODO: add ShooterIOSpark
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
