@@ -215,7 +215,7 @@ public final class SubsystemIOUtil {
      * @param motorController - The motor controller to get data from.
      * @return Whether the data was successfully updated (no sticky faults).
      */
-    private static boolean updateDataFromWrappedMotorController(
+    public static boolean updateDataFromWrappedMotorController(
         SparkMotorControllerData dataToUpdate,
         SparkWrapper motorController
     ) {
