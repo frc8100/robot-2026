@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.CANIdConnections;
 import frc.robot.subsystems.swerve.OpponentRobotSim;
+import frc.util.SparkUtil;
 import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -92,6 +93,8 @@ public class Robot extends LoggedRobot {
 
         // Instantiate RobotContainer
         robotContainer = new RobotContainer();
+
+        SparkUtil.warmupErrorLogging();
     }
 
     /** This function is called periodically during all modes. */
@@ -114,6 +117,8 @@ public class Robot extends LoggedRobot {
 
         // RobotContainer periodic
         robotContainer.periodic();
+
+        SparkUtil.periodic();
     }
 
     /** This function is called once when the robot is disabled. */
