@@ -7,6 +7,8 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -41,7 +43,16 @@ public class RobotActions {
          * The center of the hub.
          */
         // TODO: refine measurement
-        HUB(new Pose2d(Inches.of(158.6 + (47.0 / 2.0)), Meters.of(4), Rotation2d.kZero));
+        HUB(new Pose2d(Inches.of(158.6 + (47.0 / 2.0)), Meters.of(4), Rotation2d.kZero)),
+
+        /**
+         * The aim-to pose for the hub.
+         * Equal to the center of the hub shifted back and up to prevent undershooting.
+         */
+        HUB_AIM_TO(
+            FieldLocations.HUB.getPose()
+                .transformBy(new Transform2d(new Translation2d(Inches.of(2), Inches.of(0)), Rotation2d.kZero))
+        );
 
         private final Pose2d blueAlliancePose;
         private final Pose2d redAlliancePose;
@@ -69,9 +80,9 @@ public class RobotActions {
      * Payload to point (auto aim) to the hub.
      */
     public static final SwervePayload POINT_TO_HUB_PAYLOAD = new SwervePayload(
-        FieldLocations.HUB::getPose,
+        FieldLocations.HUB_AIM_TO::getPose,
         () -> SwervePayload.RotationMode.ONLY_ROTATE_TO_POSE_NO_DRIVE_TO_POSE,
-        FieldLocations.HUB::getPose
+        FieldLocations.HUB_AIM_TO::getPose
     );
 
     /**
