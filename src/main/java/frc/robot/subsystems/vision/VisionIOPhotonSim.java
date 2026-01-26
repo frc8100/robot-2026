@@ -179,7 +179,7 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
                         .add(
                             new GamePieceObservation(
                                 nextTimeMicroseconds / 1e6,
-                                noisyPose.toPose2d(),
+                                noisyPose.toPose2d().getTranslation(),
                                 0.0,
                                 pipeline.type()
                             )

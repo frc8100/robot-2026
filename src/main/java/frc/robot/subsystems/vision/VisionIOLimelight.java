@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
@@ -172,7 +173,7 @@ public class VisionIOLimelight implements VisionIO {
             );
 
             // Estimate pose
-            Pose2d pose = VisionUtil.estimateTargetPose2d(
+            Translation2d pose = VisionUtil.estimateTargetPose2d(
                 swerveSubsystem.poseEstimator.sampleAt(timestampSeconds).orElse(swerveSubsystem.getPose()),
                 transformRobotToCamera,
                 // TODO: should tx or ty be inverted?
