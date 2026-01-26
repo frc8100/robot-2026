@@ -11,6 +11,11 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.Interpolatable;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
+import edu.wpi.first.math.interpolation.Interpolator;
+import edu.wpi.first.math.interpolation.InverseInterpolator;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -31,13 +36,45 @@ import org.littletonrobotics.junction.Logger;
  */
 public class AimToTarget {
 
-    public record ExitVelocityCalculationResult(double exitVelocityMetersPerSecond, double timeToTargetSeconds) {}
+    public record ExitVelocityCalculationResult(double exitVelocityMetersPerSecond, double timeToTargetSeconds) {
+        public static final ExitVelocityCalculationResult ZERO = new ExitVelocityCalculationResult(0.0, 0.0);
+
+        public static ExitVelocityCalculationResult interpolate(
+            ExitVelocityCalculationResult startValue,
+            ExitVelocityCalculationResult endValue,
+            double t
+        ) {
+            return new ExitVelocityCalculationResult(
+                MathUtil.interpolate(startValue.exitVelocityMetersPerSecond, endValue.exitVelocityMetersPerSecond, t),
+                MathUtil.interpolate(startValue.timeToTargetSeconds, endValue.timeToTargetSeconds, t)
+            );
+        }
+
+        public static Interpolator<ExitVelocityCalculationResult> getInterpolator() {
+            return ExitVelocityCalculationResult::interpolate;
+        }
+    }
+
+    /**
+     * A map from distance to target in meters to time of flight in seconds.
+     */
+    public static final InterpolatingTreeMap<Double, ExitVelocityCalculationResult> distanceToTimeOfFlightMap =
+        new InterpolatingTreeMap<>(InverseInterpolator.forDouble(), ExitVelocityCalculationResult.getInterpolator());
+
+    static {
+        // Generate the distance to time of flight map based on calculations
+        // TODO: try empirical data later
+        for (double distance = 1.0; distance <= 15.0; distance += 0.2) {
+            ExitVelocityCalculationResult result = solveExitVelocity(distance, 0.0, 0.0);
+            distanceToTimeOfFlightMap.put(distance, result);
+        }
+    }
 
     /**
      * Solves for the exit velocity needed to hit the target at the given distance, accounting for the radial velocity of the robot.
      * @param distanceMeters - The horizontal distance to the target in meters.
      * @param radialVelocityMetersPerSecond - The radial velocity of the robot towards the target in meters per second. Positive values indicate the robot is moving away from the target, negative values indicate the robot is moving towards the target.
-     * @return
+     * @return An {@link ExitVelocityCalculationResult} containing the exit velocity in meters per second and the time to target in seconds.
      */
     public static ExitVelocityCalculationResult solveExitVelocity(
         double distanceMeters,
@@ -45,10 +82,10 @@ public class AimToTarget {
         double tangentialVelocityMetersPerSecond
     ) {
         // Precompute constants
-        final double cosHorizontalComponent = Math.cos(ShooterConstants.exitAngle.in(Radians));
-        final double sinVerticalComponent = Math.sin(ShooterConstants.exitAngle.in(Radians));
+        final double cosHorizontalComponent = ShooterConstants.exitAngle.getCos();
+        final double sinVerticalComponent = ShooterConstants.exitAngle.getSin();
         final double targetHeightOffset =
-            FieldConstants.hubTargetHeight.in(Meters) - ShooterConstants.positionFromRobotCenter.getZ();
+            FieldConstants.hubTargetHeight.in(Meters) - ShooterConstants.transformFromRobotCenter.getZ();
         final double gMPS2 = ShooterConstants.g.in(MetersPerSecondPerSecond);
 
         // Binary search bounds
@@ -139,9 +176,14 @@ public class AimToTarget {
         protected final MutLinearVelocity targetFuelExitVelocity = MetersPerSecond.mutable(0.0);
         protected final MutAngularVelocity totalAngularVelocityFF = RadiansPerSecond.mutable(0.0);
 
-        protected AimCalculationMutable() {}
+        protected AimCalculationMutable() {
+            // Log once at construction
+            log();
+        }
 
         public void log() {
+            Logger.recordOutput("AimToTarget/TargetPose", targetPose);
+
             Logger.recordOutput("AimToTarget/RotationTarget", rotationTarget);
             Logger.recordOutput("AimToTarget/DistanceToTarget", distanceToTarget);
             Logger.recordOutput("AimToTarget/RadialVelocity", radialVelocity);
@@ -218,8 +260,9 @@ public class AimToTarget {
         // );
         ChassisSpeeds desiredFieldRelativeSpeeds = actualFieldRelativeSpeeds;
 
-        Translation2d deltaTranslation = targetPose.getTranslation().minus(robotPose.getTranslation());
+        Pose2d shooterPose = robotPose.transformBy(ShooterConstants.transformFromRobotCenter2d);
 
+        Translation2d deltaTranslation = targetPose.getTranslation().minus(shooterPose.getTranslation());
         double distanceToTarget = deltaTranslation.getNorm();
 
         // Check for zero distance to avoid division by zero
@@ -227,74 +270,46 @@ public class AimToTarget {
             return;
         }
 
-        // Calculate direction and tangential direction unit vectors
-        Translation2d directionToTarget = deltaTranslation.div(distanceToTarget);
-        Translation2d tangentialDirection = new Translation2d(-directionToTarget.getY(), directionToTarget.getX());
+        // Account for imparted velocity by robot to offset
+        ExitVelocityCalculationResult calculatedResult = ExitVelocityCalculationResult.ZERO;
+        Translation2d lookaheadPoseAsTranslation = Translation2d.kZero;
+        double lookaheadPoseToTargetDistance = distanceToTarget;
 
-        // Multiply field-relative speeds by direction vectors to get radial and tangential velocities
-        double radialVelocityTowardsTarget =
-            desiredFieldRelativeSpeeds.vxMetersPerSecond * directionToTarget.getX() +
-            desiredFieldRelativeSpeeds.vyMetersPerSecond * directionToTarget.getY();
+        for (int i = 0; i < 15; i++) {
+            calculatedResult = distanceToTimeOfFlightMap.get(lookaheadPoseToTargetDistance);
+            Translation2d offset = new Translation2d(
+                desiredFieldRelativeSpeeds.vxMetersPerSecond,
+                desiredFieldRelativeSpeeds.vyMetersPerSecond
+            ).times(calculatedResult.timeToTargetSeconds);
 
-        double tangentialVelocity =
-            -(desiredFieldRelativeSpeeds.vxMetersPerSecond * tangentialDirection.getX() +
-                desiredFieldRelativeSpeeds.vyMetersPerSecond * tangentialDirection.getY());
+            lookaheadPoseAsTranslation = shooterPose.getTranslation().plus(offset);
+            lookaheadPoseToTargetDistance = targetPose.getTranslation().getDistance(lookaheadPoseAsTranslation);
+        }
 
-        double deltaDistanceRate = -radialVelocityTowardsTarget;
-        double deltaThetaRate = tangentialVelocity / distanceToTarget;
-
+        // Calculate direction
+        deltaTranslation = targetPose.getTranslation().minus(lookaheadPoseAsTranslation);
         double targetAngleRadians = Math.atan2(deltaTranslation.getY(), deltaTranslation.getX());
 
-        // Calculate target fuel exit velocity based on distance to target
-        ExitVelocityCalculationResult exitVelocityCalculation = solveExitVelocity(
-            distanceToTarget,
-            radialVelocityTowardsTarget,
-            tangentialVelocity
-        );
-        // double yawLeadRadians = Math.atan2(
-        //     tangentialVelocity * exitVelocityCalculation.timeToTargetSeconds,
-        //     distanceToTarget
-        // );
-
-        double effectiveTime = Math.min(
-            exitVelocityCalculation.timeToTargetSeconds,
-            distanceToTarget / exitVelocityCalculation.exitVelocityMetersPerSecond
-        );
-        double yawLeadRadians = Math.atan2(tangentialVelocity * effectiveTime, distanceToTarget);
-
-        // double maxLead = Math.asin(
-        //     MathUtil.clamp(tangentialVelocity / exitVelocityCalculation.exitVelocityMetersPerSecond, -0.95, 0.95)
-        // );
-        // yawLeadRadians = MathUtil.clamp(yawLeadRadians, -maxLead, maxLead);
-
-        targetAngleRadians += yawLeadRadians;
-
-        double yawFF =
-            deltaThetaRate +
-            (tangentialVelocity / distanceToTarget) /
-            (1.0 + Math.pow((tangentialVelocity * exitVelocityCalculation.timeToTargetSeconds) / distanceToTarget, 2));
+        // TODO: Calculate feedforward
+        Pose2d futureRobotPose = robotPose.exp(actualFieldRelativeSpeeds.toTwist2d(0.02));
 
         // Update the latest calculation result
         latestCalculationResult.robotPose = robotPose;
-        latestCalculationResult.targetPose = targetPose;
+        latestCalculationResult.targetPose = new Pose2d(lookaheadPoseAsTranslation, targetPose.getRotation());
 
         latestCalculationResult.rotationTarget.mut_replace(targetAngleRadians, Radians);
         latestCalculationResult.distanceToTarget.mut_replace(distanceToTarget, Meters);
-        latestCalculationResult.radialVelocity.mut_replace(deltaDistanceRate, RadiansPerSecond);
-        latestCalculationResult.tangentialVelocity.mut_replace(tangentialVelocity, MetersPerSecond);
-        latestCalculationResult.deltaThetaRate.mut_replace(deltaThetaRate, RadiansPerSecond);
         latestCalculationResult.targetFuelExitVelocity.mut_replace(
-            exitVelocityCalculation.exitVelocityMetersPerSecond,
+            calculatedResult.exitVelocityMetersPerSecond,
             MetersPerSecond
         );
-        latestCalculationResult.totalAngularVelocityFF.mut_replace(yawFF, RadiansPerSecond);
+        // latestCalculationResult.totalAngularVelocityFF.mut_replace(yawFF, RadiansPerSecond);
 
         // debug
-        Logger.recordOutput("AimToTarget/YawLeadRadians", yawLeadRadians);
-        Logger.recordOutput("AimToTarget/TimeToTargetSeconds", exitVelocityCalculation.timeToTargetSeconds);
+        Logger.recordOutput("AimToTarget/TimeToTargetSeconds", calculatedResult.timeToTargetSeconds);
         Logger.recordOutput(
-            "AimToTarget/TargetRotationAsPose",
-            new Pose2d(robotPose.getTranslation(), new Rotation2d(latestCalculationResult.getRotationTarget()))
+            "AimToTarget/LookaheadPose",
+            new Pose2d(lookaheadPoseAsTranslation, new Rotation2d(latestCalculationResult.getRotationTarget()))
         );
     }
 

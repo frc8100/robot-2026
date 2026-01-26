@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -34,7 +35,7 @@ public final class ShooterConstants {
 
     private ShooterConstants() {}
 
-    public static final Angle exitAngle = Degrees.of(60.0);
+    public static final Rotation2d exitAngle = Rotation2d.fromDegrees(70.0);
 
     public static final LinearAcceleration g = MetersPerSecondPerSecond.of(9.81);
 
@@ -64,11 +65,19 @@ public final class ShooterConstants {
             .withUpperSoftLimit(RPM.of(1000));
 
     // Simulation constants
-    public static final Transform3d positionFromRobotCenter = new Transform3d(
-        new Translation3d(Inches.of(12.0), Inches.of(0.0), Inches.of(6)),
-        Rotation3d.kZero
-    );
-    public static final Translation2d positionFromRobotCenter2d = positionFromRobotCenter
+    // public static final Transform3d transformFromRobotCenter = new Transform3d(
+    //     new Translation3d(Inches.of(12.0), Inches.of(0.0), Inches.of(6)),
+    //     Rotation3d.kZero
+    // );
+    // TODO: test with real measurements
+
+    public static final Transform3d transformFromRobotCenter = Transform3d.kZero;
+
+    public static final Translation2d positionFromRobotCenter2d = transformFromRobotCenter
         .getTranslation()
         .toTranslation2d();
+    public static final Transform2d transformFromRobotCenter2d = new Transform2d(
+        positionFromRobotCenter2d,
+        transformFromRobotCenter.getRotation().toRotation2d()
+    );
 }

@@ -63,6 +63,23 @@ public final class Constants {
     public static final boolean enableSignalLogger = false;
 
     /**
+     * Determines whether additional data should be logged.
+     * Additional data is useful for tuning and analysis, but may impact performance on a real robot.
+     * @return True if additional data should be logged, false otherwise.
+     */
+    public static boolean shouldLogAdditionalData() {
+        return (
+            // Log in simulation; no performance impact
+            currentMode == Mode.SIM ||
+            // Log in replay mode; extra data is useful for analysis
+            currentMode ==
+            Mode.REPLAY ||
+            // Log on real robot only if tuning mode is enabled
+            tuningMode
+        );
+    }
+
+    /**
      * An enum of modes for the robot.
      */
     public enum Mode {

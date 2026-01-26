@@ -1,9 +1,12 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.subsystems.swerve.Swerve;
 import java.lang.reflect.Field;
@@ -13,6 +16,8 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
 import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnFly;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltHub;
+import org.ironmaple.utils.FieldMirroringUtils;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.PhotonCameraSim;
 
@@ -86,11 +91,11 @@ public class ShooterIOSim extends ShooterIOYAMS {
             // TODO: this is temporarily set to ideal target
             new Rotation2d(swerveSubsystem.autoAim.latestCalculationResult.getRotationTarget()),
             // Initial height of the flying note
-            ShooterConstants.positionFromRobotCenter.getMeasureZ(),
+            ShooterConstants.transformFromRobotCenter.getMeasureZ(),
             // The launch speed
             storedExitVelocity,
             // The angle at which the note is launched
-            ShooterConstants.exitAngle
+            ShooterConstants.exitAngle.getMeasure()
         );
 
         fuelOnFly
@@ -100,6 +105,14 @@ public class ShooterIOSim extends ShooterIOYAMS {
             pose3ds -> Logger.recordOutput("Shooter/FuelTrajectoryHit", pose3ds.toArray(Pose3d[]::new)),
             pose3ds -> Logger.recordOutput("Shooter/FuelTrajectoryMiss", pose3ds.toArray(Pose3d[]::new))
         );
+
+        fuelOnFly.disableBecomesGamePieceOnFieldAfterTouchGround();
+        fuelOnFly.withTouchGroundHeight(Inches.of(5).in(Meters));
+
+        fuelOnFly.withTargetPosition(() ->
+            FieldMirroringUtils.toCurrentAllianceTranslation(new Translation3d(4.5974, 4.034536, 1.5748))
+        );
+        fuelOnFly.withTargetTolerance(new Translation3d(0.5969, 0.5969, 0.5).div(2));
 
         SimulatedArena.getInstance().addGamePieceProjectile(fuelOnFly);
 
