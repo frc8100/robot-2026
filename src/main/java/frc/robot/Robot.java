@@ -169,6 +169,11 @@ public class Robot extends LoggedRobot {
     @Override
     public void teleopInit() {
         robotContainer.teleopInit();
+
+        // TODO: bind this to a keypress for testing
+        if (Constants.currentMode == Constants.Mode.SIM) {
+            SimulatedArena.getInstance().clearGamePieces();
+        }
     }
 
     /** This function is called periodically during operator control. */
@@ -205,8 +210,6 @@ public class Robot extends LoggedRobot {
         Logger.recordOutput("Odometry/OpponentRobotPoses", OpponentRobotSim.getOpponentRobotPoses());
 
         // Log game pieces
-        // TODO: change when maplesim 2026 is released
-        // Fuel at home
-        Logger.recordOutput("Simulation/Field/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Note"));
+        Logger.recordOutput("Simulation/Field/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
     }
 }

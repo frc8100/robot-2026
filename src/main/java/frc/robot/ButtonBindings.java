@@ -22,6 +22,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnField;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnField;
 
 public class ButtonBindings {
@@ -179,8 +180,11 @@ public class ButtonBindings {
                 Commands.runOnce(() ->
                     SimulatedArena.getInstance()
                         .addGamePiece(
-                            new ReefscapeCoralOnField(
-                                swerveSubsystem.getActualPose().plus(new Transform2d(1.0, 0.0, Rotation2d.kZero))
+                            new RebuiltFuelOnField(
+                                swerveSubsystem
+                                    .getActualPose()
+                                    .plus(new Transform2d(1.0, 0.0, Rotation2d.kZero))
+                                    .getTranslation()
                             )
                         )
                 )
