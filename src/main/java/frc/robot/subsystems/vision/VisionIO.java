@@ -15,6 +15,7 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
@@ -105,7 +106,7 @@ public interface VisionIO {
      */
     public static record GamePieceObservation(
         double timestampSeconds,
-        Pose2d pose,
+        Translation2d pose,
         double ambiguity,
         GamePieceObservationType type
     ) {}

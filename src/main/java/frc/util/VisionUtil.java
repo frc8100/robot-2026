@@ -31,7 +31,7 @@ public class VisionUtil {
      * @param targetHeight - Height of the target above the floor (≈ 0 if lying flat)
      * @return The estimated Pose2d of the object on the field
      */
-    public static Pose2d estimateTargetPose2d(
+    public static Translation2d estimateTargetPose2d(
         Pose2d robotPose,
         Transform3d robotToCamera,
         double txRad,
@@ -55,10 +55,7 @@ public class VisionUtil {
             .transformBy(new Transform2d(new Translation2d(targetRobot.getX(), targetRobot.getY()), Rotation2d.kZero))
             .getTranslation();
 
-        // TODO: investigate this
-        // OpenCVHelp.solvePNP_SQPNP(null, null, null, null);
-
         // Return the target pose
-        return new Pose2d(targetFieldTranslation, Rotation2d.kZero);
+        return targetFieldTranslation;
     }
 }

@@ -42,8 +42,8 @@ public class HungarianAlgorithm {
      * @return The cost of the assignment.
      */
     private double getCost(GamePieceObservation detection, TrackedVisionTarget trackedTarget) {
-        Translation2d detectionTranslation = detection.pose().getTranslation();
-        Translation2d targetTranslation = trackedTarget.getEstimatedPose().getTranslation();
+        Translation2d detectionTranslation = detection.pose();
+        Translation2d targetTranslation = trackedTarget.getEstimatedPose();
 
         // Only compare x and y distances for cost calculation (ignore z)
         return Math.hypot(

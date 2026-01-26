@@ -1,8 +1,10 @@
 package frc.robot.subsystems.vision.objectdetection;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import frc.robot.Constants;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.robot.subsystems.vision.VisionIO.GamePieceObservation;
 import frc.robot.subsystems.vision.objectdetection.HungarianAlgorithm.AssignmentResult;
@@ -84,7 +86,7 @@ public class GamePiecePoseEstimator {
      * @param type - The game piece observation type.
      * @return A list of the latest observed game piece poses for the given type. If no poses have been observed, returns an empty list.
      */
-    public List<Pose3d> getLatestGamePiecePoses(GamePieceObservationType type) {
+    public List<Translation3d> getLatestGamePiecePoses(GamePieceObservationType type) {
         return trackedTargetsByType.get(type).stream().map(target -> target.getEstimatedPose3d()).toList();
     }
 
@@ -93,7 +95,7 @@ public class GamePiecePoseEstimator {
      * @param type - The game piece observation type.
      * @return A list of the latest observed game piece poses as 2D poses for the given type. If no poses have been observed, returns an empty list.
      */
-    public List<Pose2d> getLatestGamePiecePosesAs2d(GamePieceObservationType type) {
+    public List<Translation2d> getLatestGamePiecePosesAs2d(GamePieceObservationType type) {
         return trackedTargetsByType.get(type).stream().map(target -> target.getEstimatedPose()).toList();
     }
 
@@ -103,11 +105,11 @@ public class GamePiecePoseEstimator {
      * @param referencePoseSupplier - A supplier that provides the reference pose.
      * @return An Optional containing the nearest observed game piece pose of the given type to the reference pose, or an empty Optional if no poses have been observed.
      */
-    public Optional<Pose2d> getNearestGamePiecePose(
+    public Optional<Translation2d> getNearestGamePiecePose(
         GamePieceObservationType type,
         Supplier<Pose2d> referencePoseSupplier
     ) {
-        List<Pose2d> poses = getLatestGamePiecePosesAs2d(type);
+        List<Translation2d> poses = getLatestGamePiecePosesAs2d(type);
         // Return empty if no poses are available
         if (poses.isEmpty()) {
             return Optional.empty();
@@ -115,11 +117,11 @@ public class GamePiecePoseEstimator {
 
         Pose2d referencePose = referencePoseSupplier.get();
 
-        Pose2d nearestPose = null;
+        Translation2d nearestPose = null;
         double nearestDistance = Double.MAX_VALUE;
 
-        for (Pose2d pose : poses) {
-            double distance = pose.getTranslation().getDistance(referencePose.getTranslation());
+        for (Translation2d pose : poses) {
+            double distance = pose.getDistance(referencePose.getTranslation());
             if (distance < nearestDistance) {
                 nearestDistance = distance;
                 nearestPose = pose;
@@ -211,21 +213,26 @@ public class GamePiecePoseEstimator {
      * Logs the latest observed game piece poses by type.
      */
     public void logGamePiecePoses() {
+        if (!Constants.shouldLogAdditionalData()) {
+            return;
+        }
+
         // For each game piece type, log the latest observed poses
         for (Map.Entry<GamePieceObservationType, List<TrackedVisionTarget>> entry : trackedTargetsByType.entrySet()) {
             GamePieceObservationType type = entry.getKey();
             List<TrackedVisionTarget> targets = entry.getValue();
 
-            Logger.recordOutput(
-                "Vision/GamePieces/" + type.className + "/LatestPoses",
-                targets.stream().map(target -> target.getEstimatedPose3d()).toArray(Pose3d[]::new)
-            );
-
             // Log tracked target info
-            Logger.recordOutput(
-                "Vision/GamePieces/" + type.className + "/TrackedTargets",
-                targets.stream().map(target -> target.getLoggedInfo()).toArray(TrackedVisionTargetLoggedInfo[]::new)
-            );
+            Translation3d[] poses = new Translation3d[targets.size()];
+            TrackedVisionTargetLoggedInfo[] infos = new TrackedVisionTargetLoggedInfo[targets.size()];
+
+            for (int i = 0; i < targets.size(); i++) {
+                poses[i] = targets.get(i).getEstimatedPose3d();
+                infos[i] = targets.get(i).getLoggedInfo();
+            }
+
+            Logger.recordOutput("Vision/GamePieces/" + type.className + "/LatestPoses", poses);
+            Logger.recordOutput("Vision/GamePieces/" + type.className + "/TrackedTargets", infos);
         }
     }
 }
