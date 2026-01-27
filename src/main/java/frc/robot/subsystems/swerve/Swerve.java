@@ -275,17 +275,17 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
             true
         );
 
-        // Sync motor encoders to absolute encoders when the robot is still
-        syncMotorEncodersToAbsoluteEncoderTrigger.onTrue(
-            Commands.runOnce(() -> {
-                for (Module module : swerveModules) {
-                    module.syncMotorEncoderToAbsoluteEncoder();
-                }
+        // TODO: Sync motor encoders to absolute encoders when the robot is still
+        // syncMotorEncodersToAbsoluteEncoderTrigger.onTrue(
+        //     Commands.runOnce(() -> {
+        //         for (Module module : swerveModules) {
+        //             module.syncMotorEncoderToAbsoluteEncoder();
+        //         }
 
-                // debug
-                System.out.println("Swerve motor encoders synced");
-            })
-        );
+        //         // debug
+        //         System.out.println("Swerve motor encoders synced");
+        //     })
+        // );
 
         // Start odometry thread
         OdometryThread.getInstance().start();

@@ -35,7 +35,8 @@ public class SwerveFeedForwards {
 
     // kS and kV will be automatically handled by SparkMax in real hardware
     public static final LinearForceFeedForwardConstants linearForceDriveFFConstantsReal =
-        new LinearForceFeedForwardConstants(0.17388, 0.13632, 0, 0);
+        new LinearForceFeedForwardConstants(0, 0, 0, 0);
+    // new LinearForceFeedForwardConstants(0.17388, 0.13632, 0, 0);
     public static final LinearForceFeedForwardConstants linearForceDriveFFConstantsSim =
         new LinearForceFeedForwardConstants(0.0752, 0.0436, 0, 0.8849);
 

@@ -124,7 +124,7 @@ public class ModuleIOSpark implements ModuleIO {
         // Set the module number and angle offset
         this.moduleNumber = moduleNumber;
         this.dashboardKey = "Swerve/Module" + moduleNumber;
-        this.angleOffset = moduleConstants.angleOffset();
+        this.angleOffset = Rotation2d.fromRotations(moduleConstants.angleOffset());
 
         // Create and configure the angle motor
         angleMotor = new SparkMax(canIDs.angleMotorID(), MotorType.kBrushless);
@@ -145,7 +145,7 @@ public class ModuleIOSpark implements ModuleIO {
         // Apply the angle offset to the CANCoder configuration
         var cancoderConfig = SwerveConstants.getCANcoderConfig();
         // TODO: invert or not invert?
-        cancoderConfig.MagnetSensor.MagnetOffset = -angleOffset.getRotations();
+        cancoderConfig.MagnetSensor.MagnetOffset = moduleConstants.angleOffset();
         angleCANcoder.getConfigurator().apply(cancoderConfig);
 
         turnAbsolutePosition = angleCANcoder.getAbsolutePosition();
@@ -226,6 +226,7 @@ public class ModuleIOSpark implements ModuleIO {
         inputs.canCoderConnected = turnAbsolutePosition.getStatus().isOK();
 
         // Update turn inputs
+        turnAbsolutePosition.refresh();
         inputs.turnAbsolutePosition = getAngle();
         inputs.turnMotorConnected = SubsystemIOUtil.updateDataFromSpark(
             inputs.turnMotorData,
@@ -270,8 +271,8 @@ public class ModuleIOSpark implements ModuleIO {
     public void setTurnPosition(SwerveModuleState desiredState) {
         // Stop the motor if the speed is less than 1%. Prevents Jittering
         if (
-            Math.abs(getAngle().minus(desiredState.angle).getDegrees()) < 0.5 &&
-            Math.abs(desiredState.speedMetersPerSecond) <= (SwerveConstants.MAX_SPEED.in(MetersPerSecond) * 0.01)
+            Math.abs(getAngle().minus(desiredState.angle).getDegrees()) < 1 &&
+            Math.abs(desiredState.speedMetersPerSecond) <= (SwerveConstants.MAX_SPEED.in(MetersPerSecond) * 0.0125)
         ) {
             angleMotor.stopMotor();
             return;
