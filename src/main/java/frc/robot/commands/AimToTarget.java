@@ -263,6 +263,12 @@ public class AimToTarget {
 
         Pose2d shooterPose = robotPose.transformBy(ShooterConstants.transformFromRobotCenter2d);
 
+        // Get pose components to reduce method calls
+        double shooterPoseXMeters = shooterPose.getTranslation().getX();
+        double shooterPoseYMeters = shooterPose.getTranslation().getY();
+        double targetPoseXMeters = targetPose.getTranslation().getX();
+        double targetPoseYMeters = targetPose.getTranslation().getY();
+
         Translation2d deltaTranslation = targetPose.getTranslation().minus(shooterPose.getTranslation());
         double distanceToTarget = deltaTranslation.getNorm();
 
@@ -273,7 +279,8 @@ public class AimToTarget {
 
         // Account for imparted velocity by robot to offset
         ExitVelocityCalculationResult calculatedResult = ExitVelocityCalculationResult.ZERO;
-        Translation2d lookaheadPoseAsTranslation = Translation2d.kZero;
+        double lookaheadPoseAsTranslationXMeters = 0.0;
+        double lookaheadPoseAsTranslationYMeters = 0.0;
         double lookaheadPoseToTargetDistance = distanceToTarget;
 
         // Special case: if the desired robot-relative speeds are zero, don't do lookahead
@@ -283,19 +290,28 @@ public class AimToTarget {
             Math.abs(rawDesiredChassisSpeeds.vyMetersPerSecond) < 0.1
         ) {
             calculatedResult = distanceToTimeOfFlightMap.get(distanceToTarget);
-            lookaheadPoseAsTranslation = shooterPose.getTranslation();
+            lookaheadPoseAsTranslationXMeters = shooterPoseXMeters;
+            lookaheadPoseAsTranslationYMeters = shooterPoseYMeters;
         } else {
             for (int i = 0; i < 15; i++) {
                 calculatedResult = distanceToTimeOfFlightMap.get(lookaheadPoseToTargetDistance);
-                Translation2d offset = new Translation2d(
-                    actualFieldRelativeSpeeds.vxMetersPerSecond,
-                    actualFieldRelativeSpeeds.vyMetersPerSecond
-                ).times(calculatedResult.timeToTargetSeconds);
-
-                lookaheadPoseAsTranslation = shooterPose.getTranslation().plus(offset);
-                lookaheadPoseToTargetDistance = targetPose.getTranslation().getDistance(lookaheadPoseAsTranslation);
+                lookaheadPoseAsTranslationXMeters =
+                    shooterPoseXMeters +
+                    (actualFieldRelativeSpeeds.vxMetersPerSecond * calculatedResult.timeToTargetSeconds);
+                lookaheadPoseAsTranslationYMeters =
+                    shooterPoseYMeters +
+                    (actualFieldRelativeSpeeds.vyMetersPerSecond * calculatedResult.timeToTargetSeconds);
+                lookaheadPoseToTargetDistance = Math.hypot(
+                    targetPoseXMeters - lookaheadPoseAsTranslationXMeters,
+                    targetPoseYMeters - lookaheadPoseAsTranslationYMeters
+                );
             }
         }
+
+        Translation2d lookaheadPoseAsTranslation = new Translation2d(
+            lookaheadPoseAsTranslationXMeters,
+            lookaheadPoseAsTranslationYMeters
+        );
 
         // Calculate direction
         deltaTranslation = targetPose.getTranslation().minus(lookaheadPoseAsTranslation);
@@ -313,11 +329,7 @@ public class AimToTarget {
         );
 
         // Calculate feedforward
-        Twist2d robotTwist = new Twist2d(
-            (desiredFieldRelativeSpeeds.vxMetersPerSecond) * 0.02,
-            (desiredFieldRelativeSpeeds.vyMetersPerSecond) * 0.02,
-            desiredRobotRelativeSpeeds.omegaRadiansPerSecond * 0.02
-        );
+        Twist2d robotTwist = desiredFieldRelativeSpeeds.toTwist2d(ShooterConstants.LOOKAHEAD_CALCULATION_TIME_SECONDS);
         Translation2d futureLookaheadPoseAsTranslation = new Translation2d(
             lookaheadPoseAsTranslation.getX() + robotTwist.dx,
             lookaheadPoseAsTranslation.getY() + robotTwist.dy
@@ -328,9 +340,8 @@ public class AimToTarget {
             targetPose.getTranslation().getX() - futureLookaheadPoseAsTranslation.getX()
         );
 
-        // double yawFF = (MathUtil.angleModulus(futureTargetAngleRadians - targetAngleRadians)) / 0.02;
         double yawFF = new Rotation2d(futureTargetAngleRadians).minus(new Rotation2d(targetAngleRadians)).getRadians() /
-        0.02;
+        ShooterConstants.LOOKAHEAD_CALCULATION_TIME_SECONDS;
 
         latestCalculationResult.totalAngularVelocityFF.mut_replace(yawFF, RadiansPerSecond);
 
