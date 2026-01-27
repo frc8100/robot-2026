@@ -143,8 +143,12 @@ public class SwerveSysidRoutines {
             feedforwardCharacterizationRunOnce(drive, (double seconds) -> seconds * 1.0).withTimeout(Seconds.of(5)),
             feedforwardCharacterizationRunOnce(drive, (double seconds) -> seconds * -1.0).withTimeout(Seconds.of(5)),
             // Tests with constant voltage
-            feedforwardCharacterizationRunOnce(drive, (double seconds) -> 7.0).withTimeout(Seconds.of(3)),
-            feedforwardCharacterizationRunOnce(drive, (double seconds) -> -7.0).withTimeout(Seconds.of(3))
+            feedforwardCharacterizationRunOnce(drive, (double seconds) -> Math.min(7.0, 7.0 * seconds)).withTimeout(
+                Seconds.of(3)
+            ),
+            feedforwardCharacterizationRunOnce(drive, (double seconds) -> Math.max(-7.0, -7.0 * seconds)).withTimeout(
+                Seconds.of(3)
+            )
         );
     }
 

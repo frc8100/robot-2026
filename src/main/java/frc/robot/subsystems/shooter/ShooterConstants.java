@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
+import frc.robot.Constants;
 import java.util.function.Function;
 import org.ironmaple.simulation.IntakeSimulation;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -34,6 +35,8 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 public final class ShooterConstants {
 
     private ShooterConstants() {}
+
+    public static final double LOOKAHEAD_CALCULATION_TIME_SECONDS = Constants.LOOP_PERIOD_SECONDS;
 
     public static final Rotation2d exitAngle = Rotation2d.fromDegrees(70.0);
 

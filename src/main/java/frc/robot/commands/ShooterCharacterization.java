@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.RPM;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ShooterCharacterization {
 
@@ -19,6 +21,14 @@ public class ShooterCharacterization {
 
     public static final InterpolatingDoubleTreeMap metersPerSecondToShooterRadPerSecondMap =
         new InterpolatingDoubleTreeMap();
+
+    public record ShooterDataPoint(
+        AngularVelocity shooterAngularVelocity,
+        double timeToTargetSeconds,
+        boolean successfulShot
+    ) {}
+
+    public static final Map<Double, ShooterDataPoint> shooterDataPoints = new HashMap<>();
 
     static {
         // TODO: test and fill in values
