@@ -16,6 +16,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -637,11 +638,20 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
                     Constants.LOOP_PERIOD_SECONDS
                 );
 
+                Translation2d desiredChassisSpeedAcceleration = new Translation2d(
+                    moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vxMetersPerSecond -
+                    moduleStateSetpoint.robotRelativeSpeeds().vxMetersPerSecond,
+                    moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vyMetersPerSecond -
+                    moduleStateSetpoint.robotRelativeSpeeds().vyMetersPerSecond
+                ).div(0.02);
+
                 autoAim.updateCalculatedResult(
                     getPose(),
                     targetPoseToRotateTo,
                     moduleStateSetpointWithoutRotation.robotRelativeSpeeds(),
-                    getChassisSpeeds()
+                    getChassisSpeeds(),
+                    desiredChassisSpeedAcceleration,
+                    setpointSpeeds
                 );
 
                 // Override the angular velocity setpoint with the auto-aim result
@@ -649,6 +659,12 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
             }
 
             autoAim.latestCalculationResult.log();
+
+            // debug
+            Logger.recordOutput(
+                "AimToTarget/RotationErrorRad",
+                getRotation().minus(new Rotation2d(autoAim.latestCalculationResult.getRotationTarget())).getRadians()
+            );
         }
 
         // Apply outputs
