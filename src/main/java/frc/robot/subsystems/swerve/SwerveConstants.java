@@ -24,6 +24,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.therekrab.autopilot.APConstraints;
@@ -405,7 +406,8 @@ public class SwerveConstants {
         // Configure the PID controller for the drive motor
         driveConfig.closedLoop
             .pid(SwerveConstants.driveKP, SwerveConstants.driveKI, SwerveConstants.driveKD)
-            .outputRange(-SwerveConstants.MAX_DRIVE_POWER, SwerveConstants.MAX_DRIVE_POWER);
+            .outputRange(-SwerveConstants.MAX_DRIVE_POWER, SwerveConstants.MAX_DRIVE_POWER)
+            .allowedClosedLoopError(0.1, ClosedLoopSlot.kSlot0);
 
         driveConfig.closedLoop.feedForward
             .kS(SwerveFeedForwards.linearForceDriveFFConstantsReal.kS())
