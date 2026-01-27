@@ -14,9 +14,9 @@ public final class SwerveModuleSpecificConstants {
 
     /**
      * Swerve module constants to be used when creating swerve modules.
-     * @param angleOffset - The angle offset of the module.
+     * @param angleOffset - The angle offset of the module, in rotations.
      */
-    public static record RobotSwerveModuleConstants(Rotation2d angleOffset) {}
+    public static record RobotSwerveModuleConstants(double angleOffset) {}
 
     /**
      * Gets the module constants for a module based on its index.
@@ -36,15 +36,15 @@ public final class SwerveModuleSpecificConstants {
 
     // TODO: Redo these angle offsets; no need to include Math.PI adjustments if we set them correctly initially
     public static final RobotSwerveModuleConstants FRONT_LEFT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        new Rotation2d(2.922 + Math.PI - 0.626)
+        0.497314453125
     );
     public static final RobotSwerveModuleConstants FRONT_RIGHT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        new Rotation2d(2.635 - 0.222 - 0.845)
+        0.23828125
     );
     public static final RobotSwerveModuleConstants BACK_LEFT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        new Rotation2d(1.267 + Math.PI - 0.004)
+        -0.12109375
     );
     public static final RobotSwerveModuleConstants BACK_RIGHT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        new Rotation2d(-3.053 - 0.021)
+        -0.47314453125
     );
 }

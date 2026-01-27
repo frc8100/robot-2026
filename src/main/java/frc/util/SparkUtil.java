@@ -101,7 +101,9 @@ public class SparkUtil {
             return value;
         } else {
             addError(error);
-            return elseValue;
+            // return elseValue;
+            // TODO: temporary fix
+            return value;
         }
     }
 

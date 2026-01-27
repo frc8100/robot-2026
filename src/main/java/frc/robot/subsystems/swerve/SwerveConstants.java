@@ -164,7 +164,7 @@ public class SwerveConstants {
 
     // Angle Motor PID Values
     // TODO: tune
-    public static final double angleKP = 10.0;
+    public static final double angleKP = 5.0;
     public static final double angleKI = 0.0;
     public static final double angleKD = 0.0;
 
