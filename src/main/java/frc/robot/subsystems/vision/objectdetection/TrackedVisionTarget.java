@@ -97,8 +97,6 @@ public class TrackedVisionTarget {
      * Should be called once per update cycle.
      */
     public void update() {
-        // kalmanFilter.predict(emptyInput, Constants.LOOP_PERIOD_SECONDS);
-
         smoother.predict();
     }
 
