@@ -1,14 +1,18 @@
 package frc.robot.subsystems.vision.objectdetection;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.Constants;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.robot.subsystems.vision.VisionIO.GamePieceObservation;
 import frc.robot.subsystems.vision.objectdetection.HungarianAlgorithm.AssignmentResult;
 import frc.robot.subsystems.vision.objectdetection.TrackedVisionTarget.TrackedVisionTargetLoggedInfo;
+import frc.util.FieldConstants;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -29,7 +33,7 @@ public class GamePiecePoseEstimator {
      * @param gamePiecePose - The game piece pose.
      * @return The target robot pose to the game piece.
      */
-    public static Pose2d getTargetRobotPoseToGamePiece(Pose2d robotPose, Pose2d gamePiecePose) {
+    public static Pose2d getTargetRobotPoseToGamePiece(Pose2d robotPose, Translation2d gamePiecePose) {
         // Calculate the angle from the robot to the game piece
         Rotation2d angleToGamePiece = new Rotation2d(
             gamePiecePose.getX() - robotPose.getX(),
@@ -234,5 +238,92 @@ public class GamePiecePoseEstimator {
             Logger.recordOutput("Vision/GamePieces/" + type.className + "/LatestPoses", poses);
             Logger.recordOutput("Vision/GamePieces/" + type.className + "/TrackedTargets", infos);
         }
+    }
+
+    public record IntakeCostResult(double cost, Pose2d robotPose) {}
+
+    private static IntakeCostResult getIntakeCost(Pose2d robotPose, Translation2d gamePiecePose) {
+        // Robot pose
+        Translation2d robotPos = robotPose.getTranslation();
+        Rotation2d robotRot = robotPose.getRotation();
+
+        // Intake basis vectors (world frame)
+        // Forward (normal to intake)
+        Translation2d intakeNormal = new Translation2d(robotRot.getCos(), robotRot.getSin());
+
+        // Left/right direction (along intake)
+        Translation2d intakeTangent = new Translation2d(-robotRot.getSin(), robotRot.getCos());
+
+        // Intake center position in world frame
+        Translation2d intakeCenter = robotPos.plus(
+            intakeNormal.times(IntakeConstants.INTAKE_FORWARD_OFFSET.in(Meters))
+        );
+
+        // Vector from intake center to game piece
+        Translation2d delta = gamePiecePose.minus(intakeCenter);
+
+        // Decompose into intake coordinates
+        double perpendicular = delta.getX() * intakeNormal.getX() + delta.getY() * intakeNormal.getY();
+
+        double parallel = delta.getX() * intakeTangent.getX() + delta.getY() * intakeTangent.getY();
+
+        double halfWidth = IntakeConstants.WIDTH.in(Meters) / 2.0;
+
+        // How far outside the intake region the piece is
+        double lateralError = Math.max(
+            0.0,
+            Math.abs(parallel) - (halfWidth + FieldConstants.fuelDiameter.in(Meters) / 2.0)
+        );
+
+        double forwardError = Math.max(0.0, Math.abs(perpendicular) - FieldConstants.fuelDiameter.in(Meters) / 2.0);
+
+        // Quadratic cost (smooth, stable)
+        double lateralCost = lateralError * lateralError;
+        double forwardCost = forwardError * forwardError;
+
+        double facingCost = Math.max(0.0, -perpendicular);
+
+        // Weight lateral error more heavily (intake alignment matters more)
+        double cost = (4.0 * lateralCost) + (1.5 * forwardCost) + (0.5 * facingCost * facingCost);
+        // Clamp parallel position to intake bounds
+        double clampedParallel = Math.max(-halfWidth, Math.min(halfWidth, parallel));
+
+        // Intake point that should contact the game piece
+        Translation2d desiredIntakePoint = intakeCenter
+            .plus(intakeTangent.times(clampedParallel))
+            .plus(intakeNormal.times((Math.signum(perpendicular) * FieldConstants.fuelDiameter.in(Meters)) / 2.0));
+
+        // Back out robot center position from intake center
+        Translation2d targetRobotPos = desiredIntakePoint.minus(
+            intakeNormal.times(FieldConstants.fuelDiameter.in(Meters) / 2.0)
+        );
+
+        Pose2d targetPose = new Pose2d(targetRobotPos, robotRot);
+
+        return new IntakeCostResult(cost, targetPose);
+    }
+
+    public Pose2d getIntakeTargetPose(GamePieceObservationType type, Supplier<Pose2d> robotPoseSupplier) {
+        // Translation2d lowestCostGamePiecePose = null;
+        // double lowestCost = Double.MAX_VALUE;
+
+        IntakeCostResult lowestCostResult = null;
+
+        List<TrackedVisionTarget> targetsOfType = trackedTargetsByType.get(type);
+
+        for (TrackedVisionTarget target : targetsOfType) {
+            Translation2d gamePiecePose = target.getEstimatedPose();
+            IntakeCostResult costResult = getIntakeCost(robotPoseSupplier.get(), gamePiecePose);
+
+            if (lowestCostResult == null || costResult.cost < lowestCostResult.cost) {
+                lowestCostResult = costResult;
+            }
+        }
+
+        if (lowestCostResult == null) {
+            return robotPoseSupplier.get();
+        }
+
+        return lowestCostResult.robotPose;
     }
 }

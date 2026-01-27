@@ -40,6 +40,7 @@ public final class IntakeConstants {
     // Simulation constants
     public static final Distance WIDTH = Inches.of(20);
     public static final Distance LENGTH = Inches.of(8);
+    public static final Distance INTAKE_FORWARD_OFFSET = Inches.of(12);
     public static final IntakeSimulation.IntakeSide ORIENTATION = IntakeSimulation.IntakeSide.FRONT;
     public static final int MAX_CAPACITY = 24;
 }

@@ -31,7 +31,6 @@ public interface VisionIO {
          * Whether the vision device is currently connected.
          */
         public boolean connected = false;
-        // public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
 
         /**
          * A queue of unread pose observations.
@@ -65,13 +64,6 @@ public interface VisionIO {
          */
         public Optional<Pose2d> getRobotPoseAtTimestamp(double timestampSeconds);
     }
-
-    /**
-     * Represents the angle to a simple target, not used for pose estimation.
-     * @param tx - The horizontal angle to the target.
-     * @param ty - The vertical angle to the target.
-     */
-    // public static record TargetObservation(Rotation2d tx, Rotation2d ty) {}
 
     /**
      * Represents a robot pose sample used for pose estimation.
