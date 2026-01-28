@@ -143,10 +143,6 @@ public class ButtonBindings {
             ),
             StateCycle.StateCycleBehavior.RELY_ON_INDEX
         );
-        driverController
-            .getJoystickButton(XboxController.Button.kX)
-            .onTrue(Commands.runOnce(toggleAutoAim::scheduleNextState));
-
         // Auto intake toggle
         StateCycle<SwerveState, SwervePayload> toggleAutoIntake =
             swerveSubsystem.stateMachine.createStateCycleWithPayload(
@@ -162,10 +158,25 @@ public class ButtonBindings {
 
         // TODO: in the scenerio where: 1. swerve is in FULL_DRIVER_CONTROL 2. driver presses X to go to AUTO_AIM
         // 3. driver presses DOWN to go to AUTO_INTAKE, 4. when driver presses X again, goes back to FULL_DRIVER_CONTROL instead of AUTO_AIM
+        // TODO: add less boilerplate way to reset other cycles
+        driverController
+            .getJoystickButton(XboxController.Button.kX)
+            // .onTrue(Commands.runOnce(toggleAutoAim::scheduleNextState));
+            .onTrue(
+                Commands.runOnce(() -> {
+                    toggleAutoAim.scheduleNextState();
+                    toggleAutoIntake.reset();
+                })
+            );
 
         driverController
             .getPOVButton(Controller.POVButtonDirection.DOWN)
-            .onTrue(Commands.runOnce(toggleAutoIntake::scheduleNextState));
+            .onTrue(
+                Commands.runOnce(() -> {
+                    toggleAutoIntake.scheduleNextState();
+                    toggleAutoAim.reset();
+                })
+            );
 
         // Temporary shooter test button
         driverController
