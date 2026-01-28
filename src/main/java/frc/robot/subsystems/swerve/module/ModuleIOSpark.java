@@ -144,7 +144,6 @@ public class ModuleIOSpark implements ModuleIO {
 
         // Apply the angle offset to the CANCoder configuration
         var cancoderConfig = SwerveConstants.getCANcoderConfig();
-        // TODO: invert or not invert?
         cancoderConfig.MagnetSensor.MagnetOffset = moduleConstants.angleOffset();
         angleCANcoder.getConfigurator().apply(cancoderConfig);
 
