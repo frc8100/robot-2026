@@ -65,6 +65,14 @@ public class Intake extends SubsystemBase {
         return run(() -> io.runIntake(speedSupplier.getAsDouble()));
     }
 
+    public void deploy() {
+        io.deploy();
+    }
+
+    public void retract() {
+        io.retract();
+    }
+
     @Override
     public void periodic() {
         io.updateInputs(inputs);

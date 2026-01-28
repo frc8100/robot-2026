@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.robot.subsystems.vision.VisionSim.NeuralDetectorSimPipeline;
+import frc.util.PoseUtil;
 import frc.util.VelocityNoiseGenerator;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -166,6 +167,11 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
             List<VisionTargetSim> potentialTargets = VisionSim.getVisionTargetSimFromNeuralPipeline(pipeline);
 
             for (VisionTargetSim target : potentialTargets) {
+                // Exclude targets that are not on field
+                if (!PoseUtil.isPoseOnField(target.getPose().toPose2d())) {
+                    continue;
+                }
+
                 if (cameraSim.canSeeTargetPose(cameraPose, target)) {
                     // Visible, add observation
                     Pose3d noisyPose = poseNoiseGenerator.applyNoise(

@@ -36,6 +36,8 @@ public final class ShooterConstants {
 
     private ShooterConstants() {}
 
+    public static final double AIM_ROTATION_OFFSET_RADIANS = Math.PI;
+
     public static final double LOOKAHEAD_CALCULATION_TIME_SECONDS = Constants.LOOP_PERIOD_SECONDS;
 
     public static final Rotation2d exitAngle = Rotation2d.fromDegrees(70.0);

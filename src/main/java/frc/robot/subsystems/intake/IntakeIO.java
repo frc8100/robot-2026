@@ -25,4 +25,8 @@ public interface IntakeIO {
 
     // test
     public default void runIntake(double speed) {}
+
+    public default void deploy() {}
+
+    public default void retract() {}
 }

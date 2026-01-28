@@ -136,19 +136,38 @@ public class ButtonBindings {
             .onTrue(Commands.runOnce(swerveSubsystem::zeroGyro));
 
         // Auto-aim toggle
-        StateCycle<SwerveState, SwervePayload> toggleDriveToCoralStation =
+        StateCycle<SwerveState, SwervePayload> toggleAutoAim = swerveSubsystem.stateMachine.createStateCycleWithPayload(
+            List.of(
+                new StateMachine.StateWithPayload<>(SwerveState.FULL_DRIVER_CONTROL, null),
+                new StateMachine.StateWithPayload<>(SwerveState.AUTO_AIM, RobotActions.POINT_TO_HUB_PAYLOAD)
+            ),
+            StateCycle.StateCycleBehavior.RELY_ON_INDEX
+        );
+        driverController
+            .getJoystickButton(XboxController.Button.kX)
+            .onTrue(Commands.runOnce(toggleAutoAim::scheduleNextState));
+
+        // Auto intake toggle
+        StateCycle<SwerveState, SwervePayload> toggleAutoIntake =
             swerveSubsystem.stateMachine.createStateCycleWithPayload(
                 List.of(
                     new StateMachine.StateWithPayload<>(SwerveState.FULL_DRIVER_CONTROL, null),
-                    new StateMachine.StateWithPayload<>(SwerveState.AUTO_AIM, RobotActions.POINT_TO_HUB_PAYLOAD)
+                    new StateMachine.StateWithPayload<>(
+                        SwerveState.DRIVE_TO_POSE_PID,
+                        RobotActions.getIntakePayload(autoRoutines)
+                    )
                 ),
                 StateCycle.StateCycleBehavior.RELY_ON_INDEX
             );
 
+        // TODO: in the scenerio where: 1. swerve is in FULL_DRIVER_CONTROL 2. driver presses X to go to AUTO_AIM
+        // 3. driver presses DOWN to go to AUTO_INTAKE, 4. when driver presses X again, goes back to FULL_DRIVER_CONTROL instead of AUTO_AIM
+
         driverController
-            .getJoystickButton(XboxController.Button.kX)
-            .onTrue(Commands.runOnce(toggleDriveToCoralStation::scheduleNextState));
-        // Temporary
+            .getPOVButton(Controller.POVButtonDirection.DOWN)
+            .onTrue(Commands.runOnce(toggleAutoIntake::scheduleNextState));
+
+        // Temporary shooter test button
         driverController
             .getJoystickButton(XboxController.Button.kA)
             .onTrue(Commands.runOnce(shooterSubsystem::testShoot));

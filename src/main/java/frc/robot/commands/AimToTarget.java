@@ -373,13 +373,15 @@ public class AimToTarget {
             // If we are within the setpoint tolerance, do not apply PID output
             MathUtil.isNear(
                     latestCalculationResult.robotPose.getRotation().getRadians(),
-                    latestCalculationResult.getRotationTarget().in(Radians),
+                    latestCalculationResult.getRotationTarget().in(Radians) +
+                    ShooterConstants.AIM_ROTATION_OFFSET_RADIANS,
                     setpointToleranceRadians
                 )
                 ? 0.0
                 : rotationController.calculate(
                     latestCalculationResult.robotPose.getRotation().getRadians(),
-                    latestCalculationResult.getRotationTarget().in(Radians)
+                    latestCalculationResult.getRotationTarget().in(Radians) +
+                    ShooterConstants.AIM_ROTATION_OFFSET_RADIANS
                 );
 
         double unclampedOutput =
