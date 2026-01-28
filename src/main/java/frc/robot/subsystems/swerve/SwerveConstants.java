@@ -165,9 +165,9 @@ public class SwerveConstants {
 
     // Angle Motor PID Values
     // TODO: tune
-    public static final double angleKP = 5.0;
+    public static final double angleKP = 9.5;
     public static final double angleKI = 0.0;
-    public static final double angleKD = 0.0;
+    public static final double angleKD = 0.05;
 
     public static final TunableValue angleKPTunable = new TunableValue("Drive/AngleKP", angleKP);
     public static final TunableValue angleKDTunable = new TunableValue("Drive/AngleKD", angleKD);
@@ -176,9 +176,9 @@ public class SwerveConstants {
     public static final double angleSimKD = 0.1;
 
     // Drive Motor PID Values
-    public static final double driveKP = 0.01;
+    public static final double driveKP = 0.005;
     public static final double driveKI = 0.0;
-    public static final double driveKD = 0.005;
+    public static final double driveKD = 0.0;
 
     public static final TunableValue driveKPTunable = new TunableValue("Drive/kP", driveKP);
     public static final TunableValue driveKDTunable = new TunableValue("Drive/kD", driveKD);

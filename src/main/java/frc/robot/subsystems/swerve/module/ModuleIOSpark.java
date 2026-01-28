@@ -21,7 +21,9 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -95,8 +97,8 @@ public class ModuleIOSpark implements ModuleIO {
     private double driveFFVolts = 0.0;
 
     // Tunable values
-    private final TunableValue.SparkPIDTunable drivePidTunable;
-    private final TunableValue.SparkPIDTunable anglePidTunable;
+    // private final TunableValue.SparkPIDTunable drivePidTunable;
+    // private final TunableValue.SparkPIDTunable anglePidTunable;
 
     /**
      * Creates a new Swerve Module. Automatically gets CAN IDs and module constants based on module number.
@@ -168,20 +170,20 @@ public class ModuleIOSpark implements ModuleIO {
         anglePidControllerUsingCANCoder.setSetpoint(getAngle().getRadians());
 
         // Create tunable values
-        drivePidTunable = new TunableValue.SparkPIDTunable(
-            this.dashboardKey,
-            driveMotor,
-            SwerveConstants.getDriveMotorConfig(),
-            SwerveConstants.driveKP,
-            SwerveConstants.driveKD
-        );
-        anglePidTunable = new TunableValue.SparkPIDTunable(
-            this.dashboardKey,
-            angleMotor,
-            SwerveConstants.getAngleMotorConfig(),
-            SwerveConstants.angleKP,
-            SwerveConstants.angleKD
-        );
+        // drivePidTunable = new TunableValue.SparkPIDTunable(
+        //     this.dashboardKey,
+        //     driveMotor,
+        //     SwerveConstants.getDriveMotorConfig(),
+        //     SwerveConstants.driveKP,
+        //     SwerveConstants.driveKD
+        // );
+        // anglePidTunable = new TunableValue.SparkPIDTunable(
+        //     this.dashboardKey,
+        //     angleMotor,
+        //     SwerveConstants.getAngleMotorConfig(),
+        //     SwerveConstants.angleKP,
+        //     SwerveConstants.angleKD
+        // );
 
         TunableValue.addRefreshConfigConsumer(this::onRefresh);
     }
@@ -194,6 +196,14 @@ public class ModuleIOSpark implements ModuleIO {
         System.out.println(
             "Module " + moduleNumber + " Raw CANCoder Angle (radians): " + getAngle().plus(angleOffset).getRadians()
         );
+
+        var newConfigAngle = SwerveConstants.getAngleMotorConfig();
+        newConfigAngle.closedLoop.p(SwerveConstants.angleKPTunable.get()).d(SwerveConstants.angleKDTunable.get());
+        angleMotor.configure(newConfigAngle, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        var newConfigDrive = SwerveConstants.getDriveMotorConfig();
+        newConfigDrive.closedLoop.p(SwerveConstants.driveKPTunable.get()).d(SwerveConstants.driveKDTunable.get());
+        driveMotor.configure(newConfigDrive, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
     /**

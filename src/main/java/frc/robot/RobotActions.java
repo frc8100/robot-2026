@@ -18,6 +18,7 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
+import frc.robot.subsystems.swerve.Swerve.SwerveState;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
@@ -225,7 +226,25 @@ public class RobotActions {
      * More reliable than pathfinding.
      */
     public Command actuallyMoveForward() {
-        return driveForwardWithSpeedFor(1.75, 3);
+        return driveForwardWithSpeedFor(1, 2);
+    }
+
+    public Command moveForwardSpecificDistance() {
+        Pose2d swervePoseAtInit = swerveSubsystem.getPose();
+
+        return Commands.parallel(
+            Commands.waitSeconds(5),
+            Commands.runOnce(() ->
+                swerveSubsystem.stateMachine.scheduleStateChange(
+                    new StateWithPayload<>(
+                        SwerveState.DRIVE_TO_POSE_PID,
+                        SwervePayload.fromPoseSupplierNoRotate(() ->
+                            swervePoseAtInit.plus(new Transform2d(Inches.of(12), Inches.of(0), Rotation2d.kZero))
+                        )
+                    )
+                )
+            )
+        );
     }
 
     public Command pushAnotherRobotForward() {

@@ -68,6 +68,9 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
     public final AimToTarget autoAim = new AimToTarget();
 
     public enum SwerveState {
+        // TODO: doc
+        // IDLE,
+
         /**
          * The driver has full control over swerve. No autonomous actions are taken.
          */
@@ -154,6 +157,7 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         "Swerve"
     )
         .withDefaultState(new StateMachineState<>(SwerveState.FULL_DRIVER_CONTROL, "Manual"))
+        // .withState(new StateMachineState<>(SwerveState.IDLE, "Idle"))
         .withState(new StateMachineState<>(SwerveState.AUTO_AIM, "AutoAim"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_PATHFINDING, "InitialPathfinding"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_PID, "PIDAlignment"))
@@ -611,7 +615,8 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         var currentState = stateMachine.getCurrentState().enumType;
         var action = stateMachine.statePeriodicActions.get(currentState);
 
-        if (action != null) {
+        // TODO: better validation
+        if (action != null && getCurrentCommand() == null) {
             action.onPeriodic(stateMachine.getCurrentPayload());
         }
 

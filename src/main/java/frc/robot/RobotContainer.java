@@ -241,6 +241,7 @@ public class RobotContainer {
         }
 
         autoChooser.addDefaultOption("Actually move forward", robotActions.actuallyMoveForward());
+        autoChooser.addOption("Move forward specific distance", robotActions.moveForwardSpecificDistance());
 
         // Command to refresh the config
         SmartDashboard.putData("RefreshTunableConfig", TunableValue.getRefreshConfigCommand());
