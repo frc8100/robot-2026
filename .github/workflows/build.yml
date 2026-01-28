@@ -5,8 +5,13 @@ name: Build
 on:
   push:
     branches: [ main ]
+    # Run only on pushes to source code
+    paths:
+      - 'src/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'src/**'
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -14,7 +19,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-22.04
     # This grabs the WPILib docker container
-    container: wpilib/roborio-cross-ubuntu:2026-22.04-py314
+    container: wpilib/roborio-cross-ubuntu:2025-22.04
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
