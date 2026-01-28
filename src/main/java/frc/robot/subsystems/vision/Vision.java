@@ -33,6 +33,7 @@ import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import frc.robot.subsystems.vision.objectdetection.GamePiecePoseEstimator;
 import frc.util.FieldConstants;
 import frc.util.Mutable3x1Vector;
+import frc.util.PoseUtil;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import java.util.ArrayList;
@@ -177,11 +178,7 @@ public class Vision extends SubsystemBase {
                 (observation.tagCount() == 1 && observation.ambiguity() > MAX_AMBIGUITY) || // Cannot be high ambiguity
                 Math.abs(observation.pose().getZ()) > MAX_Z_ERROR || // Must have realistic Z coordinate
                 // Must be within the field boundaries
-                observation.pose().getX() <
-                0.0 ||
-                observation.pose().getX() > FieldConstants.fieldLength.in(Meters) ||
-                observation.pose().getY() < 0.0 ||
-                observation.pose().getY() > FieldConstants.fieldWidth.in(Meters);
+                !PoseUtil.isPoseOnField(observation.pose().toPose2d());
 
             // Add pose to log
             if (rejectPose) {

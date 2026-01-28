@@ -25,6 +25,20 @@ public final class PoseUtil {
 
     private PoseUtil() {}
 
+    /**
+     * Checks if a pose is within the field boundaries.
+     * @param pose - The pose to check.
+     * @return true if the pose is on the field, false otherwise.
+     */
+    public static boolean isPoseOnField(Pose2d pose) {
+        return (
+            pose.getX() > 0.0 &&
+            pose.getX() < FieldConstants.fieldLength.in(Meters) &&
+            pose.getY() > 0.0 &&
+            pose.getY() < FieldConstants.fieldWidth.in(Meters)
+        );
+    }
+
     public static boolean isPoseTranslationNear(Pose2d pose1, Pose2d pose2, Distance distanceTolerance) {
         return (
             Math.abs(pose1.getX() - pose2.getX()) < distanceTolerance.in(Meters) &&

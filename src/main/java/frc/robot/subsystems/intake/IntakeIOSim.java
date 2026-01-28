@@ -18,5 +18,18 @@ public class IntakeIOSim extends IntakeIOYAMS {
             IntakeConstants.ORIENTATION,
             IntakeConstants.MAX_CAPACITY
         );
+
+        intakeSimulation.startIntake();
+    }
+
+    @Override
+    public void deploy() {
+        // TODO: rn this is instant deployment, make it take time later
+        intakeSimulation.startIntake();
+    }
+
+    @Override
+    public void retract() {
+        intakeSimulation.stopIntake();
     }
 }

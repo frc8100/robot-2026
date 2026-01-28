@@ -20,6 +20,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.util.PoseUtil;
 import frc.util.objective.ObjectiveIO;
 import frc.util.objective.ObjectiveTracker;
@@ -84,6 +85,18 @@ public class RobotActions {
         () -> SwervePayload.RotationMode.ONLY_ROTATE_TO_POSE_NO_DRIVE_TO_POSE,
         FieldLocations.HUB_AIM_TO::getPose
     );
+
+    /**
+     * @return Payload to intake fuel.
+     */
+    public static SwervePayload getIntakePayload(RobotActions robotActions) {
+        return SwervePayload.fromPoseSupplierNoRotate(() ->
+            robotActions.visionSubsystem.gamePiecePoseEstimator.getIntakeTargetPose(
+                GamePieceObservationType.FUEL,
+                robotActions.swerveSubsystem::getPose
+            )
+        );
+    }
 
     /**
      * List of global states for the robot.
