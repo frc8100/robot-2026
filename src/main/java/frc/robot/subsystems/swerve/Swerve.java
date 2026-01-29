@@ -225,6 +225,8 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
 
     public final SwerveDrivePoseEstimator poseEstimator;
 
+    private boolean shouldRunSpeedsThisCycle = true;
+
     /**
      * The yaw offset for field-oriented driving.
      */
@@ -325,6 +327,7 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
     @Override
     public void runVelocityChassisSpeeds(ChassisSpeeds speed) {
         setpointSpeeds = speed;
+        shouldRunSpeedsThisCycle = true;
     }
 
     @SuppressWarnings("unused")
@@ -673,6 +676,9 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         }
 
         // Apply outputs
-        runSpeeds();
+        if (shouldRunSpeedsThisCycle) {
+            runSpeeds();
+            shouldRunSpeedsThisCycle = false;
+        }
     }
 }

@@ -291,18 +291,5 @@ public class ModuleIOSpark implements ModuleIO {
         Rotation2d angle = desiredState.angle;
         double radReference = angle.getRadians();
         angleClosedLoopController.setSetpoint(radReference, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-        // anglePidControllerUsingCANCoder.setSetpoint(radReference);
-
-        // double requestedVoltage = MathUtil.clamp(
-        //     anglePidControllerUsingCANCoder.calculate(getRelativeAngle().getRadians()),
-        //     -11,
-        //     11
-        // );
-
-        // angleMotor.setVoltage(requestedVoltage);
-
-        // Logger.recordOutput(dashboardKey + "/RequestedVoltage", requestedVoltage);
-        // Logger.recordOutput(dashboardKey + "/PIDSetpoint", anglePidControllerUsingCANCoder.getSetpoint());
-        // Logger.recordOutput(dashboardKey + "/Current", getRelativeAngle().getRadians());
     }
 }
