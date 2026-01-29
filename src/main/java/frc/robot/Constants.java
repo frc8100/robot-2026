@@ -45,6 +45,9 @@ public final class Constants {
      */
     public static final String simLogDirectory = "C:\\Users\\Public\\wpilib\\" + YEAR + "\\logs";
 
+    // public static final String realLogDirectory = "/home/lvuser/logs";
+    public static final String realLogDirectory = "/U/logs";
+
     /**
      * Whether or not to silence the reportJoystickUnpluggedWarning warning.
      */
