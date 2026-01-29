@@ -34,6 +34,11 @@ import org.littletonrobotics.junction.Logger;
  */
 public class AimToTarget {
 
+    /**
+     * A record containing the exit velocity calculation result.
+     * @param exitVelocityMetersPerSecond - The exit velocity in meters per second. Only used in simulation.
+     * @param timeToTargetSeconds - The time to target in seconds.
+     */
     public record ExitVelocityCalculationResult(double exitVelocityMetersPerSecond, double timeToTargetSeconds) {
         public static final ExitVelocityCalculationResult ZERO = new ExitVelocityCalculationResult(0.0, 0.0);
 

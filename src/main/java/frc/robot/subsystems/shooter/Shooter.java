@@ -15,35 +15,23 @@ import org.littletonrobotics.junction.Logger;
 public class Shooter extends SubsystemBase {
 
     public enum ShooterState {
-        // /**
-        //  * The intake is fully deployed.
-        //  */
-        // DEPLOYED,
+        /**
+         * Not shooting.
+         */
+        IDLE,
 
-        // /**
-        //  * The intake is in transition between deployed and retracted.
-        //  */
-        // TRANSITION_DEPLOYING,
-
-        // /**
-        //  * The intake is in transition between retracted and deployed.
-        //  */
-        // TRANSITION_RETRACTING,
-
-        // /**
-        //  * The intake is fully retracted.
-        //  */
-        // RETRACTED,
+        /**
+         * The shooter is spinning to the target velocity and the indexer is running to move fuel to the shooter.
+         */
+        SHOOTING,
     }
 
     public final StateMachine<ShooterState, Object> stateMachine = new StateMachine<ShooterState, Object>(
         ShooterState.class,
         "Shooter"
-    );
-    // .withDefaultState(new StateMachineState<>(ShooterState.RETRACTED, "Retracted"))
-    // .withState(new StateMachineState<>(ShooterState.DEPLOYED, "Deployed"))
-    // .withState(new StateMachineState<>(ShooterState.TRANSITION_DEPLOYING, "Transition Deploying"))
-    // .withState(new StateMachineState<>(ShooterState.TRANSITION_RETRACTING, "Transition Retracting"));
+    )
+        .withDefaultState(new StateMachineState<>(ShooterState.IDLE, "Idle"))
+        .withState(new StateMachineState<>(ShooterState.SHOOTING, "Shooting"));
 
     private final ShooterIO io;
     private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
@@ -53,6 +41,18 @@ public class Shooter extends SubsystemBase {
     public Shooter(ShooterIO io, Swerve swerveSubsystem) {
         this.io = io;
         this.swerveSubsystem = swerveSubsystem;
+
+        // State machine bindings
+        stateMachine.whileState(ShooterState.IDLE, () -> {
+            setTargetExitVelocity(0.0);
+        });
+
+        stateMachine.whileState(ShooterState.SHOOTING, () -> {
+            // TODO: set based on auto aim calculation
+            setTargetExitVelocity(
+                swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond)
+            );
+        });
     }
 
     public void testShoot() {
