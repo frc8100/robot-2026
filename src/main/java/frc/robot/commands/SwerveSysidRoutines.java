@@ -134,7 +134,7 @@ public class SwerveSysidRoutines {
 
     /**
      * Measures data for feedforward characterization.
-     * Export as csv using AdvantageScope and the prefix `/RealOutputs/SysId/FFCharacterization`
+     * Export as csv using AdvantageScope and the prefix `/RealOutputs/SysId/FFCharacterization,DS:enabled`
      * and analyze using the python script at `regression/drive_ff_characterization.py`.
      */
     public static Command feedforwardCharacterization(SwerveDrive drive) {
