@@ -15,6 +15,7 @@ package frc.robot.subsystems.swerve.gyro;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -63,10 +64,14 @@ public class GyroIOPigeon2 implements GyroIO {
 
         // Only update pitch and roll if configured to do so
         pitch.setUpdateFrequency(
-            SwerveConstants.IS_GYRO_RECORD_PITCH_ROLL_TIPPING_STATE ? SwerveConstants.STATUS_SIGNAL_FREQUENCY_HZ : 0
+            SwerveConstants.IS_GYRO_RECORD_PITCH_ROLL_TIPPING_STATE
+                ? SwerveConstants.STATUS_SIGNAL_FREQUENCY_HZ.in(Hertz)
+                : 0
         );
         roll.setUpdateFrequency(
-            SwerveConstants.IS_GYRO_RECORD_PITCH_ROLL_TIPPING_STATE ? SwerveConstants.STATUS_SIGNAL_FREQUENCY_HZ : 0
+            SwerveConstants.IS_GYRO_RECORD_PITCH_ROLL_TIPPING_STATE
+                ? SwerveConstants.STATUS_SIGNAL_FREQUENCY_HZ.in(Hertz)
+                : 0
         );
 
         pigeon.optimizeBusUtilization();

@@ -2,6 +2,7 @@ package frc.robot.subsystems.swerve;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.InchesPerSecond;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
@@ -47,12 +48,15 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Frequency;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Time;
 import frc.util.SwerveFeedForwards;
+import frc.util.SwerveFeedForwards.LinearForceFeedForwardConstants;
+import frc.util.SwerveFeedForwards.SimpleFeedForwardConstants;
 import frc.util.TunableValue;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
@@ -65,22 +69,24 @@ public class SwerveConstants {
 
     private SwerveConstants() {}
 
+    // this is inconsistently used
     public static final int NUMBER_OF_SWERVE_MODULES = 4;
 
     /**
      * How often the odometry is updated (in Hz). This is independent of the robot's.
+     * A frequency that is too high may cause timeout errors (depending on CAN bus quality?)
      */
-    public static final double ODOMETRY_FREQUENCY_HZ = 100;
+    public static final Frequency ODOMETRY_FREQUENCY_HZ = Hertz.of(50);
 
     /**
      * How often the status signals for CANCoders and the Pigeon 2 is updated (in Hz).
      */
-    public static final double STATUS_SIGNAL_FREQUENCY_HZ = 50;
+    public static final Frequency STATUS_SIGNAL_FREQUENCY_HZ = Hertz.of(20);
 
     /**
      * The deadband for the sticks. This is the range of values that will be considered 0.
      */
-    public static final double DRIVE_STICK_DEADBAND = 0.1;
+    public static final double DRIVE_STICK_DEADBAND = 0.075;
 
     /**
      * When in semi-auto mode, the automatically calculated ChassisSpeeds will be adjusted by the controller inputs multiplied by this value.
@@ -89,8 +95,9 @@ public class SwerveConstants {
     public static final double NUDGE_ROTATION_INPUT_MULTIPLIER = 0.5;
 
     // Percent output value limit for angle and drive motors
-    public static final double MAX_DRIVE_POWER = 0.925;
-    public static final double MAX_ANGLE_POWER = 0.9;
+    // TODO: set to 1 because trust current limit
+    public static final double MAX_DRIVE_POWER = 0.975;
+    public static final double MAX_ANGLE_POWER = 0.95;
 
     // Always ensure Gyro is CCW+ CW-
     public static final boolean IS_GYRO_INVERTED = false;
@@ -147,8 +154,8 @@ public class SwerveConstants {
     public static final boolean IS_CANCODER_INVERTED = false;
 
     // Current limiting
-    public static final Current ANGLE_CONTINUOUS_CURRENT_LIMIT = Amps.of(23);
     // TODO: tune these values (https://docs.revrobotics.com/brushless/home/faq#neo-v1.1)
+    public static final Current ANGLE_CONTINUOUS_CURRENT_LIMIT = Amps.of(23);
     public static final Current DRIVE_CONTINUOUS_CURRENT_LIMIT = Amps.of(40);
 
     /**
@@ -162,27 +169,42 @@ public class SwerveConstants {
     public static final double STILL_MPS = 0.075;
 
     // Angle Motor PID Values
-    // TODO: tune
+    // TODO: retune on carpet
     public static final double ANGLE_KP = 9.5;
-    public static final double angleKI = 0.0;
-    public static final double angleKD = 0.05;
+    public static final double ANGLE_KI = 0.0;
+    public static final double ANGLE_KD = 0.05;
     public static final TunableValue angleKPTunable = new TunableValue("Drive/AngleKP", ANGLE_KP);
-    public static final TunableValue angleKDTunable = new TunableValue("Drive/AngleKD", angleKD);
-    public static final double angleSimKP = 2;
-    public static final double angleSimKD = 0.01;
+    public static final TunableValue angleKDTunable = new TunableValue("Drive/AngleKD", ANGLE_KD);
+    public static final double ANGLE_SIM_KP = 2;
+    public static final double ANGLE_SIM_KD = 0.01;
 
     // Drive Motor PID Values
-    public static final double driveKP = 0.005;
-    public static final double driveKI = 0.0;
-    public static final double driveKD = 0.0;
-    public static final TunableValue driveKPTunable = new TunableValue("Drive/kP", driveKP);
-    public static final TunableValue driveKDTunable = new TunableValue("Drive/kD", driveKD);
-    public static final double driveSimKP = 0.2;
-    public static final double driveSimKD = 0.0;
+    public static final double DRIVE_KP = 0.005;
+    public static final double DRIVE_KI = 0.0;
+    public static final double DRIVE_KD = 0.0;
+    public static final TunableValue driveKPTunable = new TunableValue("Drive/kP", DRIVE_KP);
+    public static final TunableValue driveKDTunable = new TunableValue("Drive/kD", DRIVE_KD);
+    public static final double DRIVE_SIM_KP = 0.2;
+    public static final double DRIVE_SIM_KD = 0.0;
 
-    /**
-     * See {@link frc.util.SwerveFeedForwards} for feedforward values.
-     */
+    // Drive Motor Characterization Values
+    // TODO: Tune these values
+    public static final LinearForceFeedForwardConstants driveFFConstantsReal = new LinearForceFeedForwardConstants(
+        0.17388,
+        0.13632,
+        0,
+        0
+    );
+    public static final LinearForceFeedForwardConstants driveFFConstantsSim = new LinearForceFeedForwardConstants(
+        0.0752,
+        0.0436,
+        0,
+        0.8849
+    );
+
+    // Angle Motor Characterization Values
+    public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(0.0, 0.0);
+    public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(0.0, 0.42514);
 
     // Swerve path constraints
     public static final LinearVelocity MAX_SPEED = MetersPerSecond.of(3.75);
@@ -350,14 +372,14 @@ public class SwerveConstants {
 
         // Configure the PID controller for the angle motor
         angleConfig.closedLoop
-            .pid(SwerveConstants.ANGLE_KP, SwerveConstants.angleKI, SwerveConstants.angleKD)
+            .pid(SwerveConstants.ANGLE_KP, SwerveConstants.ANGLE_KI, SwerveConstants.ANGLE_KD)
             .outputRange(-SwerveConstants.MAX_ANGLE_POWER, SwerveConstants.MAX_ANGLE_POWER)
             .positionWrappingEnabled(true)
             .positionWrappingInputRange(-Math.PI, Math.PI);
 
         angleConfig.signals
             .primaryEncoderPositionAlwaysOn(true)
-            .primaryEncoderPositionPeriodMs((int) (1000.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ))
+            .primaryEncoderPositionPeriodMs((int) (1000.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ.in(Hertz)))
             .primaryEncoderVelocityAlwaysOn(true)
             .primaryEncoderVelocityPeriodMs(20)
             .appliedOutputPeriodMs(20)
@@ -388,17 +410,17 @@ public class SwerveConstants {
 
         // Configure the PID controller for the drive motor
         driveConfig.closedLoop
-            .pid(SwerveConstants.driveKP, SwerveConstants.driveKI, SwerveConstants.driveKD)
+            .pid(SwerveConstants.DRIVE_KP, SwerveConstants.DRIVE_KI, SwerveConstants.DRIVE_KD)
             .outputRange(-SwerveConstants.MAX_DRIVE_POWER, SwerveConstants.MAX_DRIVE_POWER)
             .allowedClosedLoopError(0.1, ClosedLoopSlot.kSlot0);
 
         driveConfig.closedLoop.feedForward
-            .kS(SwerveFeedForwards.driveFFConstantsReal.kS())
-            .kV(SwerveFeedForwards.driveFFConstantsReal.kV());
+            .kS(SwerveConstants.driveFFConstantsReal.kS())
+            .kV(SwerveConstants.driveFFConstantsReal.kV());
 
         driveConfig.signals
             .primaryEncoderPositionAlwaysOn(true)
-            .primaryEncoderPositionPeriodMs((int) (1000.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ))
+            .primaryEncoderPositionPeriodMs((int) (1000.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ.in(Hertz)))
             .primaryEncoderVelocityAlwaysOn(true)
             .primaryEncoderVelocityPeriodMs(20)
             .appliedOutputPeriodMs(20)

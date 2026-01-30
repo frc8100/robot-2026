@@ -37,11 +37,15 @@ public class ModuleIOSim implements ModuleIO {
     private boolean driveClosedLoop = false;
     private boolean turnClosedLoop = false;
     private PIDController driveController = new PIDController(
-        SwerveConstants.driveSimKP,
+        SwerveConstants.DRIVE_SIM_KP,
         0,
-        SwerveConstants.driveSimKD
+        SwerveConstants.DRIVE_SIM_KD
     );
-    private PIDController turnController = new PIDController(SwerveConstants.angleSimKP, 0, SwerveConstants.angleSimKD);
+    private PIDController turnController = new PIDController(
+        SwerveConstants.ANGLE_SIM_KP,
+        0,
+        SwerveConstants.ANGLE_SIM_KD
+    );
 
     // Voltages
     private final MutVoltage driveAppliedVolts = Volts.mutable(0.0);

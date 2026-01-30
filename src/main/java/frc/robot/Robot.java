@@ -33,6 +33,11 @@ public class Robot extends LoggedRobot {
     private final RobotContainer robotContainer;
 
     public Robot() {
+        // Set the current mode automatically if it is not replay
+        if (Constants.currentMode != Constants.Mode.REPLAY) {
+            Constants.currentMode = isReal() ? Constants.Mode.REAL : Constants.Mode.SIM;
+        }
+
         // Record metadata
         Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
         Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
@@ -50,11 +55,7 @@ public class Robot extends LoggedRobot {
                 Logger.recordMetadata("GitDirty", "Unknown");
                 break;
         }
-
-        // Set the current mode automatically if it is not replay
-        if (Constants.currentMode != Constants.Mode.REPLAY) {
-            Constants.currentMode = isReal() ? Constants.Mode.REAL : Constants.Mode.SIM;
-        }
+        Logger.recordMetadata("SimulationState", Constants.currentMode.toString());
 
         DriverStation.silenceJoystickConnectionWarning(Constants.silenceJoystickUnpluggedWarning);
         SignalLogger.enableAutoLogging(Constants.enableSignalLogger);
