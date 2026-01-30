@@ -12,6 +12,7 @@ public class SwerveFeedForwards {
      * See {@link #getLinearForcesFFVoltsFromRadPerSec} for details on calculating the feedforward voltage from linear forces.
      * Satisfies the equation: V_applied = kS * sign(velocityRadiansPerSecond) + kV * velocityRadiansPerSecond + kA * accelerationRadiansPerSecond2 + kF * calculatedLinearForceFFVolts.
      * kA has no effect in simulation as acceleration is not used in the calculation.
+     * kA also has no effect in real hardware as the SparkMax does not support onboard acceleration feedforward.
      */
     public static record LinearForceFeedForwardConstants(double kS, double kV, double kA, double kF) {}
 
@@ -20,29 +21,6 @@ public class SwerveFeedForwards {
      * Satisfies the equation: V_applied = kS * sign(velocityRadiansPerSecond) + kV * velocityRadiansPerSecond
      */
     public static record SimpleFeedForwardConstants(double kS, double kV) {}
-
-    // Drive Motor Characterization Values
-    public static final SimpleFeedForwardConstants simpleDriveFFConstantsReal = new SimpleFeedForwardConstants(
-        0.17388,
-        0.13632
-    );
-    public static final SimpleFeedForwardConstants simpleDriveFFConstantsSim = new SimpleFeedForwardConstants(
-        0.03197,
-        0.16211
-    );
-
-    // TODO: Tune these values
-
-    // kS and kV will be automatically handled by SparkMax in real hardware
-    public static final LinearForceFeedForwardConstants linearForceDriveFFConstantsReal =
-        new LinearForceFeedForwardConstants(0.17388, 0.13632, 0, 0);
-    public static final LinearForceFeedForwardConstants linearForceDriveFFConstantsSim =
-        new LinearForceFeedForwardConstants(0.0752, 0.0436, 0, 0.8849);
-
-    // SysId
-    // public static final double driveSimKs = -0.10543;
-    // public static final double driveSimKv = 0.16202;
-    // public static final double driveSimKa = 0.051283;
 
     /**
      * Calculates the required voltage for the given linear forces and desired ground speed.
@@ -88,9 +66,34 @@ public class SwerveFeedForwards {
         );
     }
 
+    // Drive Motor Characterization Values
+    // TODO: Tune these values
+    public static final LinearForceFeedForwardConstants driveFFConstantsReal = new LinearForceFeedForwardConstants(
+        0.17388,
+        0.13632,
+        0,
+        0
+    );
+    public static final LinearForceFeedForwardConstants driveFFConstantsSim = new LinearForceFeedForwardConstants(
+        0.0752,
+        0.0436,
+        0,
+        0.8849
+    );
+
+    // Angle Motor Characterization Values
+    public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(
+        0.05184,
+        0.003624
+    );
+    public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(
+        0.05184,
+        0.003624
+    );
+
     // Instance feedforward constants
-    private final SimpleFeedForwardConstants simpleFFConstants;
-    private final LinearForceFeedForwardConstants linearForceFFConstants;
+    private final SimpleFeedForwardConstants angleMotorFFConstants;
+    private final LinearForceFeedForwardConstants driveMotorFFConstants;
 
     /**
      * Indicates whether the feedforwards are for simulation or real hardware.
@@ -111,8 +114,8 @@ public class SwerveFeedForwards {
         }
 
         // Select appropriate constants
-        this.simpleFFConstants = isSimulation ? simpleDriveFFConstantsSim : simpleDriveFFConstantsReal;
-        this.linearForceFFConstants = isSimulation ? linearForceDriveFFConstantsSim : linearForceDriveFFConstantsReal;
+        this.angleMotorFFConstants = isSimulation ? angleFFConstantsSim : angleFFConstantsReal;
+        this.driveMotorFFConstants = isSimulation ? driveFFConstantsSim : driveFFConstantsReal;
     }
 
     /**
@@ -120,13 +123,10 @@ public class SwerveFeedForwards {
      * @param velocityRadPerSec - The desired velocity in radians per second.
      * @return The required voltage to achieve the desired velocity.
      */
-    public double getSimpleFFVolts(double velocityRadPerSec) {
-        // If real, automatically handed by SparkMax
-        if (!isSimulation) {
-            return 0.0;
-        }
-
-        return (simpleFFConstants.kS * Math.signum(velocityRadPerSec) + simpleFFConstants.kV * velocityRadPerSec);
+    public double getAngleMotorFFVolts(double velocityRadPerSec) {
+        return (
+            angleMotorFFConstants.kS * Math.signum(velocityRadPerSec) + angleMotorFFConstants.kV * velocityRadPerSec
+        );
     }
 
     /**
@@ -136,19 +136,19 @@ public class SwerveFeedForwards {
      * @param feedforwardLinearForcesNewtons - The desired linear forces in Newtons.
      * @return The required voltage to achieve the desired velocity and forces.
      */
-    public double getLinearForceFFVolts(double desiredVelocityRadPerSec, double feedforwardLinearForcesNewtons) {
-        // If real, kS, kV, and kA are automatically handled by SparkMax
+    public double getDriveMotorFFVolts(double desiredVelocityRadPerSec, double feedforwardLinearForcesNewtons) {
+        // If real, kS and kV are automatically handled by SparkMax
         if (!isSimulation) {
             return (
-                linearForceFFConstants.kF *
+                driveMotorFFConstants.kF *
                 getLinearForcesFFVoltsFromRadPerSec(feedforwardLinearForcesNewtons, desiredVelocityRadPerSec)
             );
         }
 
         return (
-            linearForceFFConstants.kS * Math.signum(desiredVelocityRadPerSec) +
-            linearForceFFConstants.kV * desiredVelocityRadPerSec +
-            linearForceFFConstants.kF *
+            driveMotorFFConstants.kS * Math.signum(desiredVelocityRadPerSec) +
+            driveMotorFFConstants.kV * desiredVelocityRadPerSec +
+            driveMotorFFConstants.kF *
             getLinearForcesFFVoltsFromRadPerSec(feedforwardLinearForcesNewtons, desiredVelocityRadPerSec)
         );
     }

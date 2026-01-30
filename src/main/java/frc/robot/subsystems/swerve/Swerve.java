@@ -345,6 +345,8 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         }
 
         // Convert the chassis speeds to swerve module states using the setpoint generator
+        SwerveSetpoint previousSetpoint = moduleStateSetpoint;
+
         moduleStateSetpoint = setpointGenerator.generateSetpoint(
             moduleStateSetpoint,
             setpointSpeeds,
@@ -356,6 +358,14 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
 
         double[] feedforwardLinearForcesNewtons = feedforwards.linearForcesNewtons();
 
+        double[] angleMotorVelocitiesRadPerSec = new double[4];
+        for (int i = 0; i < 4; i++) {
+            angleMotorVelocitiesRadPerSec[i] =
+                moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
+                previousSetpoint.moduleStates()[i].angle.getRadians();
+            angleMotorVelocitiesRadPerSec[i] /= Constants.LOOP_PERIOD_SECONDS;
+        }
+
         // Log setpoints
         Logger.recordOutput("Swerve/States/Setpoints", setpointStates);
         Logger.recordOutput("Swerve/ChassisSpeeds/Setpoints", moduleStateSetpoint.robotRelativeSpeeds());
@@ -366,21 +376,27 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         Logger.recordOutput("Swerve/States/FeedforwardTorqueCurrent", feedforwards.torqueCurrentsAmps());
 
         // Set the desired state for each swerve module
-        setModuleStates(setpointStates, feedforwardLinearForcesNewtons);
+        setModuleStates(setpointStates, feedforwardLinearForcesNewtons, angleMotorVelocitiesRadPerSec);
     }
 
     @Override
-    public void setModuleStates(SwerveModuleState[] desiredStates, double[] feedforwardLinearForcesNewtons) {
+    public void setModuleStates(
+        SwerveModuleState[] desiredStates,
+        double[] feedforwardLinearForcesNewtons,
+        double[] angleMotorVelocitiesRadPerSec
+    ) {
         // Set the desired state for each swerve module
         for (int i = 0; i < 4; i++) {
             Module mod = swerveModules[i];
 
-            double driveFFVolts = swerveFeedForwards.getLinearForceFFVolts(
+            double driveFFVolts = swerveFeedForwards.getDriveMotorFFVolts(
                 desiredStates[mod.index].speedMetersPerSecond / SwerveConstants.WHEEL_RADIUS.in(Meters),
                 feedforwardLinearForcesNewtons[mod.index]
             );
 
-            mod.runSetpoint(desiredStates[mod.index], driveFFVolts);
+            double angleFFVolts = swerveFeedForwards.getAngleMotorFFVolts(angleMotorVelocitiesRadPerSec[mod.index]);
+
+            mod.runSetpoint(desiredStates[mod.index], driveFFVolts, angleFFVolts);
         }
     }
 

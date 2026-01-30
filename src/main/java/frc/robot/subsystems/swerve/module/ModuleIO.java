@@ -33,6 +33,11 @@ public interface ModuleIO {
 
         public SparkMotorControllerData turnMotorData = new SparkMotorControllerData();
 
+        /**
+         * The feedforward voltage applied to the angle motor.
+         */
+        public double turnFFVolts = 0.0;
+
         public boolean turnMotorConnected = true;
 
         /**
@@ -70,21 +75,23 @@ public interface ModuleIO {
     public default void setDriveVelocity(SwerveModuleState desiredState, double driveFeedforwardVoltage) {}
 
     /** Run the turn motor to the specified rotation. Used internally. */
-    public default void setTurnPosition(SwerveModuleState desiredState) {}
+    public default void setTurnPosition(SwerveModuleState desiredState, double angleFeedforwardVoltage) {}
 
     /**
      * Sets the desired state for the module. Should update the turn and drive motors to reach the desired state.
      * @param desiredState - The desired state for the module.
      * @param currentRotation2d - The current rotation of the module. Used for optimization.
      * @param driveFeedforwardVoltage - The feedforward voltage to apply to the drive motor.
+     * @param angleFeedforwardVoltage - The feedforward voltage to apply to the angle motor.
      */
     public default void setDesiredState(
         SwerveModuleState desiredState,
         Rotation2d currentRotation2d,
-        double driveFeedforwardVoltage
+        double driveFeedforwardVoltage,
+        double angleFeedforwardVoltage
     ) {
         setDriveVelocity(desiredState, driveFeedforwardVoltage);
-        setTurnPosition(desiredState);
+        setTurnPosition(desiredState, angleFeedforwardVoltage);
     }
 
     /**
