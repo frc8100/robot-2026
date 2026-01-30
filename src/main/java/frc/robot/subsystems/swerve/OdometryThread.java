@@ -13,6 +13,8 @@
 
 package frc.robot.subsystems.swerve;
 
+import static edu.wpi.first.units.Units.Hertz;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.revrobotics.REVLibError;
@@ -84,7 +86,7 @@ public class OdometryThread {
      */
     public void start() {
         if (!sparkQueues.isEmpty() || !phoenixAngleRotationsQueues.isEmpty()) {
-            notifier.startPeriodic(1.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ);
+            notifier.startPeriodic(1.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ.in(Hertz));
         }
     }
 
@@ -178,12 +180,12 @@ public class OdometryThread {
         phoenixSignalsLock.lock();
         try {
             if (allPhoenixAngleSignals.length > 0) {
-                // BaseStatusSignal.waitForAll(2.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ, allPhoenixAngleSignals);
+                // BaseStatusSignal.waitForAll(2.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ.in(Hertz), allPhoenixAngleSignals);
             } else {
                 // "waitForAll" does not support blocking on multiple signals with a bus
                 // that is not CAN FD, regardless of Pro licensing. No reasoning for this
                 // behavior is provided by the documentation.
-                Thread.sleep((long) (1000.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ));
+                Thread.sleep((long) (1000.0 / SwerveConstants.ODOMETRY_FREQUENCY_HZ.in(Hertz)));
                 if (allPhoenixAngleSignals.length > 0) BaseStatusSignal.refreshAll(allPhoenixAngleSignals);
             }
         } catch (InterruptedException e) {

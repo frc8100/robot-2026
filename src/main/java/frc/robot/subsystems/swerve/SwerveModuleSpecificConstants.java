@@ -34,7 +34,6 @@ public final class SwerveModuleSpecificConstants {
         };
     }
 
-    // TODO: Redo these angle offsets; no need to include Math.PI adjustments if we set them correctly initially
     public static final RobotSwerveModuleConstants FRONT_LEFT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
         -0.49951171875 + 0.5
     );

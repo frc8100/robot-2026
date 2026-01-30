@@ -46,6 +46,7 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -230,8 +231,7 @@ public class RobotContainer {
         // Set up teleop swerve command
         // swerveSubsystem.setDefaultCommand(swerveSubsystem.stateMachine.getRunnableCommand(swerveSubsystem));
 
-        // Register named commands
-        // TODO
+        // TODO: Register pathplanner named commands
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 

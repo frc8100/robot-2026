@@ -66,25 +66,6 @@ public class SwerveFeedForwards {
         );
     }
 
-    // Drive Motor Characterization Values
-    // TODO: Tune these values
-    public static final LinearForceFeedForwardConstants driveFFConstantsReal = new LinearForceFeedForwardConstants(
-        0.17388,
-        0.13632,
-        0,
-        0
-    );
-    public static final LinearForceFeedForwardConstants driveFFConstantsSim = new LinearForceFeedForwardConstants(
-        0.0752,
-        0.0436,
-        0,
-        0.8849
-    );
-
-    // Angle Motor Characterization Values
-    public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(0.0, 0.0);
-    public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(0.0, 0.42514);
-
     // Instance feedforward constants
     private final SimpleFeedForwardConstants angleMotorFFConstants;
     private final LinearForceFeedForwardConstants driveMotorFFConstants;
@@ -108,8 +89,12 @@ public class SwerveFeedForwards {
         }
 
         // Select appropriate constants
-        this.angleMotorFFConstants = isSimulation ? angleFFConstantsSim : angleFFConstantsReal;
-        this.driveMotorFFConstants = isSimulation ? driveFFConstantsSim : driveFFConstantsReal;
+        this.angleMotorFFConstants = isSimulation
+            ? SwerveConstants.angleFFConstantsSim
+            : SwerveConstants.angleFFConstantsReal;
+        this.driveMotorFFConstants = isSimulation
+            ? SwerveConstants.driveFFConstantsSim
+            : SwerveConstants.driveFFConstantsReal;
     }
 
     /**
