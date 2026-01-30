@@ -317,6 +317,36 @@ public class RobotContainer {
                 swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse)
             )
         );
+
+        autoChooser.addOption(
+            "Angle SysId (Quasistatic Counter-Clockwise)",
+            swerveSubsystem.angleSysIdQuasistatic(SysIdRoutine.Direction.kForward)
+        );
+        autoChooser.addOption(
+            "Angle SysId (Quasistatic Clockwise)",
+            swerveSubsystem.angleSysIdQuasistatic(SysIdRoutine.Direction.kReverse)
+        );
+        autoChooser.addOption(
+            "Angle SysId (Dynamic Counter-Clockwise)",
+            swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kForward)
+        );
+        autoChooser.addOption(
+            "Angle SysId (Dynamic Clockwise)",
+            swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kReverse)
+        );
+
+        autoChooser.addOption(
+            "Angle SysId (All 4)",
+            new SequentialCommandGroup(
+                swerveSubsystem.angleSysIdQuasistatic(SysIdRoutine.Direction.kForward),
+                Commands.waitSeconds(1),
+                swerveSubsystem.angleSysIdQuasistatic(SysIdRoutine.Direction.kReverse),
+                Commands.waitSeconds(1),
+                swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kForward),
+                Commands.waitSeconds(1),
+                swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kReverse)
+            )
+        );
     }
 
     /**

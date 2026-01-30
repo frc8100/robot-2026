@@ -232,9 +232,24 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
      */
     private Rotation2d yawOffset = Rotation2d.kZero;
 
-    protected SysIdRoutine sysId = new SysIdRoutine(
+    protected SysIdRoutine driveSysId = new SysIdRoutine(
         new SysIdRoutine.Config(null, null, null, state -> Logger.recordOutput("Swerve/SysIdState", state.toString())),
         new SysIdRoutine.Mechanism(voltage -> runCharacterization(voltage.in(Volt)), null, this)
+    );
+
+    protected SysIdRoutine angleSysId = new SysIdRoutine(
+        new SysIdRoutine.Config(null, null, null, state ->
+            Logger.recordOutput("Swerve/AngleSysIdState", state.toString())
+        ),
+        new SysIdRoutine.Mechanism(
+            voltage -> {
+                for (int i = 0; i < 4; i++) {
+                    swerveModules[i].runAngleCharacterization(voltage.in(Volt));
+                }
+            },
+            null,
+            this
+        )
     );
 
     /**
@@ -407,14 +422,28 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         }
     }
 
+    public void runAngleCharacterization(double output) {
+        for (int i = 0; i < 4; i++) {
+            swerveModules[i].runAngleCharacterization(output);
+        }
+    }
+
     @Override
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.quasistatic(direction));
+        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(driveSysId.quasistatic(direction));
     }
 
     @Override
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.dynamic(direction));
+        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(driveSysId.dynamic(direction));
+    }
+
+    public Command angleSysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return run(() -> runAngleCharacterization(0.0)).withTimeout(1.0).andThen(angleSysId.quasistatic(direction));
+    }
+
+    public Command angleSysIdDynamic(SysIdRoutine.Direction direction) {
+        return run(() -> runAngleCharacterization(0.0)).withTimeout(1.0).andThen(angleSysId.dynamic(direction));
     }
 
     @Override

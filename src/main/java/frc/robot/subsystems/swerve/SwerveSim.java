@@ -33,7 +33,7 @@ public class SwerveSim extends Swerve {
         this.driveSimulation = driveSimulation;
 
         // Simulation specific SysId
-        super.sysId = new SysIdRoutine(
+        super.driveSysId = new SysIdRoutine(
             new SysIdRoutine.Config(Volts.of(0.75).per(Seconds), Volts.of(10), Seconds.of(15), state ->
                 Logger.recordOutput("Swerve/SysIdState", state.toString())
             ),

@@ -82,14 +82,8 @@ public class SwerveFeedForwards {
     );
 
     // Angle Motor Characterization Values
-    public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(
-        0.05184,
-        0.003624
-    );
-    public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(
-        0.05184,
-        0.003624
-    );
+    public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(0.0, 0.0);
+    public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(0.0, 0.42514);
 
     // Instance feedforward constants
     private final SimpleFeedForwardConstants angleMotorFFConstants;
