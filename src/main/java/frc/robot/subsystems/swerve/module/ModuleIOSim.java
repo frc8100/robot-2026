@@ -112,12 +112,14 @@ public class ModuleIOSim implements ModuleIO {
     public void setDriveOpenLoop(double output) {
         driveClosedLoop = false;
         driveAppliedVolts.mut_replace(output, Volts);
+        driveFFVolts.mut_replace(Volts.zero());
     }
 
     @Override
     public void setTurnOpenLoop(double output) {
         turnClosedLoop = false;
         turnAppliedVolts.mut_replace(output, Volts);
+        turnFFVolts.mut_replace(Volts.zero());
     }
 
     @Override

@@ -117,6 +117,11 @@ public class Module {
         io.setTurnPosition(new SwerveModuleState(), 0.0);
     }
 
+    public void runAngleCharacterization(double output) {
+        io.setDriveOpenLoop(0.0);
+        io.setTurnOpenLoop(output);
+    }
+
     /** Disables all outputs to motors. */
     public void stop() {
         io.setDriveOpenLoop(0.0);
