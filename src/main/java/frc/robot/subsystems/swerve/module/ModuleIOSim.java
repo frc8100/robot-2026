@@ -47,6 +47,7 @@ public class ModuleIOSim implements ModuleIO {
     private final MutVoltage driveAppliedVolts = Volts.mutable(0.0);
     private final MutVoltage turnAppliedVolts = Volts.mutable(0.0);
     private final MutVoltage driveFFVolts = Volts.mutable(0.0);
+    private final MutVoltage turnFFVolts = Volts.mutable(0.0);
 
     public ModuleIOSim(SwerveModuleSimulation moduleSimulation) {
         this.moduleSimulation = moduleSimulation;
@@ -75,6 +76,7 @@ public class ModuleIOSim implements ModuleIO {
         }
         if (turnClosedLoop) {
             turnAppliedVolts.mut_replace(
+                turnFFVolts.in(Volts) +
                 turnController.calculate(moduleSimulation.getSteerAbsoluteFacing().getRadians()),
                 Volts
             );
@@ -130,7 +132,8 @@ public class ModuleIOSim implements ModuleIO {
     }
 
     @Override
-    public void setTurnPosition(SwerveModuleState desiredState) {
+    public void setTurnPosition(SwerveModuleState desiredState, double angleFeedforwardVoltage) {
+        turnFFVolts.mut_replace(angleFeedforwardVoltage, Volts);
         turnClosedLoop = true;
         turnController.setSetpoint(desiredState.angle.getRadians());
     }

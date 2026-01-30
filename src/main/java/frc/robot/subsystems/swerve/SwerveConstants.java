@@ -147,31 +147,27 @@ public class SwerveConstants {
     public static final boolean IS_CANCODER_INVERTED = false;
 
     // Current limiting
-    public static final Current ANGLE_CONTINUOUS_CURRENT_LIMIT = Amps.of(22.5);
+    public static final Current ANGLE_CONTINUOUS_CURRENT_LIMIT = Amps.of(23);
     // TODO: tune these values (https://docs.revrobotics.com/brushless/home/faq#neo-v1.1)
     public static final Current DRIVE_CONTINUOUS_CURRENT_LIMIT = Amps.of(40);
 
     /**
      * The time to wait after the robot is still before syncing the swerve module encoders.
      */
-    public static final Time TIME_AFTER_STILL_SYNC_ENCODERS = Seconds.of(0.35);
+    public static final Time TIME_AFTER_STILL_SYNC_ENCODERS = Seconds.of(0.3);
 
     /**
      * The speed below which the robot is considered "still" (in m/s).
      */
     public static final double STILL_MPS = 0.075;
 
-    // TODO: Change these to UPPER_SNAKE_CASE
-
     // Angle Motor PID Values
     // TODO: tune
-    public static final double angleKP = 9.5;
+    public static final double ANGLE_KP = 9.5;
     public static final double angleKI = 0.0;
     public static final double angleKD = 0.05;
-
-    public static final TunableValue angleKPTunable = new TunableValue("Drive/AngleKP", angleKP);
+    public static final TunableValue angleKPTunable = new TunableValue("Drive/AngleKP", ANGLE_KP);
     public static final TunableValue angleKDTunable = new TunableValue("Drive/AngleKD", angleKD);
-
     public static final double angleSimKP = 20.0;
     public static final double angleSimKD = 0.1;
 
@@ -179,10 +175,8 @@ public class SwerveConstants {
     public static final double driveKP = 0.005;
     public static final double driveKI = 0.0;
     public static final double driveKD = 0.0;
-
     public static final TunableValue driveKPTunable = new TunableValue("Drive/kP", driveKP);
     public static final TunableValue driveKDTunable = new TunableValue("Drive/kD", driveKD);
-
     public static final double driveSimKP = 0.2;
     public static final double driveSimKD = 0.0;
 
@@ -320,9 +314,6 @@ public class SwerveConstants {
         return pathPlannerConfig;
     }
 
-    /**
-     * @return The CANCoder configuration.
-     */
     public static CANcoderConfiguration getCANcoderConfig() {
         CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
 
@@ -341,10 +332,6 @@ public class SwerveConstants {
         return canCoderConfig;
     }
 
-    /**
-     * @return The angle motor configuration.
-     * Includes the relative encoder configuration.
-     */
     public static SparkMaxConfig getAngleMotorConfig() {
         // Assign the relative angle encoder and configure it
         SparkMaxConfig angleConfig = new SparkMaxConfig();
@@ -363,7 +350,7 @@ public class SwerveConstants {
 
         // Configure the PID controller for the angle motor
         angleConfig.closedLoop
-            .pid(SwerveConstants.angleKP, SwerveConstants.angleKI, SwerveConstants.angleKD)
+            .pid(SwerveConstants.ANGLE_KP, SwerveConstants.angleKI, SwerveConstants.angleKD)
             .outputRange(-SwerveConstants.MAX_ANGLE_POWER, SwerveConstants.MAX_ANGLE_POWER)
             .positionWrappingEnabled(true)
             .positionWrappingInputRange(-Math.PI, Math.PI);
@@ -380,10 +367,6 @@ public class SwerveConstants {
         return angleConfig;
     }
 
-    /**
-     * @return The drive motor configuration.
-     * Includes the relative encoder configuration.
-     */
     public static SparkMaxConfig getDriveMotorConfig() {
         // Get the config for the encoders
         SparkMaxConfig driveConfig = new SparkMaxConfig();
@@ -410,9 +393,8 @@ public class SwerveConstants {
             .allowedClosedLoopError(0.1, ClosedLoopSlot.kSlot0);
 
         driveConfig.closedLoop.feedForward
-            .kS(SwerveFeedForwards.linearForceDriveFFConstantsReal.kS())
-            .kV(SwerveFeedForwards.linearForceDriveFFConstantsReal.kV())
-            .kA(SwerveFeedForwards.linearForceDriveFFConstantsReal.kA());
+            .kS(SwerveFeedForwards.driveFFConstantsReal.kS())
+            .kV(SwerveFeedForwards.driveFFConstantsReal.kV());
 
         driveConfig.signals
             .primaryEncoderPositionAlwaysOn(true)

@@ -104,16 +104,17 @@ public class Module {
      * Runs the module with the specified setpoint state. Mutates the state to optimize it.
      * @param state - The desired state of the module.
      * @param driveFeedforwardVoltage - The feedforward voltage to apply to the drive motor.
+     * @param angleFeedforwardVoltage - The feedforward voltage to apply to the angle motor.
      */
-    public void runSetpoint(SwerveModuleState state, double driveFeedforwardVoltage) {
+    public void runSetpoint(SwerveModuleState state, double driveFeedforwardVoltage, double angleFeedforwardVoltage) {
         // Apply setpoints
-        io.setDesiredState(state, getAngle(), driveFeedforwardVoltage);
+        io.setDesiredState(state, getAngle(), driveFeedforwardVoltage, angleFeedforwardVoltage);
     }
 
     /** Runs the module with the specified output while controlling to zero degrees. */
     public void runCharacterization(double output) {
         io.setDriveOpenLoop(output);
-        io.setTurnPosition(new SwerveModuleState());
+        io.setTurnPosition(new SwerveModuleState(), 0.0);
     }
 
     /** Disables all outputs to motors. */

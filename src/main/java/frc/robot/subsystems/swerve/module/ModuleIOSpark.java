@@ -73,11 +73,6 @@ public class ModuleIOSpark implements ModuleIO {
     private final SparkClosedLoopController angleClosedLoopController;
 
     /**
-     * A PID controller that uses CANCoder angles exclusively, in degrees.
-     */
-    private final PIDController anglePidControllerUsingCANCoder;
-
-    /**
      * The drive motor. This motor is used to control the speed of the module.
      * Includes an integrated encoder {@link #relativeDriveEncoder}.
      */
@@ -95,6 +90,7 @@ public class ModuleIOSpark implements ModuleIO {
 
     // Inputs (cached)
     private double driveFFVolts = 0.0;
+    private double angleFFVolts = 0.0;
 
     // Tunable values
     // private final TunableValue.SparkPIDTunable drivePidTunable;
@@ -160,14 +156,6 @@ public class ModuleIOSpark implements ModuleIO {
         drivePositionQueue = OdometryThread.getInstance()
             .registerSparkSignal(driveMotor, relativeDriveEncoder::getPosition);
         turnPositionQueue = OdometryThread.getInstance().registerPhoenixAngleRotationsSignal(turnAbsolutePosition);
-
-        anglePidControllerUsingCANCoder = new PIDController(
-            SwerveConstants.angleKP,
-            SwerveConstants.angleKI,
-            SwerveConstants.angleKD
-        );
-        anglePidControllerUsingCANCoder.enableContinuousInput(-Math.PI, Math.PI);
-        anglePidControllerUsingCANCoder.setSetpoint(getAngle().getRadians());
 
         // Create tunable values
         // drivePidTunable = new TunableValue.SparkPIDTunable(
@@ -277,7 +265,7 @@ public class ModuleIOSpark implements ModuleIO {
     }
 
     @Override
-    public void setTurnPosition(SwerveModuleState desiredState) {
+    public void setTurnPosition(SwerveModuleState desiredState, double angleFeedforwardVoltage) {
         // Stop the motor if the speed is less than 1%. Prevents Jittering
         if (
             Math.abs(getAngle().minus(desiredState.angle).getDegrees()) < 1 &&
@@ -287,9 +275,17 @@ public class ModuleIOSpark implements ModuleIO {
             return;
         }
 
+        this.angleFFVolts = angleFeedforwardVoltage;
+
         // Set the angle using the PID controller
         Rotation2d angle = desiredState.angle;
         double radReference = angle.getRadians();
-        angleClosedLoopController.setSetpoint(radReference, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        angleClosedLoopController.setSetpoint(
+            radReference,
+            ControlType.kPosition,
+            ClosedLoopSlot.kSlot0,
+            angleFeedforwardVoltage,
+            ArbFFUnits.kVoltage
+        );
     }
 }

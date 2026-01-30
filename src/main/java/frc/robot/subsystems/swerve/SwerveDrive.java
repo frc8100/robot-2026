@@ -113,7 +113,11 @@ public interface SwerveDrive extends Subsystem {
      * Sets the desired states for the swerve modules. Used by SwerveControllerCommand in Auto.
      * @param desiredStates The desired states for the swerve modules.
      */
-    public void setModuleStates(SwerveModuleState[] desiredStates, double[] feedforwardLinearForcesNewtons);
+    public void setModuleStates(
+        SwerveModuleState[] desiredStates,
+        double[] feedforwardLinearForcesNewtons,
+        double[] angleMotorVelocitiesRadPerSec
+    );
 
     /**
      * @return The current pose of the robot. This is determined by the swerve odometry.
