@@ -8,6 +8,13 @@ public class CANIdConstants {
 
     private CANIdConstants() {}
 
+    // Intake
+    public static final int DEPLOY_MOTOR_ID = 14;
+    public static final int INTAKE_MOTOR_ID = 15;
+
+    // Shooter
+    public static final int SHOOTER_MOTOR_ID = 16;
+
     public static final int PIGEON_ID = 13;
 
     /**
@@ -39,13 +46,6 @@ public class CANIdConstants {
             default -> throw new IllegalArgumentException("Invalid module index: " + index);
         };
     }
-
-    // Intake
-    public static final int DEPLOY_MOTOR_ID = 14;
-    public static final int INTAKE_MOTOR_ID = 15;
-
-    // Shooter
-    public static final int SHOOTER_MOTOR_ID = 16;
 
     /**
      * List of all CAN IDs in the order the CAN bus is wired, starting from the RIO and ending at the PDH.

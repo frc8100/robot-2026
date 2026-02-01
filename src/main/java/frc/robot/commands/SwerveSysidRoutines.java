@@ -82,10 +82,7 @@ public class SwerveSysidRoutines {
     /**
      * @return A command that runs a single feedforward characterization test with the given voltage supplier.
      */
-    private static Command feedforwardCharacterizationRunOnce(
-        SwerveDrive drive,
-        VoltageSupplierFromTime voltageSupplier
-    ) {
+    private static Command feedforwardCharacterizationRunOnce(Swerve drive, VoltageSupplierFromTime voltageSupplier) {
         Timer timer = new Timer();
 
         return Commands.sequence(
@@ -128,7 +125,7 @@ public class SwerveSysidRoutines {
         );
     }
 
-    private static Command getFeedforwardCharacterizationReorientCommand(SwerveDrive drive) {
+    private static Command getFeedforwardCharacterizationReorientCommand(Swerve drive) {
         return Commands.run(() -> drive.runCharacterization(0.0), drive).withTimeout(FF_START_DELAY);
     }
 
@@ -137,7 +134,7 @@ public class SwerveSysidRoutines {
      * Export as csv using AdvantageScope and the prefix `/RealOutputs/SysId/FFCharacterization,DS:enabled`
      * and analyze using the python script at `regression/drive_ff_characterization.py`.
      */
-    public static Command feedforwardCharacterization(SwerveDrive drive) {
+    public static Command feedforwardCharacterization(Swerve drive) {
         return Commands.sequence(
             // Tests with voltage ramping
             feedforwardCharacterizationRunOnce(drive, (double seconds) -> seconds * 1.0).withTimeout(Seconds.of(5)),
@@ -229,7 +226,7 @@ public class SwerveSysidRoutines {
         return Commands.run(() -> drive.runCharacterization(5), drive)
             .until(() -> drive.getWheelSlippingCharacterization().isPresent())
             .andThen(() -> {
-                double slipData = drive.getWheelSlippingCharacterization().get();
+                double slipData = drive.getWheelSlippingCharacterization().getAsDouble();
                 NumberFormat formatter = new DecimalFormat("#0.000");
                 System.out.println("********** Wheel Slip Current Characterization Results **********");
                 System.out.println("\tSlip Current: " + formatter.format(slipData) + " Amps");

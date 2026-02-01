@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -20,10 +19,8 @@ import frc.util.statemachine.StateMachine;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnField;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnField;
 
 public class ButtonBindings {
 
@@ -79,6 +76,15 @@ public class ButtonBindings {
             return getPOVButton(direction.angle);
         }
 
+        // Convenience methods for common usages
+        public Trigger getButtonTrigger(XboxController.Button button) {
+            return getJoystickButton(button);
+        }
+
+        public Trigger getButtonTrigger(POVButtonDirection direction) {
+            return getPOVButton(direction);
+        }
+
         /**
          * @param button - The button to get the state of.
          * @return A BooleanSupplier that returns true when the button is pressed.
@@ -112,9 +118,9 @@ public class ButtonBindings {
     private final Intake intakeSubsystem;
     private final Shooter shooterSubsystem;
 
-    private final Controller driverController = new Controller(0);
+    public static final Controller driverController = new Controller(ControlConstants.DRIVER_CONTROLLER_PORT);
 
-    // private final Controller operatorController = new Controller(1);
+    // private final Controller operatorController = new Controller(ControlConstants.OPERATOR_CONTROLLER_PORT);
 
     public ButtonBindings(RobotActions autoRoutines) {
         this.autoRoutines = autoRoutines;
@@ -132,8 +138,8 @@ public class ButtonBindings {
     public void configureButtonBindings() {
         // Driver controller bindings
         driverController
-            .getJoystickButton(ControlConstants.mainDriveControls.zeroGyroButton)
-            .onTrue(Commands.runOnce(swerveSubsystem::zeroGyro));
+            .getButtonTrigger(ControlConstants.mainDriveControls.zeroYawOffsetButton)
+            .onTrue(Commands.runOnce(swerveSubsystem::zeroYawOffset));
 
         // Auto-aim toggle
         StateCycle<SwerveState, SwervePayload> toggleAutoAim = swerveSubsystem.stateMachine.createStateCycleWithPayload(
@@ -156,21 +162,20 @@ public class ButtonBindings {
                 StateCycle.StateCycleBehavior.RELY_ON_INDEX
             );
 
-        // TODO: in the scenerio where: 1. swerve is in FULL_DRIVER_CONTROL 2. driver presses X to go to AUTO_AIM
-        // 3. driver presses DOWN to go to AUTO_INTAKE, 4. when driver presses X again, goes back to FULL_DRIVER_CONTROL instead of AUTO_AIM
-        // TODO: add less boilerplate way to reset other cycles
+        // In the scenario where: 1. swerve is in FULL_DRIVER_CONTROL 2. driver presses X to go to AUTO_AIM
+        // 3. driver presses DOWN to go to AUTO_INTAKE, 4. when driver presses X again, it will go back to AUTO_AIM
         driverController
-            .getJoystickButton(XboxController.Button.kX)
-            // .onTrue(Commands.runOnce(toggleAutoAim::scheduleNextState));
+            .getButtonTrigger(ControlConstants.toggleAutoAimToHub)
             .onTrue(
                 Commands.runOnce(() -> {
                     toggleAutoAim.scheduleNextState();
+                    // Reset the other toggle to make pressing the other toggle go to the corresponding state (instead of having to press twice)
                     toggleAutoIntake.reset();
                 })
             );
 
         driverController
-            .getPOVButton(Controller.POVButtonDirection.DOWN)
+            .getButtonTrigger(ControlConstants.toggleAutoDriveIntake)
             .onTrue(
                 Commands.runOnce(() -> {
                     toggleAutoIntake.scheduleNextState();
@@ -180,32 +185,21 @@ public class ButtonBindings {
 
         // Temporary shooter test button
         driverController
-            .getJoystickButton(XboxController.Button.kA)
+            .getButtonTrigger(ControlConstants.toggleShoot)
             .onTrue(Commands.runOnce(shooterSubsystem::testShoot));
 
-        driverController.getJoystickButton(XboxController.Button.kB).whileTrue(intakeSubsystem.runIntake(0.2));
-        // Toggle drive to coral station state
-        // StateCycle<SwerveState, Supplier<Pose2d>> toggleDriveToCoralStation =
-        //     swerveSubsystem.stateMachine.createStateCycleWithPayload(
-        //         List.of(
-        //             new StateMachine.StateWithPayload<>(SwerveState.FULL_DRIVER_CONTROL, null),
-        //             new StateMachine.StateWithPayload<>(
-        //                 SwerveState.DRIVE_TO_POSE_PATHFINDING,
-        //                 RobotActions.FieldLocations.CORAL_STATION_1::getPose
-        //             )
-        //         ),
-        //         StateCycle.StateCycleBehavior.RELY_ON_INDEX
-        //     );
-
-        // driverController
-        //     .getJoystickButton(XboxController.Button.kA)
-        //     .onTrue(Commands.runOnce(toggleDriveToCoralStation::scheduleNextState));
+        driverController
+            .getButtonTrigger(ControlConstants.toggleAutoDriveIntake)
+            .whileTrue(intakeSubsystem.runIntake(0.2));
     }
 
+    /**
+     * Creates button bindings for simulation-specific actions.
+     */
     public void configureSimulationBindings() {
         // Spawn game pieces
         driverController
-            .getJoystickButton(XboxController.Button.kB)
+            .getButtonTrigger(XboxController.Button.kB)
             .onTrue(
                 Commands.runOnce(() ->
                     SimulatedArena.getInstance()
@@ -224,5 +218,7 @@ public class ButtonBindings {
     /**
      * Assigns default commands to subsystems.
      */
-    public void assignDefaultCommands() {}
+    public void assignDefaultCommands() {
+        // Currently unused
+    }
 }

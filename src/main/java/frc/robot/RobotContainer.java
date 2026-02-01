@@ -217,7 +217,7 @@ public class RobotContainer {
                 break;
         }
 
-        SwerveDrive.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
+        Swerve.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
 
         // Set up auto routines
         robotActions = new RobotActions(

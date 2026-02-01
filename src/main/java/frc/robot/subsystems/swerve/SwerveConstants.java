@@ -141,6 +141,7 @@ public class SwerveConstants {
     };
 
     // Standard deviations for the PoseEstimator
+    // TODO: tune these values
     public static final Matrix<N3, N1> stateStdDevs = VecBuilder.fill(0.1, 0.1, 0.1);
     public static final Matrix<N3, N1> visionStdDevs = VecBuilder.fill(0.9, 0.9, 0.9);
 

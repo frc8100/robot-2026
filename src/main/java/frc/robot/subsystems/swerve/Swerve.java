@@ -9,7 +9,10 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volt;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.DriveFeedforwards;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import edu.wpi.first.math.Matrix;
@@ -27,6 +30,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.MutLinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,24 +40,53 @@ import frc.robot.Constants;
 import frc.robot.ControlConstants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.subsystems.swerve.Swerve.SwervePayload;
+import frc.robot.subsystems.questnav.QuestNavSubsystem;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.Module;
 import frc.robot.subsystems.swerve.module.ModuleIO;
+import frc.util.LocalADStarAK;
 import frc.util.SwerveFeedForwards;
 import frc.util.statemachine.StateMachine;
-import frc.util.statemachine.StateMachine.StatePeriodicAction;
 import frc.util.statemachine.StateMachineState;
-import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-/** Swerve subsystem, responsible for controlling the swerve drive. */
-public class Swerve extends SubsystemBase implements SwerveDrive {
+/**
+ * Swerve subsystem, responsible for controlling the swerve drive.
+ */
+public class Swerve extends SubsystemBase {
+
+    /**
+     * Configures the path planner auto builder and records the path and trajectory setpoint to the logger.
+     */
+    public static void configurePathPlannerAutoBuilder(Swerve swerveSubsystem, QuestNavSubsystem questNavSubsystem) {
+        AutoBuilder.configure(
+            swerveSubsystem::getPose,
+            (Pose2d newPose) -> {
+                swerveSubsystem.setPose(newPose);
+                questNavSubsystem.setPose(newPose);
+            },
+            swerveSubsystem::getChassisSpeeds,
+            swerveSubsystem::runVelocityChassisSpeeds,
+            SwerveConstants.PP_INITIAL_PID_CONTROLLER,
+            SwerveConstants.getRobotConfig(),
+            () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+            swerveSubsystem
+        );
+
+        Pathfinding.setPathfinder(new LocalADStarAK());
+        PathPlannerLogging.setLogActivePathCallback(activePath ->
+            Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]))
+        );
+        PathPlannerLogging.setLogTargetPoseCallback(targetPose ->
+            Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose)
+        );
+    }
 
     /**
      * Lock for the odometry thread.
@@ -148,6 +181,10 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         }
     }
 
+    public boolean isSimulation() {
+        return false;
+    }
+
     /**
      * The state machine for the swerve subsystem.
      * The payload is the target pose for the robot when in {@link SwerveState#DRIVE_TO_POSE}.
@@ -216,15 +253,13 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         new SwerveModulePosition(),
     };
 
-    /**
-     * A representation of the field for visualization (on Elastic).
-     * Currently disabled to increase performance.
-     * (use AdvantageScope for field visualization instead)
-     */
-    // protected Field2d field = new Field2d();
-
     public final SwerveDrivePoseEstimator poseEstimator;
 
+    /**
+     * A flag to indicate whether to run the chassis speeds this cycle.
+     * When {@link #runVelocityChassisSpeeds} is called, this is set to true.
+     * At the end of {@link #periodic}, this is reset to false.
+     */
     private boolean shouldRunSpeedsThisCycle = true;
 
     /**
@@ -232,11 +267,11 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
      */
     private Rotation2d yawOffset = Rotation2d.kZero;
 
+    // SysId routines for drive and angle motors
     protected SysIdRoutine driveSysId = new SysIdRoutine(
         new SysIdRoutine.Config(null, null, null, state -> Logger.recordOutput("Swerve/SysIdState", state.toString())),
         new SysIdRoutine.Mechanism(voltage -> runCharacterization(voltage.in(Volt)), null, this)
     );
-
     protected SysIdRoutine angleSysId = new SysIdRoutine(
         new SysIdRoutine.Config(null, null, null, state ->
             Logger.recordOutput("Swerve/AngleSysIdState", state.toString())
@@ -281,16 +316,13 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
             SwerveConstants.visionStdDevs
         );
 
-        zeroGyro(180);
-
-        // Set up custom logging to add the current path to a field 2d widget
-        // PathPlannerLogging.setLogActivePathCallback(poses -> field.getObject("path").setPoses(poses));
-        // SmartDashboard.putData("Field", field);
+        // TODO: store this in constants
+        zeroYawOffset(Rotation2d.k180deg);
 
         teleopSwerve = new TeleopSwerve(
             this,
             // Switch between joystick and main drive controls depending on the mode
-            ControlConstants.isUsingJoystickDrive
+            ControlConstants.USE_JOYSTICK_DRIVE
                 ? ControlConstants.joystickDriveControls
                 : ControlConstants.mainDriveControls,
             true
@@ -332,21 +364,35 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
             : new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadPerSec);
     }
 
-    @Override
+    /**
+     * Drives the swerve modules based on the desired translation and rotation.
+     * Should convert the translation and rotation to ChassisSpeeds and set the swerve modules to those speeds
+     * in {@link #runVelocityChassisSpeeds}.
+     * @param xMeters - The desired x translation speed in meters per second.
+     * @param yMeters - The desired y translation speed in meters per second.
+     * @param rotation - The desired rotation speed.
+     * @param fieldRelative - Whether the speeds are field-relative.
+     */
     public void drive(double xMeters, double yMeters, double omegaRadPerSec, boolean fieldRelative) {
         ChassisSpeeds desiredChassisSpeeds = getSpeedsFromTranslation(xMeters, yMeters, omegaRadPerSec, fieldRelative);
 
         runVelocityChassisSpeeds(desiredChassisSpeeds);
     }
 
-    @Override
+    /**
+     * Drives the swerve modules given a provided robot-relative chassis speeds.
+     * @param speed The desired chassis speeds
+     */
     public void runVelocityChassisSpeeds(ChassisSpeeds speed) {
         setpointSpeeds = speed;
         shouldRunSpeedsThisCycle = true;
     }
 
+    /**
+     * Internal method to calculate and run the swerve module states based on the current setpoints by {@link #runVelocityChassisSpeeds}.
+     */
     @SuppressWarnings("unused")
-    public void runSpeeds() {
+    private void runSpeeds() {
         // Skip if previous setpoint is null (should only happen on first run)
         if (moduleStateSetpoint == null) {
             return;
@@ -394,7 +440,19 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         setModuleStates(setpointStates, feedforwardLinearForcesNewtons, angleMotorVelocitiesRadPerSec);
     }
 
-    @Override
+    /**
+     * Stops the drive by running zero chassis speeds.
+     */
+    public void stop() {
+        runVelocityChassisSpeeds(new ChassisSpeeds());
+    }
+
+    /**
+     * Sets the desired states for the swerve modules.
+     * @param desiredStates - The desired states for the swerve modules.
+     * @param feedforwardLinearForcesNewtons - The feedforward linear forces for each module in Newtons.
+     * @param angleMotorVelocitiesRadPerSec - The desired angle motor velocities for each module in radians per second.
+     */
     public void setModuleStates(
         SwerveModuleState[] desiredStates,
         double[] feedforwardLinearForcesNewtons,
@@ -415,78 +473,39 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         }
     }
 
-    @Override
-    public void runCharacterization(double output) {
-        for (int i = 0; i < 4; i++) {
-            swerveModules[i].runCharacterization(output);
-        }
-    }
-
-    public void runAngleCharacterization(double output) {
-        for (int i = 0; i < 4; i++) {
-            swerveModules[i].runAngleCharacterization(output);
-        }
-    }
-
-    @Override
-    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(driveSysId.quasistatic(direction));
-    }
-
-    @Override
-    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(driveSysId.dynamic(direction));
-    }
-
-    public Command angleSysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return run(() -> runAngleCharacterization(0.0)).withTimeout(1.0).andThen(angleSysId.quasistatic(direction));
-    }
-
-    public Command angleSysIdDynamic(SysIdRoutine.Direction direction) {
-        return run(() -> runAngleCharacterization(0.0)).withTimeout(1.0).andThen(angleSysId.dynamic(direction));
-    }
-
-    @Override
-    public double[] getWheelRadiusCharacterizationPositions() {
-        double[] values = new double[4];
-        for (int i = 0; i < 4; i++) {
-            values[i] = swerveModules[i].getWheelRadiusCharacterizationPosition().in(Radians);
-        }
-        return values;
-    }
-
-    @Override
-    public double getFFCharacterizationVelocity() {
-        double output = 0.0;
-        for (int i = 0; i < 4; i++) {
-            output += swerveModules[i].getFFCharacterizationVelocity().in(RadiansPerSecond) / 4.0;
-        }
-        return output;
-    }
-
-    public Optional<Double> getWheelSlippingCharacterization() {
-        for (int i = 0; i < 4; i++) {
-            // Check if the module is slipping by seeing if the velocity is nonzero
-            if (swerveModules[i].getFFCharacterizationVelocity().in(RadiansPerSecond) < 0.175) continue;
-
-            return Optional.of(swerveModules[i].getWheelSlippingCharacterization().in(Amps));
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
+    /**
+     * @return The current pose of the robot from the {@link #poseEstimator}.
+     */
     @AutoLogOutput(key = "Odometry/Robot")
     public Pose2d getPose() {
         return poseEstimator.getEstimatedPosition();
     }
 
-    @Override
+    /**
+     * @return The actual pose of the robot. When in simulation mode, this will return the pose of the robot in the simulation world.
+     * When in real mode, this will return the same as {@link #getPose}.
+     */
+    public Pose2d getActualPose() {
+        return getPose();
+    }
+
+    /**
+     * @return The current odometry rotation from {@link #getPose}
+     */
+    public Rotation2d getRotation() {
+        return getPose().getRotation();
+    }
+
+    /**
+     * Sets the pose of the robot in the pose estimator.
+     */
     public void setPose(Pose2d pose) {
         poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
     }
 
-    @Override
+    /**
+     * Adds a new timestamped vision measurement.
+     */
     public void addVisionMeasurement(
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
@@ -502,7 +521,9 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         new SwerveModuleState(),
     };
 
-    @Override
+    /**
+     * @return The current module states.
+     */
     @AutoLogOutput(key = "Swerve/States/Measured")
     public SwerveModuleState[] getModuleStates() {
         return cachedModuleStates;
@@ -515,14 +536,19 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         new SwerveModulePosition(),
     };
 
-    @Override
+    /**
+     * @return The current module positions.
+     */
     public SwerveModulePosition[] getModulePositions() {
         return cachedModulePositions;
     }
 
     private ChassisSpeeds cachedSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
-    @Override
+    /**
+     * @return The measured chassis speeds of the robot.
+     * Note: be careful when mutating the returned object, as it is cached.
+     */
     @AutoLogOutput(key = "Swerve/ChassisSpeeds/Measured")
     public ChassisSpeeds getChassisSpeeds() {
         return cachedSpeeds;
@@ -565,12 +591,27 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
         return cachedOrientationPublish;
     }
 
-    @Override
-    public void zeroGyro(double deg) {
-        yawOffset = getPose().getRotation().plus(Rotation2d.fromDegrees(deg));
+    /**
+     * Zeros the yaw offset to the specified angle.
+     * Note that this does not zero the gyro itself, but rather sets the offset used for field-oriented driving.
+     * @param zeroRotation - The angle to zero the yaw offset to. This is added to the current robot heading.
+     * Ex. when the robot is facing towards the driver station, this should be 180 degrees.
+     */
+    public void zeroYawOffset(Rotation2d zeroRotation) {
+        yawOffset = getPose().getRotation().plus(zeroRotation);
     }
 
-    @Override
+    /**
+     * Zeros the yaw offset to 0 degrees.
+     * Call when the robot is facing away from the driver station to have the robot oriented correctly on the field.
+     */
+    public void zeroYawOffset() {
+        zeroYawOffset(Rotation2d.kZero);
+    }
+
+    /**
+     * @return The robot heading for field-oriented driving, adjusted by the yaw offset.
+     */
     public Rotation2d getHeadingForFieldOriented() {
         return getPose().getRotation().minus(yawOffset);
     }
@@ -725,5 +766,100 @@ public class Swerve extends SubsystemBase implements SwerveDrive {
             runSpeeds();
             shouldRunSpeedsThisCycle = false;
         }
+    }
+
+    // Characterization methods
+
+    /**
+     * Returns a command to run the max acceleration / max velocity test. Runs the drive in a straight line at maximum voltage.
+     * Use AdvantageScope line graph to analyze the results.
+     * By default, this does nothing.
+     */
+    public Command runMaxAccelerationMaxVelocityTest() {
+        return Commands.run(() -> runCharacterization(12.0), this);
+    }
+
+    /**
+     * Runs the drive in a straight line with the specified drive output.
+     * @param output - The output voltage to apply to the drive motors.
+     */
+    public void runCharacterization(double output) {
+        for (int i = 0; i < 4; i++) {
+            swerveModules[i].runCharacterization(output);
+        }
+    }
+
+    /**
+     * Runs the angle motors with the specified output voltage.
+     * @param output - The output voltage to apply to the angle motors.
+     */
+    public void runAngleCharacterization(double output) {
+        for (int i = 0; i < 4; i++) {
+            swerveModules[i].runAngleCharacterization(output);
+        }
+    }
+
+    /**
+     * Returns a command to run a drive quasistatic test in the specified direction.
+     */
+    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(driveSysId.quasistatic(direction));
+    }
+
+    /**
+     * Returns a command to run a drive dynamic test in the specified direction.
+     */
+    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(driveSysId.dynamic(direction));
+    }
+
+    /**
+     * Returns a command to run an angle quasistatic test in the specified direction.
+     */
+    public Command angleSysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return run(() -> runAngleCharacterization(0.0)).withTimeout(1.0).andThen(angleSysId.quasistatic(direction));
+    }
+
+    /**
+     * Returns a command to run an angle dynamic test in the specified direction.
+     */
+    public Command angleSysIdDynamic(SysIdRoutine.Direction direction) {
+        return run(() -> runAngleCharacterization(0.0)).withTimeout(1.0).andThen(angleSysId.dynamic(direction));
+    }
+
+    /**
+     * @return The position of each module's drive in radians.
+     */
+    public double[] getWheelRadiusCharacterizationPositions() {
+        double[] values = new double[4];
+        for (int i = 0; i < 4; i++) {
+            values[i] = swerveModules[i].getWheelRadiusCharacterizationPosition().in(Radians);
+        }
+        return values;
+    }
+
+    /**
+     * @return The average velocity of the modules in rad/sec.
+     */
+    public double getFFCharacterizationVelocity() {
+        double output = 0.0;
+        for (int i = 0; i < 4; i++) {
+            output += swerveModules[i].getFFCharacterizationVelocity().in(RadiansPerSecond) / 4.0;
+        }
+        return output;
+    }
+
+    /**
+     * @return The wheel slipping characterization current in Amps, if any module is slipping.
+     */
+    public OptionalDouble getWheelSlippingCharacterization() {
+        for (int i = 0; i < 4; i++) {
+            // Check if the module is slipping by seeing if the velocity is nonzero
+            if (swerveModules[i].getFFCharacterizationVelocity().in(RadiansPerSecond) < 0.175) continue;
+
+            return OptionalDouble.of(swerveModules[i].getWheelSlippingCharacterization().in(Amps));
+        }
+
+        return OptionalDouble.empty();
     }
 }

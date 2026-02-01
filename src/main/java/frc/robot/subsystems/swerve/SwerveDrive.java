@@ -27,40 +27,6 @@ import org.littletonrobotics.junction.Logger;
  */
 public interface SwerveDrive extends Subsystem {
     /**
-     * Configures the path planner auto builder and records the path and trajectory setpoint to the logger.
-     */
-    public static void configurePathPlannerAutoBuilder(
-        SwerveDrive swerveSubsystem,
-        QuestNavSubsystem questNavSubsystem
-    ) {
-        AutoBuilder.configure(
-            swerveSubsystem::getPose,
-            (Pose2d newPose) -> {
-                swerveSubsystem.setPose(newPose);
-                questNavSubsystem.setPose(newPose);
-            },
-            swerveSubsystem::getChassisSpeeds,
-            swerveSubsystem::runVelocityChassisSpeeds,
-            SwerveConstants.PP_INITIAL_PID_CONTROLLER,
-            SwerveConstants.getRobotConfig(),
-            () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-            swerveSubsystem
-        );
-
-        Pathfinding.setPathfinder(new LocalADStarAK());
-        PathPlannerLogging.setLogActivePathCallback(activePath ->
-            Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]))
-        );
-        PathPlannerLogging.setLogTargetPoseCallback(targetPose ->
-            Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose)
-        );
-    }
-
-    public default boolean isSimulation() {
-        return false;
-    }
-
-    /**
      * Drives the swerve modules based on the desired translation and rotation.
      * Should convert the translation and rotation to ChassisSpeeds and set the swerve modules to those speeds
      * in {@link #runVelocityChassisSpeeds}.
@@ -72,38 +38,6 @@ public interface SwerveDrive extends Subsystem {
     public void drive(double xMeters, double yMeters, double rotation, boolean fieldRelative);
 
     /**
-     * Returns a command to run the max acceleration / max velocity test. Runs the drive in a straight line at maximum voltage.
-     * Use AdvantageScope line graph to analyze the results.
-     * By default, this does nothing.
-     */
-    public default Command runMaxAccelerationMaxVelocityTest() {
-        return Commands.run(() -> runCharacterization(12.0), this);
-    }
-
-    /** Runs the drive in a straight line with the specified drive output. By default, this does nothing. */
-    public default void runCharacterization(double output) {}
-
-    /** Returns a command to run a quasistatic test in the specified direction. By default, this does nothing. */
-    public default Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return Commands.none();
-    }
-
-    /** Returns a command to run a dynamic test in the specified direction. By default, this does nothing. */
-    public default Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return Commands.none();
-    }
-
-    /** Returns the position of each module in radians. By default, this returns an empty array. */
-    public default double[] getWheelRadiusCharacterizationPositions() {
-        return new double[] {};
-    }
-
-    /** Returns the average velocity of the modules in rad/sec. By default, this returns 0. */
-    public default double getFFCharacterizationVelocity() {
-        return 0.0;
-    }
-
-    /**
      * Drives the swerve modules given a provided robot-relative chassis speeds.
      * @param speed The desired chassis speeds
      */
@@ -113,24 +47,12 @@ public interface SwerveDrive extends Subsystem {
      * Sets the desired states for the swerve modules. Used by SwerveControllerCommand in Auto.
      * @param desiredStates The desired states for the swerve modules.
      */
-    public void setModuleStates(
-        SwerveModuleState[] desiredStates,
-        double[] feedforwardLinearForcesNewtons,
-        double[] angleMotorVelocitiesRadPerSec
-    );
+    public void setModuleStates(SwerveModuleState[] desiredStates);
 
     /**
      * @return The current pose of the robot. This is determined by the swerve odometry.
      */
     public Pose2d getPose();
-
-    /**
-     * @return The actual pose of the robot. When in simulation mode, this will return the pose of the robot in the simulation world.
-     * When in real mode, this will return the same as {@link #getPose}.
-     */
-    public default Pose2d getActualPose() {
-        return getPose();
-    }
 
     /**
      * @return The current odometry rotation from {@link #getPose}
