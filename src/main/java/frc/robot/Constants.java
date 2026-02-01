@@ -58,12 +58,22 @@ public final class Constants {
      * Whether or not to enable tuning mode.
      * Tuning mode enables the use of the dashboard to change values.
      */
-    public static final boolean tuningMode = true;
+    public static final boolean TUNING_MODE = true;
 
     /**
-     * Whether to enable CTRE SignalLogger
+     * Whether to enable CTRE SignalLogger {@link com.ctre.phoenix6.SignalLogger}.
      */
-    public static final boolean enableSignalLogger = false;
+    public static final boolean ENABLE_CTRE_SIGNAL_LOGGER = false;
+
+    /**
+     * Whether to enable REV StatusLogger {@link com.revrobotics.util.StatusLogger}.
+     */
+    public static final boolean ENABLE_REV_SIGNAL_LOGGER = false;
+
+    /**
+     * Whether to enable URCL {@link org.littletonrobotics.urcl.URCL}.
+     */
+    public static final boolean ENABLE_URCL = true;
 
     /**
      * Determines whether additional data should be logged.
@@ -78,7 +88,7 @@ public final class Constants {
             currentMode ==
             Mode.REPLAY ||
             // Log on real robot only if tuning mode is enabled
-            tuningMode
+            TUNING_MODE
         );
     }
 

@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -58,13 +57,20 @@ public class Robot extends LoggedRobot {
         Logger.recordMetadata("SimulationState", Constants.currentMode.toString());
 
         DriverStation.silenceJoystickConnectionWarning(Constants.silenceJoystickUnpluggedWarning);
-        SignalLogger.enableAutoLogging(Constants.enableSignalLogger);
+
+        // Enable/disable vendor loggers
+        com.ctre.phoenix6.SignalLogger.enableAutoLogging(Constants.ENABLE_CTRE_SIGNAL_LOGGER);
+        if (!Constants.ENABLE_REV_SIGNAL_LOGGER) {
+            com.revrobotics.util.StatusLogger.disableAutoLogging();
+        }
 
         // Set up data receivers & replay source
         switch (Constants.currentMode) {
             case REAL:
                 // Running on a real robot, log to a USB stick ("/U/logs")
-                Logger.addDataReceiver(new WPILOGWriter(Constants.tuningMode ? Constants.realLogDirectory : "/U/logs"));
+                Logger.addDataReceiver(
+                    new WPILOGWriter(Constants.TUNING_MODE ? Constants.realLogDirectory : "/U/logs")
+                );
                 Logger.addDataReceiver(new NT4Publisher());
                 break;
             case SIM:
@@ -87,7 +93,9 @@ public class Robot extends LoggedRobot {
         }
 
         // Initialize URCL
-        Logger.registerURCL(URCL.startExternal());
+        if (Constants.ENABLE_URCL) {
+            Logger.registerURCL(URCL.startExternal());
+        }
 
         // Start AdvantageKit logger
         Logger.start();
