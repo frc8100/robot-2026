@@ -83,11 +83,6 @@ public class DriveToPosePID {
      */
     public final BooleanSupplier canSwitchToFinalAlignment;
 
-    /**
-     * The goal state for the drive controller.
-     */
-    // private final PathPlannerTrajectoryState goalState = new PathPlannerTrajectoryState();
-
     private Pose2d lastTargetPose = Pose2d.kZero;
     private APTarget autopilotTarget = new APTarget(lastTargetPose);
 

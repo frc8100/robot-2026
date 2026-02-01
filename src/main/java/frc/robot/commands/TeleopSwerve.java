@@ -310,12 +310,22 @@ public class TeleopSwerve {
     /**
      * Handles being at the target pose.
      */
-    private void handleAtTarget() {
+    private void handleAtTarget(Optional<SwervePayload> payloadOptional) {
+        driveToPoseCommand.setOptionalPayload(payloadOptional);
+
         // If the robot is ever not at the target, go back to final alignment
         if (!driveToPoseCommand.atTarget.getAsBoolean()) {
             swerveSubsystem.stateMachine.scheduleStateChange(SwerveState.DRIVE_TO_POSE_PID);
+
+            // Run a frame of final alignment to avoid a pause for 1 frame
+            swerveSubsystem.runVelocityChassisSpeeds(applyInputNudge(driveToPoseCommand.getChassisSpeeds()));
+            logCurrentStates();
+
+            return;
         }
 
-        swerveSubsystem.stop();
+        // TODO: change this to a more elegant solution
+        // swerveSubsystem.stop();
+        driveFullDriverControl();
     }
 }

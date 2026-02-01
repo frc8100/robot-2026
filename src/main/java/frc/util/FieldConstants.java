@@ -34,6 +34,8 @@ public class FieldConstants {
      * The diameter of fuel.
      */
     public static final Distance fuelDiameter = Centimeters.of(15);
+    public static final Distance fuelRadius = fuelDiameter.div(2);
+
     public static final Distance hubRadiusForShooting = hubDiameter.minus(fuelDiameter).div(2);
 
     public static final Distance hubTargetHeight = Inches.of(72).plus(Inches.of(4));

@@ -191,10 +191,10 @@ public class SwerveConstants {
     // Drive Motor Characterization Values
     // TODO: Tune these values
     public static final LinearForceFeedForwardConstants driveFFConstantsReal = new LinearForceFeedForwardConstants(
-        0.17388,
-        0.13632,
+        0.1798,
+        0.1390,
         0,
-        0
+        0.0563
     );
     public static final LinearForceFeedForwardConstants driveFFConstantsSim = new LinearForceFeedForwardConstants(
         0.0752,
@@ -347,8 +347,6 @@ public class SwerveConstants {
                     ? SensorDirectionValue.Clockwise_Positive
                     : SensorDirectionValue.CounterClockwise_Positive
             );
-
-        // TODO: maybe apply angle offset here?
 
         canCoderConfig.withMagnetSensor(magnetSenorConfig);
 

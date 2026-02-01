@@ -1,12 +1,16 @@
 package frc.robot.subsystems.vision.objectdetection;
 
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Radians;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.Constants;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.robot.subsystems.vision.VisionIO.GamePieceObservation;
@@ -141,12 +145,12 @@ public class GamePiecePoseEstimator {
      * @param type - The type of game piece observations.
      */
     public void updateWithObservations(GamePieceObservation[] observations, GamePieceObservationType type) {
+        hasObservationsThisFrame = true;
+
         // Skip empty observations
         if (observations.length == 0) {
             return;
         }
-
-        hasObservationsThisFrame = true;
 
         List<TrackedVisionTarget> trackedTargetsOfType = trackedTargetsByType.get(type);
 
@@ -240,89 +244,122 @@ public class GamePiecePoseEstimator {
         }
     }
 
-    public record IntakeCostResult(double cost, Pose2d robotPose) {}
+    public record IntakeCostResult(
+        double cost,
+        Translation2d gamePiecePose,
+        Pose2d robotPose,
+        // debugging info
+        double perpendicular,
+        double parallel,
+        double lateralError,
+        double forwardError
+    ) {}
 
-    private static IntakeCostResult getIntakeCost(Pose2d robotPose, Translation2d gamePiecePose) {
-        // Robot pose
-        Translation2d robotPos = robotPose.getTranslation();
-        Rotation2d robotRot = robotPose.getRotation();
-
-        // Intake basis vectors (world frame)
-        // Forward (normal to intake)
-        Translation2d intakeNormal = new Translation2d(robotRot.getCos(), robotRot.getSin());
-
-        // Left/right direction (along intake)
-        Translation2d intakeTangent = new Translation2d(-robotRot.getSin(), robotRot.getCos());
-
-        // Intake center position in world frame
-        Translation2d intakeCenter = robotPos.plus(
-            intakeNormal.times(IntakeConstants.INTAKE_FORWARD_OFFSET.in(Meters))
-        );
-
+    /**
+     * Calculates the intake cost for a given robot pose and game piece pose.
+     * @param robotPose - The field relative robot pose.
+     * @param intakeCenter - The field relative intake center position.
+     * @param gamePiecePose - The field relative game piece pose.
+     * @return The intake cost result containing the cost and target robot pose.
+     */
+    private static IntakeCostResult getIntakeCost(
+        Pose2d robotPose,
+        Translation2d intakeCenter,
+        Translation2d gamePiecePose
+    ) {
         // Vector from intake center to game piece
         Translation2d delta = gamePiecePose.minus(intakeCenter);
-
-        // Decompose into intake coordinates
-        double perpendicular = delta.getX() * intakeNormal.getX() + delta.getY() * intakeNormal.getY();
-
-        double parallel = delta.getX() * intakeTangent.getX() + delta.getY() * intakeTangent.getY();
-
-        double halfWidth = IntakeConstants.WIDTH.in(Meters) / 2.0;
-
-        // How far outside the intake region the piece is
-        double lateralError = Math.max(
-            0.0,
-            Math.abs(parallel) - (halfWidth + FieldConstants.fuelDiameter.in(Meters) / 2.0)
+        Translation2d deltaNormal = delta.rotateBy(
+            robotPose.getRotation().plus(IntakeConstants.ORIENTATION_AS_ROTATION).unaryMinus()
         );
 
-        double forwardError = Math.max(0.0, Math.abs(perpendicular) - FieldConstants.fuelDiameter.in(Meters) / 2.0);
+        // Decompose into perpendicular (straight ahead) and parallel (strafe) components
+        double perpendicular = deltaNormal.getX();
+        double parallel = deltaNormal.getY();
+
+        double lateralError =
+            parallel -
+            MathUtil.clamp(
+                parallel,
+                -IntakeConstants.HALF_OF_WIDTH.in(Meters),
+                IntakeConstants.HALF_OF_WIDTH.in(Meters)
+            );
+        double forwardError = Math.max(0.0, Math.abs(perpendicular) - FieldConstants.fuelRadius.in(Meters));
 
         // Quadratic cost (smooth, stable)
         double lateralCost = lateralError * lateralError;
         double forwardCost = forwardError * forwardError;
 
+        // Cost for facing away from intake
         double facingCost = Math.max(0.0, -perpendicular);
 
         // Weight lateral error more heavily (intake alignment matters more)
         double cost = (4.0 * lateralCost) + (1.5 * forwardCost) + (0.5 * facingCost * facingCost);
-        // Clamp parallel position to intake bounds
-        double clampedParallel = Math.max(-halfWidth, Math.min(halfWidth, parallel));
 
-        // Intake point that should contact the game piece
-        Translation2d desiredIntakePoint = intakeCenter
-            .plus(intakeTangent.times(clampedParallel))
-            .plus(intakeNormal.times((Math.signum(perpendicular) * FieldConstants.fuelDiameter.in(Meters)) / 2.0));
-
-        // Back out robot center position from intake center
-        Translation2d targetRobotPos = desiredIntakePoint.minus(
-            intakeNormal.times(FieldConstants.fuelDiameter.in(Meters) / 2.0)
+        Pose2d targetPose = robotPose.plus(
+            new Transform2d(deltaNormal.rotateBy(IntakeConstants.ORIENTATION_AS_ROTATION), Rotation2d.kZero)
         );
 
-        Pose2d targetPose = new Pose2d(targetRobotPos, robotRot);
+        // Apply yaw assist if close enough laterally and within activation distance
+        if (
+            Math.abs(lateralError) > 0.05 &&
+            Math.abs(perpendicular) < IntakeConstants.YAW_ASSIST_ACTIVATION_DISTANCE.in(Meters)
+        ) {
+            double yawError = Math.atan2(parallel, perpendicular);
+            double yawAdjustment = MathUtil.clamp(
+                yawError,
+                -IntakeConstants.MAX_AUTO_INTAKE_YAW_ASSIST.in(Radians),
+                IntakeConstants.MAX_AUTO_INTAKE_YAW_ASSIST.in(Radians)
+            );
 
-        return new IntakeCostResult(cost, targetPose);
+            targetPose = new Pose2d(
+                targetPose.getTranslation(),
+                robotPose.getRotation().plus(new Rotation2d(yawAdjustment))
+            );
+        }
+
+        return new IntakeCostResult(
+            cost,
+            gamePiecePose,
+            targetPose,
+            perpendicular,
+            parallel,
+            lateralError,
+            forwardError
+        );
     }
 
+    /**
+     * Gets the target robot pose to intake the nearest game piece of the given type.
+     * @param type - The game piece observation type.
+     * @param robotPoseSupplier - A supplier that provides the current robot pose.
+     * @return The target robot pose to intake the nearest game piece of the given type. If no game pieces are observed, returns the current robot pose.
+     */
     public Pose2d getIntakeTargetPose(GamePieceObservationType type, Supplier<Pose2d> robotPoseSupplier) {
-        // Translation2d lowestCostGamePiecePose = null;
-        // double lowestCost = Double.MAX_VALUE;
-
         IntakeCostResult lowestCostResult = null;
 
         List<TrackedVisionTarget> targetsOfType = trackedTargetsByType.get(type);
 
+        // Precompute position values
+        Pose2d robotPose = robotPoseSupplier.get();
+        Translation2d intakeCenter = Intake.getIntakeCenterPosition(robotPose);
+
+        // Find the target pose with the lowest intake cost
         for (TrackedVisionTarget target : targetsOfType) {
             Translation2d gamePiecePose = target.getEstimatedPose();
-            IntakeCostResult costResult = getIntakeCost(robotPoseSupplier.get(), gamePiecePose);
+            IntakeCostResult costResult = getIntakeCost(robotPose, intakeCenter, gamePiecePose);
 
             if (lowestCostResult == null || costResult.cost < lowestCostResult.cost) {
                 lowestCostResult = costResult;
             }
         }
 
+        // If no targets, return current robot pose
         if (lowestCostResult == null) {
-            return robotPoseSupplier.get();
+            return robotPose;
         }
+
+        Logger.recordOutput("Vision/LowestCostResult", lowestCostResult);
 
         return lowestCostResult.robotPose;
     }
