@@ -1,9 +1,14 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import org.ironmaple.simulation.IntakeSimulation;
 import yams.motorcontrollers.SmartMotorControllerConfig;
@@ -37,10 +42,22 @@ public final class IntakeConstants {
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
+    public static final Angle MAX_AUTO_INTAKE_YAW_ASSIST = Degrees.of(15);
+    public static final Distance YAW_ASSIST_ACTIVATION_DISTANCE = Inches.of(24);
+
     // Simulation constants
+    public static final IntakeSimulation.IntakeSide ORIENTATION = IntakeSimulation.IntakeSide.FRONT;
+    public static final Rotation2d ORIENTATION_AS_ROTATION = Rotation2d.kZero;
+
     public static final Distance WIDTH = Inches.of(20);
+    public static final Distance HALF_OF_WIDTH = WIDTH.div(2);
+
     public static final Distance LENGTH = Inches.of(8);
     public static final Distance INTAKE_FORWARD_OFFSET = Inches.of(12);
-    public static final IntakeSimulation.IntakeSide ORIENTATION = IntakeSimulation.IntakeSide.FRONT;
+    public static final Transform2d ROBOT_CENTER_TO_INTAKE_CENTER = new Transform2d(
+        new Translation2d(INTAKE_FORWARD_OFFSET, Inches.of(0)),
+        ORIENTATION_AS_ROTATION
+    );
+
     public static final int MAX_CAPACITY = 24;
 }

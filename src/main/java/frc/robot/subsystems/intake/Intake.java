@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CANIdConstants;
@@ -13,6 +15,17 @@ import org.littletonrobotics.junction.Logger;
  * Intake subsystem.
  */
 public class Intake extends SubsystemBase {
+
+    /**
+     * Gets the position of the intake center given the robot pose.
+     * @param robotPose - The robot pose.
+     * @return The intake center position.
+     */
+    public static Translation2d getIntakeCenterPosition(Pose2d robotPose) {
+        return robotPose
+            .getTranslation()
+            .plus(IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getTranslation().rotateBy(robotPose.getRotation()));
+    }
 
     public enum IntakeState {
         /**
