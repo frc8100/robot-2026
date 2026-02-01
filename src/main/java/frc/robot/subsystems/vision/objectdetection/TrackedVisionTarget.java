@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.util.StdDevSmoother;
 
@@ -47,7 +48,8 @@ public class TrackedVisionTarget {
     private int hits = 0;
 
     /**
-     * The number of misses for this target.
+     * The number of consecutive misses for this target.
+     * Resets to 0 on a successful hit.
      */
     public int misses = 0;
 
@@ -122,7 +124,7 @@ public class TrackedVisionTarget {
      * @return True if the target should be deleted due to too many misses.
      */
     public boolean shouldDelete() {
-        return misses > 4;
+        return misses > VisionConstants.MAX_TARGET_MISSES;
     }
 
     /**

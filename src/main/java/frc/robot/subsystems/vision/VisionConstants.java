@@ -16,12 +16,14 @@ package frc.robot.subsystems.vision;
 import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Filesystem;
 import java.nio.file.Path;
 import org.photonvision.estimation.TargetModel;
@@ -173,6 +175,12 @@ public class VisionConstants {
             this.index = index;
         }
     }
+
+    /**
+     * The maximum unseen time for a tracked target before it is deleted.
+     */
+    // public static final Time MAX_TARGET_AGE = Seconds.of(0.5);
+    public static final int MAX_TARGET_MISSES = 7;
 
     /**
      * Camera 0 simulated properties
