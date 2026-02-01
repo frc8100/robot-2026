@@ -20,7 +20,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.SwerveDrive;
 import frc.robot.subsystems.vision.Vision.VisionConsumer;
 import gg.questnav.questnav.PoseFrame;
 import java.text.DecimalFormat;
@@ -36,7 +35,7 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     /**
      * A measurement point used for calculating the transform between the QuestNav and the robot's coordinate frame.
-     * See {@link #getMeasureTransformCommand(SwerveDrive, Time)}.
+     * See {@link #getMeasureTransformCommand(Swerve, Time)}.
      */
     private static record MeasurementPoint(double x, double y, double z) {}
 
@@ -171,7 +170,7 @@ public class QuestNavSubsystem extends SubsystemBase {
         return Commands.runOnce(() -> {
             // Reset poses
             swerveSubsystem.setPose(new Pose2d());
-            swerveSubsystem.zeroGyro();
+            swerveSubsystem.zeroYawOffset();
             io.setPose(new Pose2d());
         }).andThen(
             Commands.run(

@@ -3,9 +3,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.POVButton;
 
 /**
  * Declares the key values for different values.
@@ -15,18 +13,26 @@ public class ControlConstants {
 
     private ControlConstants() {}
 
-    /**
-     * The driver controller, on port 0. Note: although this uses the {@link Joystick} class, it is compatible with {@link XboxController}.
-     */
-    public static final Joystick mainDriverController = new Joystick(0);
+    public static final int DRIVER_CONTROLLER_PORT = 0;
+    // public static final int OPERATOR_CONTROLLER_PORT = 1;
 
-    public static final Drive mainDriveControls = new Drive(mainDriverController);
-    public static final Drive joystickDriveControls = new JoystickDrive(ControlConstants.mainDriverController);
+    // Intake controls
+    public static final ButtonBindings.Controller.POVButtonDirection toggleAutoDriveIntake =
+        ButtonBindings.Controller.POVButtonDirection.DOWN;
+
+    // Shooter controls
+    public static final XboxController.Button toggleShoot = XboxController.Button.kA;
+
+    // Drive controls
+    public static final XboxController.Button toggleAutoAimToHub = XboxController.Button.kX;
+
+    public static final Drive mainDriveControls = new Drive(ButtonBindings.driverController);
+    public static final Drive joystickDriveControls = new JoystickDrive(ButtonBindings.driverController);
 
     /**
      * Whether or not to use the joystick drive.
      */
-    public static final boolean isUsingJoystickDrive = false;
+    public static final boolean USE_JOYSTICK_DRIVE = false;
 
     /** The drive controls */
     public static class Drive {
@@ -37,28 +43,12 @@ public class ControlConstants {
          * Creates a new drive controls object.
          * @param driverController The driver controller
          */
-        public Drive(Joystick driverController) {
+        protected Drive(GenericHID driverController) {
             this.driverController = driverController;
-            // Register toggle modes
-            // getJoystickButtonOf(robotCentricButton).onTrue(
-            //     Commands.runOnce(() -> isCurrentlyRobotCentric = !isCurrentlyRobotCentric)
-            // );
-
-            // robotRelativeMoveForward = new POVButton(driverController, 0);
-        }
-
-        // Toggle modes
-        public boolean isCurrentlyRobotCentric = false;
-
-        /**
-         * @return A new {@link JoystickButton} for the given button number
-         */
-        public JoystickButton getJoystickButtonOf(int button) {
-            return new JoystickButton(driverController, button);
         }
 
         /** Whether to invert the drive controls. Default is `true`. */
-        public boolean invertDriveControls = true;
+        protected boolean invertDriveControls = true;
 
         // Driver Controls
         // By default, the left stick controls robot movement (translation - y, strafe - x)
@@ -69,24 +59,17 @@ public class ControlConstants {
 
         // Driver Buttons
         /**
-         * When pressed, zeroes the gyro.
+         * When pressed, zeroes the yaw offset.
          * Press when robot is facing towards the drive station to align the robot's forward direction with the field.
          */
-        public final int zeroGyroButton = XboxController.Button.kY.value;
+        public final XboxController.Button zeroYawOffsetButton = XboxController.Button.kY;
 
         /**
          * When held, slows the robot down to {@link #slowMultiplier}
          */
-        public final int slowButton = XboxController.Button.kRightBumper.value;
+        public final XboxController.Button slowButton = XboxController.Button.kRightBumper;
 
         public final double slowMultiplier = 0.5;
-
-        /**
-         * When held, makes the robot move robot centric.
-         */
-        // public final int robotCentricButton = XboxController.Button.kX.value;
-
-        // public POVButton robotRelativeMoveForward;
 
         /**
          * @return The translation (x)
@@ -126,16 +109,16 @@ public class ControlConstants {
          * @return The speed multiplier.
          */
         public double getSpeedMultiplier() {
-            return driverController.getRawButton(slowButton) ? slowMultiplier : 1;
+            return driverController.getRawButton(slowButton.value) ? slowMultiplier : 1;
         }
     }
 
     /**
      * Drive controls using a joystick
      */
-    public static class JoystickDrive extends Drive {
+    protected static class JoystickDrive extends Drive {
 
-        public JoystickDrive(Joystick driverController) {
+        protected JoystickDrive(GenericHID driverController) {
             super(driverController);
             // Override axis values
             translationAxis = Joystick.AxisType.kY.value;

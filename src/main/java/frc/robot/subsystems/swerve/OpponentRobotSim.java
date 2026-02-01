@@ -165,11 +165,7 @@ public class OpponentRobotSim extends SubsystemBase implements SwerveDrive {
     }
 
     @Override
-    public void setModuleStates(
-        SwerveModuleState[] desiredStates,
-        double[] feedforwardLinearForcesNewtons,
-        double[] angleMotorVelocitiesRadPerSec
-    ) {
+    public void setModuleStates(SwerveModuleState[] desiredStates) {
         simulatedDrive.runSwerveStates(desiredStates);
     }
 
@@ -216,7 +212,6 @@ public class OpponentRobotSim extends SubsystemBase implements SwerveDrive {
         }
     }
 
-    @Override
     public Pose2d getActualPose() {
         return simulatedDrive.getActualPoseInSimulationWorld();
     }
