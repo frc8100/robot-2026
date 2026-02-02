@@ -67,7 +67,7 @@ public class DriveToPosePID {
      * A supplier that provides the target pose to drive to.
      * Called once per command execution.
      */
-    private Supplier<Pose2d> targetPoseSupplier;
+    private Supplier<APTarget> targetPoseSupplier;
 
     /**
      * A trigger that is true when the robot is at the target pose.
@@ -98,8 +98,8 @@ public class DriveToPosePID {
     public DriveToPosePID(Swerve swerveSubsystem, AimToTarget aimToTarget) {
         this.swerveSubsystem = swerveSubsystem;
         this.aimToTarget = aimToTarget;
-        this.targetPoseSupplier = swerveSubsystem::getPose;
-        this.currentPayload = SwervePayload.fromPoseSupplierNoRotate(this.targetPoseSupplier);
+        this.targetPoseSupplier = () -> new APTarget(swerveSubsystem.getPose());
+        this.currentPayload = SwervePayload.fromPoseSupplierNoRotate(swerveSubsystem::getPose);
 
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
         rotationController.reset();
@@ -107,7 +107,7 @@ public class DriveToPosePID {
         atTarget = () ->
             PoseUtil.isPosesAndVelocityNear(
                 swerveSubsystem.getPose(),
-                this.targetPoseSupplier.get(),
+                this.targetPoseSupplier.get().getReference(),
                 swerveSubsystem.getVelocityMagnitude(),
                 SwerveConstants.targetVelocity,
                 SwerveConstants.positionTolerance,
@@ -118,7 +118,7 @@ public class DriveToPosePID {
         canSwitchToFinalAlignment = () ->
             PoseUtil.isNear(
                 swerveSubsystem.getPose(),
-                this.targetPoseSupplier.get(),
+                this.targetPoseSupplier.get().getReference(),
                 // Start final alignment when within this distance plus a bit based on current speed
                 0.3 + swerveSubsystem.getVelocityMagnitude().in(MetersPerSecond) * 0.3,
                 finalAlignmentAngleTolerance.in(Radians)
@@ -128,13 +128,13 @@ public class DriveToPosePID {
         atPoseTranslationTarget = () ->
             PoseUtil.isPoseTranslationNear(
                 swerveSubsystem.getPose(),
-                this.targetPoseSupplier.get(),
+                this.targetPoseSupplier.get().getReference(),
                 SwerveConstants.positionTolerance
             );
         atPoseRotationTarget = () ->
             PoseUtil.isPoseRotationNear(
                 swerveSubsystem.getPose(),
-                this.targetPoseSupplier.get(),
+                this.targetPoseSupplier.get().getReference(),
                 SwerveConstants.angleTolerance
             );
         atVelocityTarget = () ->
@@ -150,15 +150,12 @@ public class DriveToPosePID {
      * @return Whether the target pose has changed since the last execution.
      */
     private boolean hasPoseChanged() {
-        Pose2d currentTargetPose = targetPoseSupplier.get();
-        boolean changed = !currentTargetPose.equals(lastTargetPose);
-        lastTargetPose = currentTargetPose;
+        APTarget currentTargetPose = targetPoseSupplier.get();
+        boolean changed = !currentTargetPose.getReference().equals(lastTargetPose);
+        lastTargetPose = currentTargetPose.getReference();
 
-        // Update the autopilot target if the pose has changed
-        if (changed) {
-            // TODO: add way to customize entry angle, etc.
-            autopilotTarget = new APTarget(lastTargetPose);
-        }
+        // Update the autopilot target
+        autopilotTarget = currentTargetPose;
 
         return changed;
     }

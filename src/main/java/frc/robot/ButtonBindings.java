@@ -119,8 +119,7 @@ public class ButtonBindings {
     private final Shooter shooterSubsystem;
 
     public static final Controller driverController = new Controller(ControlConstants.DRIVER_CONTROLLER_PORT);
-
-    // private final Controller operatorController = new Controller(ControlConstants.OPERATOR_CONTROLLER_PORT);
+    private final Controller operatorController = new Controller(ControlConstants.OPERATOR_CONTROLLER_PORT);
 
     public ButtonBindings(RobotActions autoRoutines) {
         this.autoRoutines = autoRoutines;
@@ -213,6 +212,16 @@ public class ButtonBindings {
                         )
                 )
             );
+
+        // Spawn all fuel
+        operatorController
+            .getButtonTrigger(ControlConstants.spawnAllFuelButton)
+            .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance().placeGamePiecesOnField()));
+
+        // Clear all game pieces
+        operatorController
+            .getButtonTrigger(ControlConstants.clearFuelButton)
+            .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance().clearGamePieces()));
     }
 
     /**

@@ -123,7 +123,6 @@ public class RobotContainer {
                     SimulatedArena.overrideInstance(new Arena2026Rebuilt(false));
                 }
 
-                // SimulatedArena.getInstance().placeGamePiecesOnField();
                 SimulatedArena.getInstance().clearGamePieces();
 
                 // Create a simulated drive

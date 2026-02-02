@@ -2,9 +2,11 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.util.FlippingUtil;
+import com.therekrab.autopilot.APTarget;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -15,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import frc.robot.commands.DriveToPosePID;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
@@ -82,7 +85,7 @@ public class RobotActions {
      * Payload to point (auto aim) to the hub.
      */
     public static final SwervePayload POINT_TO_HUB_PAYLOAD = new SwervePayload(
-        FieldLocations.HUB_AIM_TO::getPose,
+        () -> new APTarget(FieldLocations.HUB_AIM_TO.getPose()),
         () -> SwervePayload.RotationMode.ONLY_ROTATE_TO_POSE_NO_DRIVE_TO_POSE,
         FieldLocations.HUB_AIM_TO::getPose
     );
@@ -91,11 +94,13 @@ public class RobotActions {
      * @return Payload to intake fuel.
      */
     public static SwervePayload getIntakePayload(RobotActions robotActions) {
-        return SwervePayload.fromPoseSupplierNoRotate(() ->
-            robotActions.visionSubsystem.gamePiecePoseEstimator.getIntakeTargetPose(
-                GamePieceObservationType.FUEL,
-                robotActions.swerveSubsystem::getPose
-            )
+        return SwervePayload.fromAPTargetSupplierNoRotate(() ->
+            new APTarget(
+                robotActions.visionSubsystem.gamePiecePoseEstimator.getIntakeTargetPose(
+                    GamePieceObservationType.FUEL,
+                    robotActions.swerveSubsystem::getPose
+                )
+            ).withVelocity(IntakeConstants.AUTO_INTAKE_APPROACH_VELOCITY.in(MetersPerSecond))
         );
     }
 

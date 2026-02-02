@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -10,6 +11,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import org.ironmaple.simulation.IntakeSimulation;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -24,7 +26,7 @@ public final class IntakeConstants {
 
     public static final SmartMotorControllerConfig intakeMotorConfig = new SmartMotorControllerConfig()
         .withControlMode(ControlMode.OPEN_LOOP)
-        .withGearing(36)
+        .withGearing(3)
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
@@ -42,8 +44,10 @@ public final class IntakeConstants {
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
+    // Auto intake (constants for swerve)
     public static final Angle MAX_AUTO_INTAKE_YAW_ASSIST = Degrees.of(15);
     public static final Distance YAW_ASSIST_ACTIVATION_DISTANCE = Inches.of(24);
+    public static final LinearVelocity AUTO_INTAKE_APPROACH_VELOCITY = MetersPerSecond.of(2);
 
     // Simulation constants
     public static final IntakeSimulation.IntakeSide ORIENTATION = IntakeSimulation.IntakeSide.FRONT;

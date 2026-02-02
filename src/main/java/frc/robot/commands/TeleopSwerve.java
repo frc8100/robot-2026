@@ -262,8 +262,8 @@ public class TeleopSwerve {
         }
 
         SwervePayload payload = payloadOptional.get();
-        Supplier<Pose2d> targetPoseSupplier = payload.poseSupplier();
-        Pose2d targetPose = targetPoseSupplier.get();
+        // Supplier<Pose2d> targetPoseSupplier = payload.poseSupplier();
+        Pose2d targetPose = payload.poseSupplier().get().getReference();
 
         Logger.recordOutput(swerveSubsystem.stateMachine.dashboardKey + "/TargetPose", targetPose);
 
