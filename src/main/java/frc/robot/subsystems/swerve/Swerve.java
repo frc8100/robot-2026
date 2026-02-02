@@ -15,6 +15,7 @@ import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
+import com.therekrab.autopilot.APTarget;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -147,7 +148,7 @@ public class Swerve extends SubsystemBase {
      * @param poseToRotateToSupplier - The supplier of the pose to rotate to.
      */
     public record SwervePayload(
-        Supplier<Pose2d> poseSupplier,
+        Supplier<APTarget> poseSupplier,
         Supplier<SwervePayload.RotationMode> shouldRotateToPoseSupplier,
         Supplier<Pose2d> poseToRotateToSupplier
     ) {
@@ -177,7 +178,15 @@ public class Swerve extends SubsystemBase {
          * @param poseSupplier - The supplier of the target pose.
          */
         public static SwervePayload fromPoseSupplierNoRotate(Supplier<Pose2d> poseSupplier) {
-            return new SwervePayload(poseSupplier, () -> RotationMode.ONLY_DRIVE_NO_ROTATE, () -> Pose2d.kZero);
+            return new SwervePayload(
+                () -> new APTarget(poseSupplier.get()),
+                () -> RotationMode.ONLY_DRIVE_NO_ROTATE,
+                () -> Pose2d.kZero
+            );
+        }
+
+        public static SwervePayload fromAPTargetSupplierNoRotate(Supplier<APTarget> apTargetSupplier) {
+            return new SwervePayload(apTargetSupplier, () -> RotationMode.ONLY_DRIVE_NO_ROTATE, () -> Pose2d.kZero);
         }
     }
 

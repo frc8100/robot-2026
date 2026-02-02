@@ -14,17 +14,21 @@ public class ControlConstants {
     private ControlConstants() {}
 
     public static final int DRIVER_CONTROLLER_PORT = 0;
-    // public static final int OPERATOR_CONTROLLER_PORT = 1;
-
-    // Intake controls
-    public static final ButtonBindings.Controller.POVButtonDirection toggleAutoDriveIntake =
-        ButtonBindings.Controller.POVButtonDirection.DOWN;
+    public static final int OPERATOR_CONTROLLER_PORT = 1;
 
     // Shooter controls
     public static final XboxController.Button toggleShoot = XboxController.Button.kA;
 
     // Drive controls
     public static final XboxController.Button toggleAutoAimToHub = XboxController.Button.kX;
+    public static final ButtonBindings.Controller.POVButtonDirection toggleAutoDriveIntake =
+        ButtonBindings.Controller.POVButtonDirection.DOWN;
+
+    // Operator controls
+
+    // Simulation controls (on operator controller)
+    public static final XboxController.Button spawnAllFuelButton = XboxController.Button.kBack;
+    public static final XboxController.Button clearFuelButton = XboxController.Button.kStart;
 
     public static final Drive mainDriveControls = new Drive(ButtonBindings.driverController);
     public static final Drive joystickDriveControls = new JoystickDrive(ButtonBindings.driverController);
