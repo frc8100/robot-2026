@@ -10,7 +10,7 @@ import frc.util.statemachine.StateMachineState;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Intake subsystem.
+ * Shooter subsystem.
  */
 public class Shooter extends SubsystemBase {
 
@@ -47,12 +47,14 @@ public class Shooter extends SubsystemBase {
             setTargetExitVelocity(0.0);
         });
 
-        stateMachine.whileState(ShooterState.SHOOTING, () -> {
-            // TODO: set based on auto aim calculation
-            setTargetExitVelocity(
-                swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond)
-            );
-        });
+        stateMachine.whileState(ShooterState.SHOOTING, this::handleShootState);
+    }
+
+    private void handleShootState() {
+        // TODO: set based on auto aim calculation
+        setTargetExitVelocity(
+            swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond)
+        );
     }
 
     public void testShoot() {
