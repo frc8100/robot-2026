@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -171,9 +172,9 @@ public class SwerveConstants {
 
     // Angle Motor PID Values
     // TODO: retune on carpet
-    public static final double ANGLE_KP = 9.5;
+    public static final double ANGLE_KP = 1;
     public static final double ANGLE_KI = 0.0;
-    public static final double ANGLE_KD = 0.05;
+    public static final double ANGLE_KD = 0.0;
     public static final TunableValue angleKPTunable = new TunableValue("Drive/AngleKP", ANGLE_KP);
     public static final TunableValue angleKDTunable = new TunableValue("Drive/AngleKD", ANGLE_KD);
     public static final double ANGLE_SIM_KP = 2;
@@ -187,6 +188,9 @@ public class SwerveConstants {
     public static final TunableValue driveKDTunable = new TunableValue("Drive/kD", DRIVE_KD);
     public static final double DRIVE_SIM_KP = 0.2;
     public static final double DRIVE_SIM_KD = 0.0;
+
+    public static final AngularVelocity ALLOWED_DRIVE_CLOSE_LOOP_ERROR = RadiansPerSecond.of(0.25);
+    public static final Angle ALLOWED_ANGLE_CLOSE_LOOP_ERROR = Degrees.of(0.5);
 
     // Drive Motor Characterization Values
     // TODO: Tune these values
@@ -204,7 +208,10 @@ public class SwerveConstants {
     );
 
     // Angle Motor Characterization Values
-    public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(0.0, 0.0);
+    public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(
+        0.13338,
+        0.42676
+    );
     public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(0.0, 0.42514);
 
     // Swerve path constraints
@@ -374,7 +381,8 @@ public class SwerveConstants {
             .pid(SwerveConstants.ANGLE_KP, SwerveConstants.ANGLE_KI, SwerveConstants.ANGLE_KD)
             .outputRange(-SwerveConstants.MAX_ANGLE_POWER, SwerveConstants.MAX_ANGLE_POWER)
             .positionWrappingEnabled(true)
-            .positionWrappingInputRange(-Math.PI, Math.PI);
+            .positionWrappingInputRange(-Math.PI, Math.PI)
+            .allowedClosedLoopError(ALLOWED_ANGLE_CLOSE_LOOP_ERROR.in(Radians), ClosedLoopSlot.kSlot0);
 
         angleConfig.signals
             .primaryEncoderPositionAlwaysOn(true)
@@ -411,7 +419,7 @@ public class SwerveConstants {
         driveConfig.closedLoop
             .pid(SwerveConstants.DRIVE_KP, SwerveConstants.DRIVE_KI, SwerveConstants.DRIVE_KD)
             .outputRange(-SwerveConstants.MAX_DRIVE_POWER, SwerveConstants.MAX_DRIVE_POWER)
-            .allowedClosedLoopError(0.1, ClosedLoopSlot.kSlot0);
+            .allowedClosedLoopError(ALLOWED_DRIVE_CLOSE_LOOP_ERROR.in(RadiansPerSecond), ClosedLoopSlot.kSlot0);
 
         driveConfig.closedLoop.feedForward
             .kS(SwerveConstants.driveFFConstantsReal.kS())

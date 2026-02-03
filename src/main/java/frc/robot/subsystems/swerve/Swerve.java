@@ -337,17 +337,17 @@ public class Swerve extends SubsystemBase {
             true
         );
 
-        // TODO: Sync motor encoders to absolute encoders when the robot is still
-        // syncMotorEncodersToAbsoluteEncoderTrigger.onTrue(
-        //     Commands.runOnce(() -> {
-        //         for (Module module : swerveModules) {
-        //             module.syncMotorEncoderToAbsoluteEncoder();
-        //         }
+        // Sync motor encoders to absolute encoders when the robot is still
+        syncMotorEncodersToAbsoluteEncoderTrigger.onTrue(
+            Commands.runOnce(() -> {
+                for (Module module : swerveModules) {
+                    module.syncMotorEncoderToAbsoluteEncoder();
+                }
 
-        //         // debug
-        //         System.out.println("Swerve motor encoders synced");
-        //     })
-        // );
+                // debug
+                System.out.println("Swerve motor encoders synced");
+            })
+        );
 
         // Start odometry thread
         OdometryThread.getInstance().start();
@@ -430,9 +430,8 @@ public class Swerve extends SubsystemBase {
 
         double[] angleMotorVelocitiesRadPerSec = new double[4];
         for (int i = 0; i < 4; i++) {
-            angleMotorVelocitiesRadPerSec[i] =
-                moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
-                previousSetpoint.moduleStates()[i].angle.getRadians();
+            angleMotorVelocitiesRadPerSec[i] = moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
+            previousSetpoint.moduleStates()[i].angle.getRadians();
             angleMotorVelocitiesRadPerSec[i] /= Constants.LOOP_PERIOD_SECONDS;
         }
 
