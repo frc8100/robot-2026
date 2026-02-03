@@ -1,7 +1,10 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.CANIdConstants;
 import frc.util.WrappedSpark;
@@ -20,8 +23,19 @@ public class ShooterIOYAMS implements ShooterIO {
     // Shooter Mechanism
     private FlyWheel shooter = new FlyWheel(ShooterConstants.shooterConfig.apply(shootMotorWrapped));
 
+    private final MutAngularVelocity setpointVelocity = RadiansPerSecond.mutable(0.0);
+
+    @Override
+    public void setTargetExitVelocity(double velocityMetersPerSecond) {
+        // TODO: Get velocity
+
+        // shooter.setSpeed(velocityMetersPerSecond);
+    }
+
     @Override
     public void updateInputs(ShooterIOInputs inputs) {
         inputs.motorConnected = shootMotorWrapped.updateData(inputs.motorData);
+
+        inputs.setpointExitAngularVelocity.mut_replace(setpointVelocity);
     }
 }

@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -24,6 +25,7 @@ import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.MutTime;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.util.FieldConstants;
@@ -39,6 +41,7 @@ public class AimToTarget {
      * @param exitVelocityMetersPerSecond - The exit velocity in meters per second. Only used in simulation.
      * @param timeToTargetSeconds - The time to target in seconds.
      */
+    // TODO: only interpolate time to target; exit velocity can be calculated from that and distance to target
     public record ExitVelocityCalculationResult(double exitVelocityMetersPerSecond, double timeToTargetSeconds) {
         public static final ExitVelocityCalculationResult ZERO = new ExitVelocityCalculationResult(0.0, 0.0);
 
@@ -173,6 +176,7 @@ public class AimToTarget {
 
         protected final MutAngle rotationTarget = Radians.mutable(0.0);
         protected final MutDistance distanceToTarget = Meters.mutable(0.0);
+        protected final MutTime timeToTarget = Seconds.mutable(0.0);
         protected final MutAngularVelocity radialVelocity = RadiansPerSecond.mutable(0.0);
         protected final MutLinearVelocity tangentialVelocity = MetersPerSecond.mutable(0.0);
         protected final MutAngularVelocity deltaThetaRate = RadiansPerSecond.mutable(0.0);
@@ -218,7 +222,10 @@ public class AimToTarget {
         }
 
         public LinearVelocity getTargetFuelExitVelocity() {
-            return targetFuelExitVelocity;
+            return targetFuelExitVelocity.mut_replace(
+                distanceToTarget.in(Meters) / timeToTarget.in(Seconds),
+                MetersPerSecond
+            );
         }
 
         public AngularVelocity getTotalAngularVelocityFF() {
