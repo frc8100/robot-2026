@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.CANIdConnections;
 import frc.robot.subsystems.swerve.OpponentRobotSim;
+import frc.util.FuelSim;
 import frc.util.SparkUtil;
 import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -214,6 +215,7 @@ public class Robot extends LoggedRobot {
 
         SimulatedArena.getInstance().simulationPeriodic();
         robotContainer.simulationPeriodic();
+        FuelSim.getInstance().updateSim();
 
         // Log output of opponent robots
         Logger.recordOutput("Odometry/OpponentRobotPoses", OpponentRobotSim.getOpponentRobotPoses());
