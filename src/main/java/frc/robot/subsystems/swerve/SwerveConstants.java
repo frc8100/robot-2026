@@ -127,6 +127,10 @@ public class SwerveConstants {
     // TODO: measure this
     public static final Distance FRONT_BUMPER_LENGTH = Inches.of(32);
     public static final Distance SIDE_BUMPER_LENGTH = Inches.of(32);
+    /**
+     * Distance from floor to top of bumpers.
+     */
+    public static final Distance BUMPER_HEIGHT = Inches.of(5);
 
     public static final Distance WHEEL_RADIUS = Inches.of(2.0);
     public static final Distance WHEEL_CIRCUMFERENCE = WHEEL_RADIUS.times(2 * Math.PI);

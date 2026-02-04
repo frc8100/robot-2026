@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -39,6 +41,7 @@ import frc.robot.subsystems.vision.VisionIOPhotonSim;
 import frc.robot.subsystems.vision.VisionSim;
 import frc.robot.subsystems.vision.VisionSim.NeuralDetectorSimPipeline;
 import frc.util.EmptySimulationArena;
+import frc.util.FuelSim;
 import frc.util.TunableValue;
 import frc.util.objective.ObjectiveIO;
 import frc.util.objective.ObjectiveIODashboard;
@@ -143,6 +146,16 @@ public class RobotContainer {
                     },
                     driveSimulation
                 );
+
+                // Fuel simulation
+                FuelSim.getInstance()
+                    .registerRobot(
+                        SwerveConstants.FRONT_FRAME_LENGTH.in(Meters),
+                        SwerveConstants.SIDE_FRAME_LENGTH.in(Meters),
+                        SwerveConstants.BUMPER_HEIGHT.in(Meters),
+                        swerveSubsystem::getActualPose,
+                        swerveSubsystem::getFieldRelativeSpeeds
+                    );
 
                 // Create a simulated vision subsystem
                 NeuralDetectorSimPipeline[] simPipelines = VisionSim.getDetectorPipelines(

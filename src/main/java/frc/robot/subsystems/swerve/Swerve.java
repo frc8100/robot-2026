@@ -343,9 +343,6 @@ public class Swerve extends SubsystemBase {
                 for (Module module : swerveModules) {
                     module.syncMotorEncoderToAbsoluteEncoder();
                 }
-
-                // debug
-                System.out.println("Swerve motor encoders synced");
             })
         );
 
@@ -554,12 +551,16 @@ public class Swerve extends SubsystemBase {
     private ChassisSpeeds cachedSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
     /**
-     * @return The measured chassis speeds of the robot.
+     * @return The measured robot-relative chassis speeds of the robot.
      * Note: be careful when mutating the returned object, as it is cached.
      */
     @AutoLogOutput(key = "Swerve/ChassisSpeeds/Measured")
     public ChassisSpeeds getChassisSpeeds() {
         return cachedSpeeds;
+    }
+
+    public ChassisSpeeds getFieldRelativeSpeeds() {
+        return ChassisSpeeds.fromRobotRelativeSpeeds(getChassisSpeeds(), getRotation());
     }
 
     private final MutLinearVelocity cachedVelocityMagnitude = MetersPerSecond.mutable(0);
