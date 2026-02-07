@@ -221,6 +221,7 @@ public class Robot extends LoggedRobot {
         Logger.recordOutput("Odometry/OpponentRobotPoses", OpponentRobotSim.getOpponentRobotPoses());
 
         // Log game pieces
-        Logger.recordOutput("Simulation/Field/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
+        // Logger.recordOutput("Simulation/Field/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
+        FuelSim.getInstance().logFuels();
     }
 }

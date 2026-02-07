@@ -41,13 +41,12 @@ public class Shooter extends SubsystemBase {
     public Shooter(ShooterIO io, Swerve swerveSubsystem) {
         this.io = io;
         this.swerveSubsystem = swerveSubsystem;
-
         // State machine bindings
-        stateMachine.whileState(ShooterState.IDLE, () -> {
-            setTargetExitVelocity(0.0);
-        });
+        // stateMachine.whileState(ShooterState.IDLE, () -> {
+        //     setTargetExitVelocity(0.0);
+        // });
 
-        stateMachine.whileState(ShooterState.SHOOTING, this::handleShootState);
+        // stateMachine.whileState(ShooterState.SHOOTING, this::handleShootState);
     }
 
     private void handleShootState() {

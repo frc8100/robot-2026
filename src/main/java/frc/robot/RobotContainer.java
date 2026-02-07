@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Meters;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -153,13 +155,19 @@ public class RobotContainer {
                         SwerveConstants.FRONT_FRAME_LENGTH.in(Meters),
                         SwerveConstants.SIDE_FRAME_LENGTH.in(Meters),
                         SwerveConstants.BUMPER_HEIGHT.in(Meters),
-                        swerveSubsystem::getActualPose,
-                        swerveSubsystem::getFieldRelativeSpeeds
+                        driveSimulation::getSimulatedDriveTrainPose,
+                        driveSimulation::getDriveTrainSimulatedChassisSpeedsFieldRelative
                     );
+                FuelSim.getInstance().start();
 
                 // Create a simulated vision subsystem
                 NeuralDetectorSimPipeline[] simPipelines = VisionSim.getDetectorPipelines(
-                    SimulatedArena.getInstance()::getGamePiecesPosesByType
+                    // SimulatedArena.getInstance()::getGamePiecesPosesByType
+                    (String className) ->
+                        FuelSim.getInstance()
+                            .fuels.stream()
+                            .map(fuel -> new Pose3d(fuel.getPosition(), Rotation3d.kZero))
+                            .toList()
                 );
 
                 questNavSubsystem = new QuestNavSubsystem(

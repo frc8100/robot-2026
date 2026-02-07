@@ -9,6 +9,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.util.FuelSim;
+import frc.util.FuelSim.Fuel;
 import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -54,78 +56,26 @@ public class ShooterIOSim extends ShooterIOYAMS {
         this.driveTrain = driveTrain;
     }
 
-    /**
-     * Gets the launch time of the given projectile using reflection.
-     * @param projectile - The projectile to get the launch time from.
-     * @return The launch time in seconds, or empty if an error occurred.
-     */
-    private OptionalDouble getLaunchTime(GamePieceProjectile projectile) {
-        try {
-            Field field = getLaunchTimeField();
-            if (field == null) {
-                return OptionalDouble.empty();
-            }
-
-            double launchTime = (double) field.get(projectile);
-            return OptionalDouble.of(launchTime);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return OptionalDouble.empty();
-        }
-    }
-
     @Override
     public void testShoot() {
-        RebuiltFuelOnFly fuelOnFly = new RebuiltFuelOnFly(
-            // Specify the position of the chassis when the note is launched
-            swerveSubsystem.getActualPose().getTranslation(),
-            // Specify the translation of the shooter from the robot center (in the shooter’s reference frame)
-            ShooterConstants.positionFromRobotCenter2d,
-            // Specify the field-relative speed of the chassis, adding it to the initial velocity of the projectile
-            driveTrain.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-            // The shooter facing direction is the same as the robot’s facing direction
-            // ShooterConstants.positionFromRobotCenter
-            //     .getRotation()
-            //     .toRotation2d()
-            //     .plus(swerveSubsystem.getActualPose().getRotation()),
-            // TODO: this is temporarily set to ideal target
-            new Rotation2d(swerveSubsystem.autoAim.latestCalculationResult.getRotationTarget()),
-            // Initial height of the flying note
-            ShooterConstants.transformFromRobotCenter.getMeasureZ(),
-            // The launch speed
-            storedExitVelocity,
-            // The angle at which the note is launched
-            ShooterConstants.exitAngle.getMeasure()
-        );
+        Fuel fuel = FuelSim.getInstance()
+            .launchFuel(
+                storedExitVelocity,
+                ShooterConstants.exitAngle.getMeasure(),
+                swerveSubsystem.getActualPose().getRotation().plus(ShooterConstants.AIM_ROTATION_OFFSET).getMeasure(),
+                // new Rotation2d(swerveSubsystem.autoAim.latestCalculationResult.getRotationTarget()),
+                ShooterConstants.transformFromRobotCenter
+            );
 
-        fuelOnFly
-            // Configure callbacks to visualize the flight trajectory of the projectile
-            .withProjectileTrajectoryDisplayCallBack(
-            // Callback for when the note will eventually hit the target (if configured)
-            pose3ds -> Logger.recordOutput("Shooter/FuelTrajectoryHit", pose3ds.toArray(Pose3d[]::new)),
-            pose3ds -> Logger.recordOutput("Shooter/FuelTrajectoryMiss", pose3ds.toArray(Pose3d[]::new))
-        );
-
-        fuelOnFly.disableBecomesGamePieceOnFieldAfterTouchGround();
-        fuelOnFly.withTouchGroundHeight(Inches.of(5).in(Meters));
-
-        fuelOnFly.withTargetPosition(() ->
-            FieldMirroringUtils.toCurrentAllianceTranslation(new Translation3d(4.5974, 4.034536, 1.5748))
-        );
-        fuelOnFly.withTargetTolerance(new Translation3d(0.5969, 0.5969, 0.5).div(2));
-
-        SimulatedArena.getInstance().addGamePieceProjectile(fuelOnFly);
-
-        // Log the launch time
-        OptionalDouble launchTimeOpt = getLaunchTime(fuelOnFly);
-        if (launchTimeOpt.isPresent()) {
-            Logger.recordOutput("Shooter/FuelLaunchTime", launchTimeOpt.getAsDouble());
-        }
+        // debug
+        System.out.println("Launched fuel with exit velocity: " + storedExitVelocity);
     }
 
     @Override
     public void setTargetExitVelocity(double velocityMetersPerSecond) {
         storedExitVelocity = MetersPerSecond.of(velocityMetersPerSecond);
+        // debug
+        // System.out.println("Set target exit velocity to: " + storedExitVelocity);
     }
 
     @Override
