@@ -222,10 +222,15 @@ public class AimToTarget {
         }
 
         public LinearVelocity getTargetFuelExitVelocity() {
-            return targetFuelExitVelocity.mut_replace(
-                distanceToTarget.in(Meters) / timeToTarget.in(Seconds),
-                MetersPerSecond
-            );
+            // if (timeToTarget.in(Seconds) < 1e-6) {
+            //     return MetersPerSecond.of(0.0);
+            // }
+
+            // return targetFuelExitVelocity.mut_replace(
+            //     distanceToTarget.in(Meters) / timeToTarget.in(Seconds),
+            //     MetersPerSecond
+            // );
+            return targetFuelExitVelocity;
         }
 
         public AngularVelocity getTotalAngularVelocityFF() {
@@ -335,6 +340,7 @@ public class AimToTarget {
 
         latestCalculationResult.rotationTarget.mut_replace(targetAngleRadians, Radians);
         latestCalculationResult.distanceToTarget.mut_replace(lookaheadPoseToTargetDistance, Meters);
+        latestCalculationResult.timeToTarget.mut_replace(calculatedResult.timeToTargetSeconds, Seconds);
         latestCalculationResult.targetFuelExitVelocity.mut_replace(
             calculatedResult.exitVelocityMetersPerSecond,
             MetersPerSecond
@@ -386,14 +392,14 @@ public class AimToTarget {
             MathUtil.isNear(
                     latestCalculationResult.robotPose.getRotation().getRadians(),
                     latestCalculationResult.getRotationTarget().in(Radians) +
-                    ShooterConstants.AIM_ROTATION_OFFSET_RADIANS,
+                    ShooterConstants.AIM_ROTATION_OFFSET.getRadians(),
                     setpointToleranceRadians
                 )
                 ? 0.0
                 : rotationController.calculate(
                     latestCalculationResult.robotPose.getRotation().getRadians(),
                     latestCalculationResult.getRotationTarget().in(Radians) +
-                    ShooterConstants.AIM_ROTATION_OFFSET_RADIANS
+                    ShooterConstants.AIM_ROTATION_OFFSET.getRadians()
                 );
 
         double unclampedOutput =

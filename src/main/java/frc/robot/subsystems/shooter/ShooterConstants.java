@@ -36,7 +36,7 @@ public final class ShooterConstants {
 
     private ShooterConstants() {}
 
-    public static final double AIM_ROTATION_OFFSET_RADIANS = Math.PI;
+    public static final Rotation2d AIM_ROTATION_OFFSET = Rotation2d.k180deg;
 
     public static final double LOOKAHEAD_CALCULATION_TIME_SECONDS = Constants.LOOP_PERIOD_SECONDS;
 
@@ -76,7 +76,10 @@ public final class ShooterConstants {
     // );
     // TODO: test with real measurements
 
-    public static final Transform3d transformFromRobotCenter = Transform3d.kZero;
+    public static final Transform3d transformFromRobotCenter = new Transform3d(
+        new Translation3d(Inches.of(0), Inches.of(0), Inches.of(6)),
+        new Rotation3d(Rotation2d.k180deg)
+    );
 
     public static final Translation2d positionFromRobotCenter2d = transformFromRobotCenter
         .getTranslation()
