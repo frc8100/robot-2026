@@ -82,7 +82,7 @@ public class SwerveConstants {
     /**
      * How often the status signals for CANCoders and the Pigeon 2 is updated (in Hz).
      */
-    public static final Frequency STATUS_SIGNAL_FREQUENCY_HZ = Hertz.of(20);
+    public static final Frequency STATUS_SIGNAL_FREQUENCY_HZ = Hertz.of(50);
 
     /**
      * The deadband for the sticks. This is the range of values that will be considered 0.
@@ -96,9 +96,9 @@ public class SwerveConstants {
     public static final double NUDGE_ROTATION_INPUT_MULTIPLIER = 0.5;
 
     // Percent output value limit for angle and drive motors
-    // TODO: set to 1 because trust current limit
-    public static final double MAX_DRIVE_POWER = 0.975;
-    public static final double MAX_ANGLE_POWER = 0.95;
+    // Set to 1 because of current limiting, no need to limit further
+    public static final double MAX_DRIVE_POWER = 1.0;
+    public static final double MAX_ANGLE_POWER = 1.0;
 
     // Always ensure Gyro is CCW+ CW-
     public static final boolean IS_GYRO_INVERTED = false;

@@ -508,6 +508,8 @@ public class Swerve extends SubsystemBase {
         poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
     }
 
+    private Matrix<N3, N1> visionStdDevsCache = SwerveConstants.visionStdDevs;
+
     /**
      * Adds a new timestamped vision measurement.
      */
@@ -516,7 +518,13 @@ public class Swerve extends SubsystemBase {
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
-        poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+        // Check if std devs have changed
+        if (visionMeasurementStdDevs != visionStdDevsCache) {
+            visionStdDevsCache = visionMeasurementStdDevs;
+            poseEstimator.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
+        }
+
+        poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds);
     }
 
     private final SwerveModuleState[] cachedModuleStates = new SwerveModuleState[] {
