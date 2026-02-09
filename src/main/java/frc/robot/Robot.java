@@ -4,8 +4,11 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Amps;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.CANIdConnections;
@@ -13,6 +16,7 @@ import frc.robot.subsystems.swerve.OpponentRobotSim;
 import frc.util.FuelSim;
 import frc.util.SparkUtil;
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.motorsims.SimulatedBattery;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -214,6 +218,7 @@ public class Robot extends LoggedRobot {
         }
 
         SimulatedArena.getInstance().simulationPeriodic();
+        RoboRioSim.setVInCurrent(SimulatedBattery.getTotalCurrentDrawn().in(Amps));
         robotContainer.simulationPeriodic();
         FuelSim.getInstance().updateSim();
 
