@@ -4,10 +4,12 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.CANIdConstants;
 import frc.util.WrappedSpark;
+import org.littletonrobotics.junction.Logger;
 import yams.mechanisms.velocity.FlyWheel;
 
 public class ShooterIOYAMS implements ShooterIO {
@@ -20,22 +22,41 @@ public class ShooterIOYAMS implements ShooterIO {
         ShooterConstants.shootMotorConfig.withSubsystem(new Subsystem() {})
     );
 
+    // Indexer motor
+    protected final SparkMax indexerMotor = new SparkMax(CANIdConstants.INDEXER_MOTOR_ID, MotorType.kBrushless);
+    protected final WrappedSpark indexerMotorWrapped = new WrappedSpark(
+        indexerMotor,
+        ShooterConstants.indexerMotorConfig
+    );
+
     // Shooter Mechanism
     private FlyWheel shooter = new FlyWheel(ShooterConstants.shooterConfig.apply(shootMotorWrapped));
 
-    private final MutAngularVelocity setpointVelocity = RadiansPerSecond.mutable(0.0);
+    @Override
+    public void setTargetShootMotorVelocity(AngularVelocity velocity) {
+        // test
+        Logger.recordOutput("Shooter/TargetShootMotorVelocity", velocity);
+        shootMotorWrapped.setVelocity(velocity);
+    }
 
     @Override
-    public void setTargetExitVelocity(double velocityMetersPerSecond) {
-        // TODO: Get velocity
+    public void stopShooter() {
+        shootMotorWrapped.setDutyCycle(0.0);
+    }
 
-        // shooter.setSpeed(velocityMetersPerSecond);
+    @Override
+    public void runIndexer() {
+        indexerMotorWrapped.setDutyCycle(ShooterConstants.INDEXER_OUTPUT);
+    }
+
+    @Override
+    public void stopIndexer() {
+        indexerMotorWrapped.setDutyCycle(0.0);
     }
 
     @Override
     public void updateInputs(ShooterIOInputs inputs) {
-        inputs.motorConnected = shootMotorWrapped.updateData(inputs.motorData);
-
-        inputs.setpointExitAngularVelocity.mut_replace(setpointVelocity);
+        inputs.shootMotorConnected = shootMotorWrapped.updateData(inputs.shootMotorData);
+        inputs.indexerMotorConnected = indexerMotorWrapped.updateData(inputs.indexerMotorData);
     }
 }

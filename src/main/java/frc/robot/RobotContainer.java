@@ -16,7 +16,6 @@ import frc.robot.commands.SwerveSysidRoutines;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSim;
-import frc.robot.subsystems.intake.IntakeIOYAMS;
 import frc.robot.subsystems.questnav.QuestNavIO;
 import frc.robot.subsystems.questnav.QuestNavIOReal;
 import frc.robot.subsystems.questnav.QuestNavIOSim;
@@ -26,7 +25,6 @@ import frc.robot.subsystems.shooter.ShooterIO;
 import frc.robot.subsystems.shooter.ShooterIOSim;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.SwerveConstants;
-import frc.robot.subsystems.swerve.SwerveDrive;
 import frc.robot.subsystems.swerve.SwerveSim;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
@@ -51,7 +49,6 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
-import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -189,11 +186,10 @@ public class RobotContainer {
                 );
 
                 intakeSubsystem = new Intake(new IntakeIOSim(driveSimulation));
-                shooterSubsystem = new Shooter(new ShooterIOSim(swerveSubsystem, driveSimulation), swerveSubsystem);
+                shooterSubsystem = new Shooter(new ShooterIOSim(swerveSubsystem), swerveSubsystem);
 
                 objectiveIO = new ObjectiveIODashboard();
 
-                // TODO: Add behavior chooser
                 // Create an opponent robot simulation
                 // OpponentRobotSim opponentRobotSim1 = new OpponentRobotSim(
                 //     new Pose2d(10, 2, new Rotation2d()),

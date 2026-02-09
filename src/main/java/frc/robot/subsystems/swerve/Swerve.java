@@ -42,6 +42,7 @@ import frc.robot.ControlConstants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.Module;
@@ -427,8 +428,9 @@ public class Swerve extends SubsystemBase {
 
         double[] angleMotorVelocitiesRadPerSec = new double[4];
         for (int i = 0; i < 4; i++) {
-            angleMotorVelocitiesRadPerSec[i] = moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
-            previousSetpoint.moduleStates()[i].angle.getRadians();
+            angleMotorVelocitiesRadPerSec[i] =
+                moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
+                previousSetpoint.moduleStates()[i].angle.getRadians();
             angleMotorVelocitiesRadPerSec[i] /= Constants.LOOP_PERIOD_SECONDS;
         }
 
@@ -774,7 +776,10 @@ public class Swerve extends SubsystemBase {
             // debug
             Logger.recordOutput(
                 "AimToTarget/RotationErrorRad",
-                getRotation().minus(new Rotation2d(autoAim.latestCalculationResult.getRotationTarget())).getRadians()
+                getRotation()
+                    .plus(ShooterConstants.AIM_ROTATION_OFFSET)
+                    .minus(new Rotation2d(autoAim.latestCalculationResult.getRotationTarget()))
+                    .getRadians()
             );
         }
 
