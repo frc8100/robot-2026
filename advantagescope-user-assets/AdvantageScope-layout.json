@@ -1,13 +1,13 @@
 {
   "hubs": [
     {
-      "x": 361,
-      "y": 139,
-      "width": 1315,
-      "height": 782,
+      "x": 209,
+      "y": 103,
+      "width": 1451,
+      "height": 852,
       "state": {
         "sidebar": {
-          "width": 353,
+          "width": 406,
           "expanded": [
             "/AdvantageKit/Drive/Module1/TurnPosition",
             "/Tuning/Claw",
@@ -28,7 +28,6 @@
             "/AdvantageKit/RealOutputs/Vision/GamePieces/ALGAE/LatestPoses",
             "/AdvantageKit/Vision/Camera0/GamePieceObservations/10",
             "/AdvantageKit/Vision/Camera0/GamePieceObservations",
-            "/AdvantageKit/RealOutputs/Odometry/Robot/translation",
             "/AdvantageKit/RealOutputs/StateMachines/Swerve/DriveToPose",
             "/AdvantageKit/RealOutputs/SysId",
             "/AdvantageKit/RealOutputs/SysId/FFCharacterization",
@@ -37,7 +36,6 @@
             "/AdvantageKit",
             "/AdvantageKit/RealOutputs/Swerve/States/Measured/0",
             "/AdvantageKit/QuestNav/UnreadPoseFrames",
-            "/AdvantageKit/RealOutputs",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/LatestPoses/0",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/LatestPoses/0/translation",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets",
@@ -46,7 +44,6 @@
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/1/estimatedPose",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/2",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/2/estimatedPose",
-            "/photonvision",
             "/PathPlanner/targetPose/translation",
             "/PathPlanner/currentPose/rotation",
             "/PathPlanner/currentPose/translation",
@@ -56,16 +53,57 @@
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0/estimatedPose/rotation",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0/estimatedPose/translation",
             "/AdvantageKit/RealOutputs/Simulation/Claw",
-            "/PathPlanner",
-            "/AdvantageKit/RealOutputs/Vision/Summary",
             "/AdvantageKit/Drive/Module0/DriveMotorData",
             "/AdvantageKit/RealOutputs/Vision/Summary/TagIds",
+            "/AdvantageKit/RealOutputs/ObjectiveIO",
+            "/AdvantageKit/RealOutputs/ObjectiveIO/SwitchSetting",
+            "/AdvantageKit/RealOutputs/AimToTarget/RotationTargetRadians",
+            "/AdvantageKit/Intake/DeployMotorData",
+            "/AdvantageKit/Intake/IntakeMotorData",
+            "/AdvantageKit/RealOutputs/Odometry/Robot/translation",
+            "/AdvantageKit/RealOutputs/Simulation/Field",
+            "/SmartDashboard/MapleSim",
+            "/SmartDashboard/MapleSim/MatchData",
+            "/SmartDashboard/MapleSim/MatchData/Breakdown/Red Alliance",
             "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds",
-            "/AdvantageKit/RealOutputs/AimToTarget"
+            "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Accelerations",
+            "/AdvantageKit/RealOutputs/AP",
+            "/RealOutputs/Odometry/Robot",
+            "/RealOutputs/Odometry/Robot/rotation",
+            "/AdvantageKit/Drive/Module0/TurnMotorData",
+            "/DriverStation",
+            "/NetworkInputs",
+            "/NetworkInputs/SmartDashboard",
+            "/RadioStatus",
+            "/PowerDistribution",
+            "/SystemStats",
+            "/AdvantageKit/RealOutputs/StateMachines/Vision",
+            "/AdvantageKit/RealOutputs/Vision/LowestCostResult",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/TrackedTargets",
+            "/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/TrackedTargets/0/latestPose",
+            "/AdvantageKit/Vision/Camera0",
+            "/AdvantageKit/Vision/Camera0/GamePieceObservationsByType",
+            "/AdvantageKit/RealOutputs/StateMachines/Global",
+            "/AdvantageKit/RealOutputs/StateMachines/Intake",
+            "/AdvantageKit/RealOutputs/StateMachines/Shooter",
+            "/AdvantageKit/RealOutputs/StateMachines/Swerve",
+            "/AdvantageKit/Vision/Camera0/TagIds",
+            "/AdvantageKit/RealOutputs/Vision/Summary",
+            "/SmartDashboard/BatterySim",
+            "/AdvantageKit/NetworkInputs/Tuning",
+            "/AdvantageKit/NetworkInputs/Tuning/Drive",
+            "/AdvantageKit/DriverStation/Joystick0",
+            "/AdvantageKit/RealOutputs",
+            "/AdvantageKit/RealOutputs/Shooter/Current",
+            "/AdvantageKit/RealOutputs/Shooter/CurrentTrajectory",
+            "/AdvantageKit/RealOutputs/Shooter/TargetTrajectory"
           ]
         },
         "tabs": {
-          "selected": 3,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -131,6 +169,33 @@
                   {
                     "type": "ghost",
                     "logKey": "NT:/PathPlanner/targetPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff00ff"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/TargetRotationAsPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/LookaheadPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/FutureLookaheadPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -233,16 +298,6 @@
                     "type": "vision",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
                     "logType": "Pose3d[]",
-                    "visible": false,
-                    "options": {
-                      "color": "#00ff00",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "vision",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
-                    "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
                       "color": "#00ff00",
@@ -257,6 +312,16 @@
                     "options": {
                       "color": "#ff0000",
                       "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "vision",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
+                    "logType": "Translation3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
                     }
                   },
                   {
@@ -286,12 +351,80 @@
                     "options": {}
                   },
                   {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/LookaheadPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "2026 KitBot",
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/FutureLookaheadPose",
+                    "logType": "Pose2d",
+                    "visible": false,
+                    "options": {
+                      "model": "2026 KitBot",
+                      "color": "#ff00ff"
+                    }
+                  },
+                  {
                     "type": "gamePiece",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
-                    "logType": "Pose3d[]",
+                    "logType": "Translation3d[]",
+                    "visible": false,
+                    "options": {
+                      "variant": "Fuel"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AP/Target",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "2026 KitBot",
+                      "color": "#ffff00"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Simulation/Field/Fuel",
+                    "logType": "Translation3d[]",
                     "visible": true,
                     "options": {
                       "variant": "Fuel"
+                    }
+                  },
+                  {
+                    "type": "trajectory",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/TargetTrajectory/Trajectory",
+                    "logType": "Translation3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/TargetTrajectory/FinalPoint",
+                    "logType": "Translation3d",
+                    "visible": true,
+                    "options": {
+                      "variant": "Fuel"
+                    }
+                  },
+                  {
+                    "type": "trajectory",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/CurrentTrajectory/Trajectory",
+                    "logType": "Translation3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000",
+                      "size": "normal"
                     }
                   }
                 ],
@@ -302,14 +435,14 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  4.608343965442987,
-                  4.238624210600927,
-                  8.692775760274422
+                  7.254778456642707,
+                  2.8279877891735214,
+                  -2.859045093982952
                 ],
                 "cameraTarget": [
-                  4.563533386435118,
-                  2.041099860664436,
-                  2.786217474816252
+                  3.843608840699403,
+                  0.9754281162961078,
+                  -0.39044308174657416
                 ]
               },
               "controlsHeight": 200
@@ -318,19 +451,39 @@
               "type": 1,
               "title": "Swerve",
               "controller": {
-                "leftSources": [],
-                "rightSources": [
+                "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Magnitude",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/RotationTarget",
                     "logType": "Number",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "color": "#2b66a2",
                       "size": "normal"
                     }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation/value",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/RotationErrorRad",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
                   }
                 ],
+                "rightSources": [],
                 "discreteSources": [],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
@@ -346,6 +499,51 @@
                 "rightFilter": 0
               },
               "controllerUUID": "i3gu9boefj30z5mqaj4rygkpzq837dlo",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Shooter",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/OldExitVelocity",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/TargetFuelExitVelocity",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "in6iidnk1pvx6id1sb7zblh2of8xb8pq",
               "renderer": null,
               "controlsHeight": 200
             },
