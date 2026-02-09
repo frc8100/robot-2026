@@ -64,4 +64,8 @@ public final class IntakeConstants {
     );
 
     public static final int MAX_CAPACITY = 24;
+
+    // 2d arrangement of fuel in intake visualization
+    public static final int ROWS_OF_FUEL = 5;
+    public static final int COLUMNS_OF_FUEL = 5;
 }

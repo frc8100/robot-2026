@@ -185,8 +185,13 @@ public class RobotContainer {
                     )
                 );
 
-                intakeSubsystem = new Intake(new IntakeIOSim(driveSimulation));
-                shooterSubsystem = new Shooter(new ShooterIOSim(swerveSubsystem), swerveSubsystem);
+                IntakeIOSim intakeIO = new IntakeIOSim();
+
+                intakeSubsystem = new Intake(intakeIO);
+                shooterSubsystem = new Shooter(
+                    new ShooterIOSim(swerveSubsystem, intakeIO::removeFuelFromIntake, intakeIO::isAbleToShoot),
+                    swerveSubsystem
+                );
 
                 objectiveIO = new ObjectiveIODashboard();
 
