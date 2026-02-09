@@ -14,29 +14,36 @@ public interface ShooterIO {
     public static class ShooterIOInputs {
 
         // Motor controller data for the intake motor
-        public SparkMotorControllerData motorData = new SparkMotorControllerData();
-        public boolean motorConnected = true;
+        public SparkMotorControllerData shootMotorData = new SparkMotorControllerData();
+        public boolean shootMotorConnected = true;
 
-        /**
-         * The target exit velocity for the shooter in meters per second.
-         */
-        public MutLinearVelocity setpointExitLinearVelocity = MetersPerSecond.mutable(0.0);
-
-        /**
-         * The target exit velocity for the shooter in radians per second.
-         */
-        public MutAngularVelocity setpointExitAngularVelocity = RadiansPerSecond.mutable(0.0);
+        public SparkMotorControllerData indexerMotorData = new SparkMotorControllerData();
+        public boolean indexerMotorConnected = true;
     }
 
     /** Updates the set of loggable inputs. */
     public default void updateInputs(ShooterIOInputs inputs) {}
 
-    // test
-    public default void testShoot() {}
-
     /**
      * Sets the target exit velocity for the shooter.
-     * @param velocityMetersPerSecond - The target exit velocity in meters per second.
+     * @param velocity - The target exit velocity in radians per second.
      */
-    public default void setTargetExitVelocity(double velocityMetersPerSecond) {}
+    public default void setTargetShootMotorVelocity(AngularVelocity velocity) {}
+
+    /**
+     * Stops the shooter.
+     */
+    public default void stopShooter() {}
+
+    /**
+     * Runs the indexer.
+     */
+    public default void runIndexer() {}
+
+    /**
+     * Stops the indexer.
+     */
+    public default void stopIndexer() {}
+
+    public default void simIterate() {}
 }

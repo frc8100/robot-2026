@@ -14,6 +14,7 @@ public class CANIdConstants {
 
     // Shooter
     public static final int SHOOTER_MOTOR_ID = 16;
+    public static final int INDEXER_MOTOR_ID = 17;
 
     public static final int PIGEON_ID = 13;
 
