@@ -27,6 +27,10 @@ public class Intake extends SubsystemBase {
             .plus(IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getTranslation().rotateBy(robotPose.getRotation()));
     }
 
+    /**
+     * States for the intake state machine.
+     * - In {@link #TRANSITION_DEPLOYING} and {@link #TRANSITION_RETRACTING}, the intake is in the process of deploying or retracting, and cannot transition to the opposite state until it finishes transitioning to the current state.
+     */
     public enum IntakeState {
         /**
          * The intake is fully deployed.
@@ -34,12 +38,12 @@ public class Intake extends SubsystemBase {
         DEPLOYED,
 
         /**
-         * The intake is in transition between deployed and retracted.
+         * The intake is going from retracted to deployed.
          */
         TRANSITION_DEPLOYING,
 
         /**
-         * The intake is in transition between retracted and deployed.
+         * The intake is going from deployed to retracted.
          */
         TRANSITION_RETRACTING,
 
@@ -53,10 +57,18 @@ public class Intake extends SubsystemBase {
         IntakeState.class,
         "Intake"
     )
-        .withDefaultState(new StateMachineState<>(IntakeState.RETRACTED, "Retracted"))
-        .withState(new StateMachineState<>(IntakeState.DEPLOYED, "Deployed"))
-        .withState(new StateMachineState<>(IntakeState.TRANSITION_DEPLOYING, "Transition Deploying"))
-        .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "Transition Retracting"));
+        .withDefaultState(
+            new StateMachineState<>(IntakeState.RETRACTED, "Retracted").withCanChangeCondition(
+                previousState -> previousState == IntakeState.TRANSITION_RETRACTING
+            )
+        )
+        .withState(
+            new StateMachineState<>(IntakeState.DEPLOYED, "Deployed").withCanChangeCondition(
+                previousState -> previousState == IntakeState.TRANSITION_DEPLOYING
+            )
+        )
+        .withState(new StateMachineState<>(IntakeState.TRANSITION_DEPLOYING, "TransitionDeploying"))
+        .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "TransitionRetracting"));
 
     private final IntakeIO io;
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
@@ -67,6 +79,32 @@ public class Intake extends SubsystemBase {
 
     public Intake(IntakeIO io) {
         this.io = io;
+
+        // State machine bindings
+        stateMachine.whileState(IntakeState.DEPLOYED, () -> {
+            // If intake is ever "undeployed" while in the deployed state, deploy again
+            if (inputs.measuredDeployState != IntakeIO.MeasuredDeployState.DEPLOYED) {
+                stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
+            }
+        });
+        stateMachine.whileState(IntakeState.RETRACTED, () -> {});
+
+        stateMachine.whileState(IntakeState.TRANSITION_DEPLOYING, () -> {
+            deploy();
+            // If intake is deployed, transition to deployed state
+            if (inputs.measuredDeployState == IntakeIO.MeasuredDeployState.DEPLOYED) {
+                stateMachine.scheduleStateChange(IntakeState.DEPLOYED);
+            }
+        });
+        stateMachine.whileState(IntakeState.TRANSITION_RETRACTING, () -> {
+            retract();
+            // If intake is retracted, transition to retracted state
+            if (inputs.measuredDeployState == IntakeIO.MeasuredDeployState.RETRACTED) {
+                stateMachine.scheduleStateChange(IntakeState.RETRACTED);
+            }
+        });
+
+        setDefaultCommand(stateMachine.getRunnableCommand(this));
     }
 
     // temporary
@@ -94,5 +132,10 @@ public class Intake extends SubsystemBase {
         // Update alerts
         intakeDisconnectedAlert.updateConnectionStatus(inputs.intakeMotorConnected);
         deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        io.simIterate();
     }
 }

@@ -4,6 +4,12 @@ import frc.util.SubsystemIOUtil.SparkMotorControllerData;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface IntakeIO {
+    public enum MeasuredDeployState {
+        DEPLOYED,
+        RETRACTED,
+        TRANSITION,
+    }
+
     @AutoLog
     public static class IntakeIOInputs {
 
@@ -15,9 +21,9 @@ public interface IntakeIO {
         public boolean intakeMotorConnected = true;
 
         /**
-         * Whether the intake is currently deployed.
+         * The measured deploy state of the intake. Independent of the desired deploy state; this is what the intake is actually doing. Should be determined by sensors on the intake.
          */
-        public boolean isDeployed = false;
+        public MeasuredDeployState measuredDeployState = MeasuredDeployState.RETRACTED;
     }
 
     /** Updates the set of loggable inputs. */
@@ -29,4 +35,6 @@ public interface IntakeIO {
     public default void deploy() {}
 
     public default void retract() {}
+
+    public default void simIterate() {}
 }

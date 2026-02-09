@@ -9,7 +9,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.Intake.IntakeState;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.Shooter.ShooterState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
@@ -185,11 +187,29 @@ public class ButtonBindings {
         // Temporary shooter test button
         driverController
             .getButtonTrigger(ControlConstants.toggleShoot)
-            .onTrue(Commands.runOnce(shooterSubsystem::testShoot));
+            .onTrue(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.SHOOTING)))
+            .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
 
         driverController
             .getButtonTrigger(ControlConstants.toggleAutoDriveIntake)
             .whileTrue(intakeSubsystem.runIntake(0.2));
+
+        // Intake deploy/retract toggle
+        driverController
+            .getButtonTrigger(ControlConstants.toggleIntakeDeploy)
+            .onTrue(
+                Commands.runOnce(() -> {
+                    // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
+                    if (
+                        intakeSubsystem.stateMachine.is(IntakeState.RETRACTED) ||
+                        intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
+                    ) {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
+                    } else {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
+                    }
+                })
+            );
     }
 
     /**
