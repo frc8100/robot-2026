@@ -9,8 +9,10 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
+import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
+import java.util.function.BooleanSupplier;
 import org.ironmaple.simulation.motorsims.SimulatedBattery;
 import org.littletonrobotics.junction.Logger;
 
@@ -28,12 +30,16 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
     // Subsystem references
     private final Swerve swerveSubsystem;
+    private final Runnable onShoot;
+    private final BooleanSupplier isAbleToShoot;
 
     // TODO: Add PID controller for shooter motor velocity because YAMS does not simulate that
 
-    public ShooterIOSim(Swerve swerveSubsystem) {
+    public ShooterIOSim(Swerve swerveSubsystem, Runnable onShoot, BooleanSupplier isAbleToShoot) {
         super();
         this.swerveSubsystem = swerveSubsystem;
+        this.onShoot = onShoot;
+        this.isAbleToShoot = isAbleToShoot;
 
         SimulatedBattery.addElectricalAppliances(super.shootMotorWrapped::getStatorCurrent);
         SimulatedBattery.addElectricalAppliances(super.indexerMotorWrapped::getStatorCurrent);
@@ -81,6 +87,8 @@ public class ShooterIOSim extends ShooterIOYAMS {
                 // new Rotation2d(swerveSubsystem.autoAim.latestCalculationResult.getRotationTarget()),
                 ShooterConstants.transformFromRobotCenter
             );
+
+        onShoot.run();
     }
 
     @Override
@@ -98,7 +106,7 @@ public class ShooterIOSim extends ShooterIOYAMS {
         }
         shootTimer.setDebounceTime(timeUntilNextShot);
 
-        if (shootTimer.calculate(true)) {
+        if (isAbleToShoot.getAsBoolean() && shootTimer.calculate(true)) {
             // Reset timer
             shootTimer.calculate(false);
 
