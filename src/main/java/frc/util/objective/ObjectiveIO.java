@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.units.measure.MutTime;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.util.Color;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ObjectiveIO {
@@ -14,17 +15,23 @@ public interface ObjectiveIO {
         /**
          * All hubs are active, during auto and endgame.
          */
-        ALL,
+        ALL(Color.kFloralWhite),
 
         /**
          * The red alliance hub is active.
          */
-        RED,
+        RED(Color.kRed),
 
         /**
          * The blue alliance hub is active.
          */
-        BLUE;
+        BLUE(Color.kBlue);
+
+        public final Color color;
+
+        private ActiveHub(Color color) {
+            this.color = color;
+        }
 
         /**
          * Converts a {@link DriverStation.Alliance} to an {@link ActiveHub}.

@@ -351,6 +351,8 @@ public class ObjectiveTracker extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Objective", inputs);
 
+        Logger.recordOutput("ObjectiveTracker/ActiveAllianceColor", inputs.activeHub.color);
+
         // Only run if enabled
         if (DriverStation.isDisabled()) {
             return;
