@@ -19,9 +19,6 @@ public class ShooterCharacterization {
 
     public static final Distance DISTANCE_STEP = Inches.of(6);
 
-    public static final InterpolatingDoubleTreeMap metersPerSecondToShooterRadPerSecondMap =
-        new InterpolatingDoubleTreeMap();
-
     public record ShooterDataPoint(
         AngularVelocity shooterAngularVelocity,
         double timeToTargetSeconds,
