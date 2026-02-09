@@ -19,6 +19,9 @@ public class ControlConstants {
     // Shooter controls
     public static final XboxController.Button toggleShoot = XboxController.Button.kA;
 
+    // Intake controls
+    public static final XboxController.Button toggleIntakeDeploy = XboxController.Button.kLeftBumper;
+
     // Drive controls
     public static final XboxController.Button toggleAutoAimToHub = XboxController.Button.kX;
     public static final ButtonBindings.Controller.POVButtonDirection toggleAutoDriveIntake =
