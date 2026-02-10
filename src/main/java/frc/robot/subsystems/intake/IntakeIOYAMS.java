@@ -1,9 +1,11 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Pounds;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import frc.robot.CANIdConstants;
@@ -11,9 +13,16 @@ import frc.util.WrappedSpark;
 
 public class IntakeIOYAMS implements IntakeIO {
 
-    // Deploy motor
-    protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
-    protected final WrappedSpark deployMotorWrapped = new WrappedSpark(deployMotor, IntakeConstants.deployMotorConfig);
+    // Deploy pneumatics
+    protected final Solenoid deploySolenoidLeft = new Solenoid(
+        PneumaticsModuleType.CTREPCM,
+        CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
+    );
+    protected final Solenoid deploySolenoidRight = new Solenoid(
+        PneumaticsModuleType.CTREPCM,
+        CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
+    );
+    protected final Compressor compressor = new Compressor(PneumaticsModuleType.CTREPCM);
 
     // Intake motor
     protected final SparkMax intakeMotor = new SparkMax(CANIdConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
@@ -23,7 +32,9 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void deploy() {
-        // deployMotorWrapped.setPosition(null);
+        // deployMotorWrapped.setDutyCycle(0.5);
+        deploySolenoidLeft.set(true);
+        deploySolenoidRight.set(true);
     }
 
     @Override
@@ -33,7 +44,14 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
-        inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
         inputs.intakeMotorConnected = intakeMotorWrapped.updateData(inputs.intakeMotorData);
+
+        inputs.measuredDeployState = (deploySolenoidLeft.get() && deploySolenoidRight.get())
+            ? MeasuredDeployState.DEPLOYED
+            : MeasuredDeployState.RETRACTED;
+
+        inputs.compressorEnabled = compressor.isEnabled();
+        inputs.isPressureSwitchValveNotFull = compressor.getPressureSwitchValue();
+        inputs.compressorCurrent.mut_replace(compressor.getCurrent(), Amps);
     }
 }

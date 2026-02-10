@@ -1,5 +1,8 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
+
+import edu.wpi.first.units.measure.MutCurrent;
 import frc.util.SubsystemIOUtil.SparkMotorControllerData;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -13,10 +16,12 @@ public interface IntakeIO {
     @AutoLog
     public static class IntakeIOInputs {
 
-        // Motor controller data for the intake motor
-        public SparkMotorControllerData deployMotorData = new SparkMotorControllerData();
-        public boolean deployMotorConnected = true;
+        // Deploy pneumatics
+        public boolean compressorEnabled = false;
+        public boolean isPressureSwitchValveNotFull = false;
+        public MutCurrent compressorCurrent = Amps.mutable(0.0);
 
+        // Motor controller data for the intake motor
         public SparkMotorControllerData intakeMotorData = new SparkMotorControllerData();
         public boolean intakeMotorConnected = true;
 

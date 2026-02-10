@@ -32,7 +32,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
         super();
         this.swerveSubsystem = swerveSubsystem;
 
-        super.deployMotorWrapped.setupSimulation();
+        // super.deployMotorWrapped.setupSimulation();
         super.intakeMotorWrapped.setupSimulation();
 
         FuelSim.getInstance()
@@ -46,7 +46,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
             );
 
         SimulatedBattery.addElectricalAppliances(super.intakeMotorWrapped::getStatorCurrent);
-        SimulatedBattery.addElectricalAppliances(super.deployMotorWrapped::getStatorCurrent);
+        // SimulatedBattery.addElectricalAppliances(super.deployMotorWrapped::getStatorCurrent);
     }
 
     private void onIntake() {
@@ -142,7 +142,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
 
     @Override
     public void simIterate() {
-        super.deployMotorWrapped.simIterate();
+        // super.deployMotorWrapped.simIterate();
         super.intakeMotorWrapped.simIterate();
 
         updateFuelPositions();
