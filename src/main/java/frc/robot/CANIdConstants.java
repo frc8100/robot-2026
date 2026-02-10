@@ -9,7 +9,11 @@ public class CANIdConstants {
     private CANIdConstants() {}
 
     // Intake
-    public static final int DEPLOY_MOTOR_ID = 14;
+    // public static final int DEPLOY_MOTOR_ID = 14;
+    public static final int PCM_ID = 14;
+    public static final int DEPLOY_SOLENOID_LEFT_CHANNEL = 1;
+    public static final int DEPLOY_SOLENOID_RIGHT_CHANNEL = 2;
+
     public static final int INTAKE_MOTOR_ID = 15;
 
     // Shooter

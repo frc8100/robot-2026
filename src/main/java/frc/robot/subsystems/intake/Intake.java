@@ -75,7 +75,8 @@ public class Intake extends SubsystemBase {
 
     // Alerts for disconnected motors
     private final CANIdAlert intakeDisconnectedAlert = new CANIdAlert(CANIdConstants.INTAKE_MOTOR_ID, "IntakeMotor");
-    private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
+
+    // private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
 
     public Intake(IntakeIO io) {
         this.io = io;
@@ -131,7 +132,7 @@ public class Intake extends SubsystemBase {
 
         // Update alerts
         intakeDisconnectedAlert.updateConnectionStatus(inputs.intakeMotorConnected);
-        deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
+        // deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
     }
 
     @Override
