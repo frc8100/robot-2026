@@ -28,8 +28,6 @@ public class IntakeIOYAMS implements IntakeIO {
     protected final SparkMax intakeMotor = new SparkMax(CANIdConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
     protected final WrappedSpark intakeMotorWrapped = new WrappedSpark(intakeMotor, IntakeConstants.intakeMotorConfig);
 
-    // protected final Solenoid deploySolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, 1);
-
     @Override
     public void deploy() {
         // deployMotorWrapped.setDutyCycle(0.5);

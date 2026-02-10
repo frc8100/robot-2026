@@ -7,6 +7,9 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.simulation.SolenoidSim;
+import frc.robot.CANIdConstants;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.util.FieldConstants;
@@ -20,6 +23,16 @@ public class IntakeIOSim extends IntakeIOYAMS {
 
     private boolean isDeployed = false;
     private int fuelInIntake = 0;
+
+    // Pneumatics
+    private final SolenoidSim deploySolenoidLeftSim = new SolenoidSim(
+        PneumaticsModuleType.CTREPCM,
+        CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
+    );
+    private final SolenoidSim deploySolenoidRightSim = new SolenoidSim(
+        PneumaticsModuleType.CTREPCM,
+        CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
+    );
 
     /**
      * Stores the fuel positions as a transform relative to the robot.
@@ -124,6 +137,8 @@ public class IntakeIOSim extends IntakeIOYAMS {
     public void deploy() {
         // TODO: rn this is instant deployment, make it take time later
         isDeployed = true;
+        deploySolenoidLeftSim.setOutput(true);
+        deploySolenoidRightSim.setOutput(true);
     }
 
     @Override
@@ -142,7 +157,6 @@ public class IntakeIOSim extends IntakeIOYAMS {
 
     @Override
     public void simIterate() {
-        // super.deployMotorWrapped.simIterate();
         super.intakeMotorWrapped.simIterate();
 
         updateFuelPositions();
