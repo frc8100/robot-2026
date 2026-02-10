@@ -35,15 +35,15 @@ public final class SwerveModuleSpecificConstants {
     }
 
     public static final RobotSwerveModuleConstants FRONT_LEFT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        -0.49951171875 + 0.5
+        -0.45703125
     );
     public static final RobotSwerveModuleConstants FRONT_RIGHT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        0.241943359375 + 0.5
+        0.238037109375
     );
     public static final RobotSwerveModuleConstants BACK_LEFT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        -0.11767578125 + 0.5
+        -0.249755859375
     );
     public static final RobotSwerveModuleConstants BACK_RIGHT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        0.049072265625 + 0.5
+        0.1298828125
     );
 }
