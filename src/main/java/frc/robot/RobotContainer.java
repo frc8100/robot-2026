@@ -185,7 +185,7 @@ public class RobotContainer {
                     )
                 );
 
-                IntakeIOSim intakeIO = new IntakeIOSim();
+                IntakeIOSim intakeIO = new IntakeIOSim(swerveSubsystem);
 
                 intakeSubsystem = new Intake(intakeIO);
                 shooterSubsystem = new Shooter(
