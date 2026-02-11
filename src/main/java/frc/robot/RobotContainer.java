@@ -340,23 +340,6 @@ public class RobotContainer {
         );
 
         autoChooser.addOption(
-            "Angle SysId (Quasistatic Counter-Clockwise)",
-            swerveSubsystem.angleSysIdQuasistatic(SysIdRoutine.Direction.kForward)
-        );
-        autoChooser.addOption(
-            "Angle SysId (Quasistatic Clockwise)",
-            swerveSubsystem.angleSysIdQuasistatic(SysIdRoutine.Direction.kReverse)
-        );
-        autoChooser.addOption(
-            "Angle SysId (Dynamic Counter-Clockwise)",
-            swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kForward)
-        );
-        autoChooser.addOption(
-            "Angle SysId (Dynamic Clockwise)",
-            swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kReverse)
-        );
-
-        autoChooser.addOption(
             "Angle SysId (All 4)",
             new SequentialCommandGroup(
                 swerveSubsystem.angleSysIdQuasistatic(SysIdRoutine.Direction.kForward),
@@ -368,6 +351,8 @@ public class RobotContainer {
                 swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kReverse)
             )
         );
+
+        autoChooser.addOption("Shooter SysId", shooterSubsystem.shooterSysidCommand());
     }
 
     /**

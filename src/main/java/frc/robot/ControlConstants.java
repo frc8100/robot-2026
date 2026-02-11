@@ -21,6 +21,7 @@ public class ControlConstants {
 
     // Intake controls
     public static final XboxController.Button toggleIntakeDeploy = XboxController.Button.kLeftBumper;
+    public static final XboxController.Button runIntakeButton = XboxController.Button.kB;
 
     // Drive controls
     public static final XboxController.Button toggleAutoAimToHub = XboxController.Button.kX;

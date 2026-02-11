@@ -2,13 +2,18 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
@@ -34,6 +39,16 @@ public class ShooterIOSim extends ShooterIOYAMS {
     private final BooleanSupplier isAbleToShoot;
 
     // TODO: Add PID controller for shooter motor velocity because YAMS does not simulate that
+    private final ProfiledPIDController shootMotorVelocityController = super.shootMotorWrapped
+        .getConfig()
+        .getClosedLoopController()
+        .orElseThrow();
+    private final SimpleMotorFeedforward shootMotorFeedforward = super.shootMotorWrapped
+        .getConfig()
+        .getSimpleFeedforward()
+        .orElseThrow();
+    private boolean isClosedLoopControllerEnabled = false;
+    private double previousVelocitySetpointRPS = 0.0;
 
     public ShooterIOSim(Swerve swerveSubsystem, Runnable onShoot, BooleanSupplier isAbleToShoot) {
         super();
@@ -41,8 +56,30 @@ public class ShooterIOSim extends ShooterIOYAMS {
         this.onShoot = onShoot;
         this.isAbleToShoot = isAbleToShoot;
 
-        SimulatedBattery.addElectricalAppliances(super.shootMotorWrapped::getStatorCurrent);
-        SimulatedBattery.addElectricalAppliances(super.indexerMotorWrapped::getStatorCurrent);
+        super.shootMotorWrapped.setupCustomSimulation();
+        super.indexerMotorWrapped.setupCustomSimulation();
+
+        super.shootMotorWrapped.stopClosedLoopController();
+    }
+
+    @Override
+    public void setTargetShootMotorVelocity(AngularVelocity velocity) {
+        super.shootMotorWrapped.setSetpointVelocity(velocity);
+        isClosedLoopControllerEnabled = true;
+    }
+
+    @Override
+    public void stopShooter() {
+        super.stopShooter();
+        isClosedLoopControllerEnabled = false;
+        previousVelocitySetpointRPS = 0.0;
+    }
+
+    @Override
+    public void runShooterDutyCycle(Voltage dutyCycleOutput) {
+        super.runShooterDutyCycle(dutyCycleOutput);
+        isClosedLoopControllerEnabled = false;
+        previousVelocitySetpointRPS = 0.0;
     }
 
     /**
@@ -95,8 +132,26 @@ public class ShooterIOSim extends ShooterIOYAMS {
     public void updateInputs(ShooterIOInputs inputs) {
         super.updateInputs(inputs);
 
-        // Shoot if time has passed based on the indexer velocity
+        // test
+        Logger.recordOutput("Shooter/ShooterSupplyCurrent", super.shootMotorWrapped.getCustomSupplyCurrent());
 
+        // Iterate the shoot motor velocity controller to get the motor output
+        if (isClosedLoopControllerEnabled) {
+            double currentShooterVelocityRPS = inputs.shootMotorData.velocity.in(RotationsPerSecond);
+            double setpointShooterVelocityRPS = super.shootMotorWrapped
+                .getMechanismSetpointVelocity()
+                .orElse(RotationsPerSecond.zero())
+                .in(RotationsPerSecond);
+
+            double shootMotorOutput =
+                shootMotorVelocityController.calculate(currentShooterVelocityRPS, setpointShooterVelocityRPS) +
+                shootMotorFeedforward.calculateWithVelocities(previousVelocitySetpointRPS, setpointShooterVelocityRPS);
+            super.shootMotorWrapped.setVoltage(Volts.of(shootMotorOutput));
+
+            previousVelocitySetpointRPS = setpointShooterVelocityRPS;
+        }
+
+        // Shoot if time has passed based on the indexer velocity
         double timeUntilNextShot = getWaitUntilNextShot(inputs.indexerMotorData.velocity);
         Logger.recordOutput("Shooter/TimeUntilNextShot", timeUntilNextShot);
 

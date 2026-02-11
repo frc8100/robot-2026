@@ -9,10 +9,15 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -20,11 +25,14 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.units.measure.Velocity;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 import frc.util.InvertibleInterpolatingDoubleTreeMap;
 import java.util.function.Function;
@@ -73,15 +81,20 @@ public final class ShooterConstants {
      */
     public static final double INDEXER_OUTPUT = 0.5;
 
+    // Sysid config
+    public static final Voltage SHOOTER_SYSID_MAX_VOLTAGE = Volts.of(10.0);
+    public static final Velocity<VoltageUnit> SHOOTER_SYSID_RAMP_RATE = Volts.of(1.0).per(Second);
+    public static final Time SHOOTER_SYSID_TEST_DURATION = Seconds.of(10.0);
+
     // Motor configs
     public static final SmartMotorControllerConfig shootMotorConfig = new SmartMotorControllerConfig()
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(0.1, 0.0, 0.0, RadiansPerSecond.of(90), RadiansPerSecondPerSecond.of(45))
-        .withSimClosedLoopController(0.1, 0.0, 0.0, RadiansPerSecond.of(90), RadiansPerSecondPerSecond.of(45))
+        .withSimClosedLoopController(2, 0.0, 0.0, RadiansPerSecond.of(300), RadiansPerSecondPerSecond.of(600))
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-        .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+        .withSimFeedforward(new SimpleMotorFeedforward(0.022028, 0.019888 * 2 * Math.PI, 0.0070252 * 2 * Math.PI))
         .withGearing(1)
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
