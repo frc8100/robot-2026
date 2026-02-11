@@ -24,6 +24,8 @@ public final class IntakeConstants {
 
     private IntakeConstants() {}
 
+    public static final double INTAKE_RUN_SPEED = 0.5;
+
     public static final SmartMotorControllerConfig intakeMotorConfig = new SmartMotorControllerConfig()
         .withControlMode(ControlMode.OPEN_LOOP)
         .withGearing(3)

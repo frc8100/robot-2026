@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Pose3d;
@@ -8,6 +9,8 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.simulation.CTREPCMSim;
+import edu.wpi.first.wpilibj.simulation.PneumaticsBaseSim;
 import edu.wpi.first.wpilibj.simulation.SolenoidSim;
 import frc.robot.CANIdConstants;
 import frc.robot.subsystems.swerve.Swerve;
@@ -25,12 +28,13 @@ public class IntakeIOSim extends IntakeIOYAMS {
     private int fuelInIntake = 0;
 
     // Pneumatics
+    private final CTREPCMSim pcmSim = new CTREPCMSim();
     private final SolenoidSim deploySolenoidLeftSim = new SolenoidSim(
-        PneumaticsModuleType.CTREPCM,
+        pcmSim,
         CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
     );
     private final SolenoidSim deploySolenoidRightSim = new SolenoidSim(
-        PneumaticsModuleType.CTREPCM,
+        pcmSim,
         CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
     );
 
@@ -58,8 +62,13 @@ public class IntakeIOSim extends IntakeIOYAMS {
                 this::onIntake
             );
 
-        SimulatedBattery.addElectricalAppliances(super.intakeMotorWrapped::getStatorCurrent);
-        // SimulatedBattery.addElectricalAppliances(super.deployMotorWrapped::getStatorCurrent);
+        super.intakeMotorWrapped.setupCustomSimulation();
+
+        // Init pneumatics simulation
+        pcmSim.setCompressorOn(true);
+        pcmSim.setPressureSwitch(true);
+        pcmSim.setClosedLoopEnabled(true);
+        pcmSim.setInitialized(true);
     }
 
     private void onIntake() {
@@ -137,6 +146,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
     public void deploy() {
         // TODO: rn this is instant deployment, make it take time later
         isDeployed = true;
+        pcmSim.setCompressorOn(true);
         deploySolenoidLeftSim.setOutput(true);
         deploySolenoidRightSim.setOutput(true);
     }
@@ -144,6 +154,8 @@ public class IntakeIOSim extends IntakeIOYAMS {
     @Override
     public void retract() {
         isDeployed = false;
+        deploySolenoidLeftSim.setOutput(false);
+        deploySolenoidRightSim.setOutput(false);
     }
 
     @Override
@@ -153,6 +165,12 @@ public class IntakeIOSim extends IntakeIOYAMS {
         inputs.measuredDeployState = isDeployed
             ? IntakeIO.MeasuredDeployState.DEPLOYED
             : IntakeIO.MeasuredDeployState.RETRACTED;
+
+        // Override the solenoid states to match the simulation
+        inputs.deploySolenoidLeftState = deploySolenoidLeftSim.getOutput();
+        inputs.deploySolenoidRightState = deploySolenoidRightSim.getOutput();
+        inputs.compressorCurrent.mut_replace(pcmSim.getCompressorCurrent(), Amps);
+        inputs.compressorEnabled = pcmSim.getCompressorOn();
     }
 
     @Override

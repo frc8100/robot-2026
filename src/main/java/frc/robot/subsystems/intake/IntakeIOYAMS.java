@@ -30,7 +30,6 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void deploy() {
-        // deployMotorWrapped.setDutyCycle(0.5);
         deploySolenoidLeft.set(true);
         deploySolenoidRight.set(true);
     }
@@ -44,6 +43,8 @@ public class IntakeIOYAMS implements IntakeIO {
     public void updateInputs(IntakeIOInputs inputs) {
         inputs.intakeMotorConnected = intakeMotorWrapped.updateData(inputs.intakeMotorData);
 
+        inputs.deploySolenoidLeftState = deploySolenoidLeft.get();
+        inputs.deploySolenoidRightState = deploySolenoidRight.get();
         inputs.measuredDeployState = (deploySolenoidLeft.get() && deploySolenoidRight.get())
             ? MeasuredDeployState.DEPLOYED
             : MeasuredDeployState.RETRACTED;

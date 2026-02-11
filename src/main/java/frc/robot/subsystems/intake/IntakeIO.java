@@ -21,6 +21,9 @@ public interface IntakeIO {
         public boolean isPressureSwitchValveNotFull = false;
         public MutCurrent compressorCurrent = Amps.mutable(0.0);
 
+        public boolean deploySolenoidLeftState = false;
+        public boolean deploySolenoidRightState = false;
+
         // Motor controller data for the intake motor
         public SparkMotorControllerData intakeMotorData = new SparkMotorControllerData();
         public boolean intakeMotorConnected = true;

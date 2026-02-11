@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CANIdConstants;
 import frc.robot.subsystems.CANIdAlert;
@@ -109,12 +110,13 @@ public class Intake extends SubsystemBase {
     }
 
     // temporary
-    public Command runIntake(double speed) {
-        return run(() -> io.runIntake(speed));
+    public Command runIntake() {
+        // No requirement because also run state machine at same time (state machine does not require intake subsystem, so can run at same time as this command)
+        return Commands.run(() -> io.runIntake(IntakeConstants.INTAKE_RUN_SPEED));
     }
 
-    public Command runIntake(DoubleSupplier speedSupplier) {
-        return run(() -> io.runIntake(speedSupplier.getAsDouble()));
+    public Command stopIntake() {
+        return Commands.run(() -> io.runIntake(0));
     }
 
     public void deploy() {
