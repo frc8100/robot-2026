@@ -6,6 +6,8 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.CANIdConstants;
 import frc.util.WrappedSpark;
@@ -30,18 +32,21 @@ public class ShooterIOYAMS implements ShooterIO {
     );
 
     // Shooter Mechanism
-    private FlyWheel shooter = new FlyWheel(ShooterConstants.shooterConfig.apply(shootMotorWrapped));
+    private final FlyWheel shooter = new FlyWheel(ShooterConstants.shooterConfig.apply(shootMotorWrapped));
 
     @Override
     public void setTargetShootMotorVelocity(AngularVelocity velocity) {
-        // test
-        Logger.recordOutput("Shooter/TargetShootMotorVelocity", velocity);
         shootMotorWrapped.setVelocity(velocity);
     }
 
     @Override
     public void stopShooter() {
         shootMotorWrapped.setDutyCycle(0.0);
+    }
+
+    @Override
+    public void runShooterDutyCycle(Voltage dutyCycleOutput) {
+        shootMotorWrapped.setVoltage(dutyCycleOutput);
     }
 
     @Override

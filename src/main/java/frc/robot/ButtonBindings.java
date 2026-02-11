@@ -191,8 +191,9 @@ public class ButtonBindings {
             .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
 
         driverController
-            .getButtonTrigger(ControlConstants.toggleAutoDriveIntake)
-            .whileTrue(intakeSubsystem.runIntake(0.2));
+            .getButtonTrigger(ControlConstants.runIntakeButton)
+            .whileTrue(intakeSubsystem.runIntake())
+            .whileFalse(intakeSubsystem.stopIntake());
 
         // Intake deploy/retract toggle
         driverController

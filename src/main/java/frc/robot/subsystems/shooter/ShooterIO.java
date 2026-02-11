@@ -6,6 +6,9 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.util.SubsystemIOUtil.SparkMotorControllerData;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -36,6 +39,12 @@ public interface ShooterIO {
     public default void stopShooter() {}
 
     /**
+     * Runs the shooter with a duty cycle output.
+     * @param dutyCycleOutput - The duty cycle output in voltage.
+     */
+    public default void runShooterDutyCycle(Voltage dutyCycleOutput) {}
+
+    /**
      * Runs the indexer.
      */
     public default void runIndexer() {}
@@ -46,4 +55,11 @@ public interface ShooterIO {
     public default void stopIndexer() {}
 
     public default void simIterate() {}
+    /**
+     * @return A command that runs the shooter sysid routine.
+     */
+    // ! breaks IO model but fine because this should not be run in a competition/replay
+    // public default Command shooterSysidCommand() {
+    //     return Commands.none();
+    // }
 }

@@ -14,8 +14,12 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.subsystems.swerve.Swerve;
@@ -77,6 +81,8 @@ public class Shooter extends SubsystemBase {
     private final List<Translation3d> trajectoryPoints = new ArrayList<>(30);
     private final MutAngularVelocity cachedTargetExitAngularVelocity = RadiansPerSecond.mutable(0.0);
 
+    private final SysIdRoutine shooterSysidRoutine;
+
     public Shooter(ShooterIO io, Swerve swerveSubsystem) {
         this.io = io;
         this.swerveSubsystem = swerveSubsystem;
@@ -86,6 +92,16 @@ public class Shooter extends SubsystemBase {
         stateMachine.whileState(ShooterState.SHOOTING, this::handleShootState);
 
         setDefaultCommand(stateMachine.getRunnableCommand(this));
+
+        shooterSysidRoutine = new SysIdRoutine(
+            new SysIdRoutine.Config(
+                ShooterConstants.SHOOTER_SYSID_RAMP_RATE,
+                ShooterConstants.SHOOTER_SYSID_MAX_VOLTAGE,
+                ShooterConstants.SHOOTER_SYSID_TEST_DURATION,
+                state -> Logger.recordOutput("Shooter/SysIdState", state.toString())
+            ),
+            new SysIdRoutine.Mechanism(io::runShooterDutyCycle, null, this)
+        );
     }
 
     /**
@@ -241,5 +257,17 @@ public class Shooter extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         io.simIterate();
+    }
+
+    public Command shooterSysidCommand() {
+        return new SequentialCommandGroup(
+            shooterSysidRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(1),
+            shooterSysidRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
+            Commands.waitSeconds(1),
+            shooterSysidRoutine.dynamic(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(1),
+            shooterSysidRoutine.dynamic(SysIdRoutine.Direction.kReverse)
+        );
     }
 }
