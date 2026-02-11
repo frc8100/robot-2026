@@ -1,11 +1,15 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Seconds;
+
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CANIdConstants;
+import frc.robot.Constants;
 import frc.robot.subsystems.CANIdAlert;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
@@ -76,8 +80,12 @@ public class Intake extends SubsystemBase {
 
     // Alerts for disconnected motors
     private final CANIdAlert intakeDisconnectedAlert = new CANIdAlert(CANIdConstants.INTAKE_MOTOR_ID, "IntakeMotor");
-
     // private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
+
+    // Deploy state visualization
+    private final LinearFilter deployStateFilter = LinearFilter.movingAverage(
+        (int) ((1000.0 * Constants.LOOP_PERIOD_SECONDS) * IntakeConstants.SIMULATION_TIME_FOR_INTAKE_DEPLOY.in(Seconds))
+    );
 
     public Intake(IntakeIO io) {
         this.io = io;
@@ -107,6 +115,15 @@ public class Intake extends SubsystemBase {
         });
 
         setDefaultCommand(stateMachine.getRunnableCommand(this));
+    }
+
+    /**
+     * @return A value from 0 to 1 representing the deploy state of the intake for visualization. Goes from 0 to 1 as the intake deploys, and from 1 to 0 as the intake retracts, with a delay to match the time it takes for the intake to deploy/retract in simulation.
+     */
+    public double getDeployStateForVisualization() {
+        return deployStateFilter.calculate(
+            inputs.measuredDeployState == IntakeIO.MeasuredDeployState.DEPLOYED ? 1.0 : 0.0
+        );
     }
 
     // temporary

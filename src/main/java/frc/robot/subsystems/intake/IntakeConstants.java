@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Time;
 import org.ironmaple.simulation.IntakeSimulation;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -54,6 +55,7 @@ public final class IntakeConstants {
     // Simulation constants
     public static final IntakeSimulation.IntakeSide ORIENTATION = IntakeSimulation.IntakeSide.FRONT;
     public static final Rotation2d ORIENTATION_AS_ROTATION = Rotation2d.kZero;
+    public static final Time SIMULATION_TIME_FOR_INTAKE_DEPLOY = Seconds.of(0.5);
 
     public static final Distance WIDTH = Inches.of(20);
     public static final Distance HALF_OF_WIDTH = WIDTH.div(2);
