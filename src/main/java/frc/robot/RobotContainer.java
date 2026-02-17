@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.ShooterCharacterization;
 import frc.robot.commands.SwerveSysidRoutines;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
@@ -308,7 +309,7 @@ public class RobotContainer {
             questNavSubsystem.getMeasureTransformCommand(swerveSubsystem)
         );
 
-        // Actual SysId routines
+        // Drive SysId routines
         autoChooser.addOption(
             "Drive SysId (Quasistatic Forward)",
             swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward)
@@ -352,7 +353,9 @@ public class RobotContainer {
             )
         );
 
+        // Shooter SysId routines
         autoChooser.addOption("Shooter SysId", shooterSubsystem.shooterSysidCommand());
+        autoChooser.addOption("Shooter Shooting Characterization", new ShooterCharacterization(shooterSubsystem));
     }
 
     /**
