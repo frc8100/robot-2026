@@ -51,10 +51,18 @@ public class StateMachineState<TEnumType extends Enum<TEnumType>> {
 
     /**
      * Sets the condition that determines if the state can be changed to this state.
+     * Note that only one condition can be set for a state, so calling this method multiple times will overwrite the previous condition.
      */
     public StateMachineState<TEnumType> withCanChangeCondition(StateChangeCondition<TEnumType> condition) {
         this.canChangeCondition = condition;
         return this;
+    }
+
+    /**
+     * A convenience method to set a condition that requires the previous state to be a specific state for the change to occur.
+     */
+    public StateMachineState<TEnumType> requirePreviousStateToBe(TEnumType requiredPreviousState) {
+        return withCanChangeCondition(previousState -> previousState == requiredPreviousState);
     }
 
     /**
