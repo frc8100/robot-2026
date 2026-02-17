@@ -37,6 +37,7 @@ public class ShooterIOYAMS implements ShooterIO {
     @Override
     public void setTargetShootMotorVelocity(AngularVelocity velocity) {
         shootMotorWrapped.setVelocity(velocity);
+        // shootMotor.getClosedLoopController().setSetpoint(0, null)
     }
 
     @Override

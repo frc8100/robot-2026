@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -144,19 +145,19 @@ public class Shooter extends SubsystemBase {
         trajectoryPoints.clear();
 
         // Precompute constants
-        final double exitAngleRad = ShooterConstants.exitAngle.getRadians();
-        final double shooterAngleRad = swerveSubsystem
+        final Rotation2d shooterAngle = swerveSubsystem
             .getPose()
             .getRotation()
-            .plus(ShooterConstants.AIM_ROTATION_OFFSET)
-            .getRadians();
+            .plus(ShooterConstants.AIM_ROTATION_OFFSET);
         final ChassisSpeeds robotVelocity = swerveSubsystem.getFieldRelativeSpeeds();
 
         // Calculate the initial velocity vector based on the exit velocity and angle
         Translation3d velocity = new Translation3d(
-            exitVelocityMPS * Math.cos(exitAngleRad) * Math.cos(shooterAngleRad) + robotVelocity.vxMetersPerSecond,
-            exitVelocityMPS * Math.cos(exitAngleRad) * Math.sin(shooterAngleRad) + robotVelocity.vyMetersPerSecond,
-            exitVelocityMPS * Math.sin(exitAngleRad)
+            exitVelocityMPS * ShooterConstants.exitAngle.getCos() * shooterAngle.getCos() +
+            robotVelocity.vxMetersPerSecond,
+            exitVelocityMPS * ShooterConstants.exitAngle.getCos() * shooterAngle.getSin() +
+            robotVelocity.vyMetersPerSecond,
+            exitVelocityMPS * ShooterConstants.exitAngle.getSin()
         );
 
         Translation3d position = new Pose3d(swerveSubsystem.getPose())
@@ -224,6 +225,14 @@ public class Shooter extends SubsystemBase {
     }
 
     /**
+     * Sets the target exit velocity for the shooter. Does not look up.
+     * @param targetExitVelocity - The target exit velocity in radians per second of the shooter motor angular velocity.
+     */
+    public void setTargetExitVelocity(AngularVelocity targetExitVelocity) {
+        io.setTargetShootMotorVelocity(targetExitVelocity);
+    }
+
+    /**
      * Sets the target exit velocity for the shooter based on the distance to the target.
      * @param distanceToTarget - The distance to the target in meters.
      */
@@ -259,6 +268,9 @@ public class Shooter extends SubsystemBase {
         io.simIterate();
     }
 
+    /**
+     * @return A command that runs all 4 sysid routines.
+     */
     public Command shooterSysidCommand() {
         return new SequentialCommandGroup(
             shooterSysidRoutine.quasistatic(SysIdRoutine.Direction.kForward),
@@ -269,5 +281,10 @@ public class Shooter extends SubsystemBase {
             Commands.waitSeconds(1),
             shooterSysidRoutine.dynamic(SysIdRoutine.Direction.kReverse)
         );
+    }
+
+    // Getters
+    public AngularVelocity getCurrentMotorAngularVelocity() {
+        return inputs.shootMotorData.velocity;
     }
 }
