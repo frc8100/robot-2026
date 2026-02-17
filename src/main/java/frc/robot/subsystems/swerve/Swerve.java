@@ -720,12 +720,9 @@ public class Swerve extends SubsystemBase {
         }
 
         // Run state machine
-        var currentState = stateMachine.getCurrentState().enumType;
-        var action = stateMachine.statePeriodicActions.get(currentState);
-
-        // TODO: better validation
-        if (action != null && getCurrentCommand() == null) {
-            action.onPeriodic(stateMachine.getCurrentPayload());
+        // TODO: better validation (this essentially just works the same as a default command)
+        if (getCurrentCommand() == null) {
+            stateMachine.runCurrentStatePeriodicAction();
         }
 
         // Update aim to target

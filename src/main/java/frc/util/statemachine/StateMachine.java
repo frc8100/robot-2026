@@ -633,6 +633,18 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
     }
 
     /**
+     * Runs the periodic action associated with the current state of the state machine, if any.
+     * Should be called periodically, such as in a command's execute method or a subsystem's periodic method.
+     */
+    public void runCurrentStatePeriodicAction() {
+        StatePeriodicAction<TPayload> action = statePeriodicActions.get(currentState.enumType);
+
+        if (action != null) {
+            action.onPeriodic(getCurrentPayload());
+        }
+    }
+
+    /**
      * @param requirements - The subsystems required by the returned command.
      * @return A command that runs the state machine's current state's action each period.
      */
