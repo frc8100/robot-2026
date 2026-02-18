@@ -20,6 +20,10 @@ public class CANIdConstants {
     public static final int SHOOTER_MOTOR_ID = 16;
     public static final int INDEXER_MOTOR_ID = 17;
 
+    // Climb
+    public static final int LEFT_CLIMB_MOTOR_ID = 18;
+    public static final int RIGHT_CLIMB_MOTOR_ID = 19;
+
     public static final int PIGEON_ID = 13;
 
     /**

@@ -25,4 +25,11 @@ public class Climb extends SubsystemBase {
         .withState(
             new StateMachineState<>(ClimbState.DESCENDING, "Descending").requirePreviousStateToBe(ClimbState.CLIMBING)
         );
+
+    private final ClimbIO io;
+    private final ClimbIOInputsAutoLogged inputs = new ClimbIOInputsAutoLogged();
+
+    public Climb(ClimbIO io) {
+        this.io = io;
+    }
 }
