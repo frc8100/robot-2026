@@ -103,6 +103,7 @@ public class ModuleIOSim implements ModuleIO {
         inputs.turnMotorData.positionAngle.mut_replace(moduleSimulation.getSteerRelativeEncoderPosition());
         inputs.turnMotorData.velocity.mut_replace(moduleSimulation.getSteerAbsoluteEncoderSpeed());
         inputs.turnMotorData.appliedVolts.mut_replace(turnAppliedVolts);
+        inputs.turnMotorData.torqueCurrent.mut_replace(moduleSimulation.getSteerMotorStatorCurrent());
         inputs.turnAbsolutePosition = moduleSimulation.getSteerAbsoluteFacing();
 
         // Update odometry inputs

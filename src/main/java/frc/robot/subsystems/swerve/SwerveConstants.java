@@ -228,7 +228,7 @@ public class SwerveConstants {
     // ! IMPORTANT: The actual max angular velocity is much higher
     public static final AngularVelocity MAX_ANGULAR_VELOCITY_OF_ROBOT = RadiansPerSecond.of(7.0);
 
-    public static final AngularVelocity MAX_ANGULAR_VELOCITY_OF_SWERVE_MODULE = RadiansPerSecond.of(7.5);
+    public static final AngularVelocity MAX_ANGULAR_VELOCITY_OF_SWERVE_MODULE = RadiansPerSecond.of(20.0);
 
     /**
      * The angular velocity used during teleop driving.
