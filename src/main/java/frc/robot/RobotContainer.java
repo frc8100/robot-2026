@@ -340,6 +340,12 @@ public class RobotContainer {
             )
         );
 
+        // Currently only dynamic to test constraints
+        autoChooser.addOption(
+            "Angle SysId (Dynamic Forward)",
+            swerveSubsystem.angleSysIdDynamic(SysIdRoutine.Direction.kForward)
+        );
+
         autoChooser.addOption(
             "Angle SysId (All 4)",
             new SequentialCommandGroup(

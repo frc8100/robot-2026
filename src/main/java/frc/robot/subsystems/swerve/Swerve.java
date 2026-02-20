@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volt;
+import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -280,21 +281,13 @@ public class Swerve extends SubsystemBase {
     // SysId routines for drive and angle motors
     protected SysIdRoutine driveSysId = new SysIdRoutine(
         new SysIdRoutine.Config(null, null, null, state -> Logger.recordOutput("Swerve/SysIdState", state.toString())),
-        new SysIdRoutine.Mechanism(voltage -> runCharacterization(voltage.in(Volt)), null, this)
+        new SysIdRoutine.Mechanism(voltage -> runCharacterization(voltage.in(Volts)), null, this)
     );
     protected SysIdRoutine angleSysId = new SysIdRoutine(
         new SysIdRoutine.Config(null, null, null, state ->
             Logger.recordOutput("Swerve/AngleSysIdState", state.toString())
         ),
-        new SysIdRoutine.Mechanism(
-            voltage -> {
-                for (int i = 0; i < 4; i++) {
-                    swerveModules[i].runAngleCharacterization(voltage.in(Volt));
-                }
-            },
-            null,
-            this
-        )
+        new SysIdRoutine.Mechanism(voltage -> runAngleCharacterization(voltage.in(Volts)), null, this)
     );
 
     /**

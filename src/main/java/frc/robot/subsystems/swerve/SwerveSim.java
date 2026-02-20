@@ -33,11 +33,19 @@ public class SwerveSim extends Swerve {
         this.driveSimulation = driveSimulation;
 
         // Simulation specific SysId
+        // Does not care about safety or anything, run at max voltage to test constraints
         super.driveSysId = new SysIdRoutine(
-            new SysIdRoutine.Config(Volts.of(0.75).per(Seconds), Volts.of(10), Seconds.of(15), state ->
+            new SysIdRoutine.Config(Volts.of(0.75).per(Seconds), Volts.of(12), Seconds.of(15), state ->
                 Logger.recordOutput("Swerve/SysIdState", state.toString())
             ),
             new SysIdRoutine.Mechanism(voltage -> runCharacterization(voltage.in(Volts)), null, this)
+        );
+
+        super.angleSysId = new SysIdRoutine(
+            new SysIdRoutine.Config(Volts.of(0.75).per(Seconds), Volts.of(12), Seconds.of(15), state ->
+                Logger.recordOutput("Swerve/AngleSysIdState", state.toString())
+            ),
+            new SysIdRoutine.Mechanism(voltage -> runAngleCharacterization(voltage.in(Volts)), null, this)
         );
     }
 
