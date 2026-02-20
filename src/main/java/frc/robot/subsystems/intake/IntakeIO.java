@@ -2,6 +2,8 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.MutCurrent;
 import frc.util.SubsystemIOUtil.SparkMotorControllerData;
 import org.littletonrobotics.junction.AutoLog;
@@ -24,6 +26,11 @@ public interface IntakeIO {
         public boolean deploySolenoidLeftState = false;
         public boolean deploySolenoidRightState = false;
 
+        // TODO: test
+        // Deploy motor
+        public SparkMotorControllerData deployMotorData = new SparkMotorControllerData();
+        public boolean deployMotorConnected = true;
+
         // Motor controller data for the intake motor
         public SparkMotorControllerData intakeMotorData = new SparkMotorControllerData();
         public boolean intakeMotorConnected = true;
@@ -39,6 +46,14 @@ public interface IntakeIO {
 
     // test
     public default void runIntake(double speed) {}
+
+    public default void runDeployDutyCycle(double output) {}
+
+    public default void setDeployEncoderPosition(Rotation2d position) {
+        setDeployEncoderPosition(position.getMeasure());
+    }
+
+    public default void setDeployEncoderPosition(Angle position) {}
 
     public default void deploy() {}
 

@@ -2,10 +2,14 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -13,7 +17,10 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
+import java.util.function.Function;
 import org.ironmaple.simulation.IntakeSimulation;
+import yams.mechanisms.config.ArmConfig;
+import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
@@ -38,14 +45,32 @@ public final class IntakeConstants {
         .withOpenLoopRampRate(Seconds.of(0.2));
 
     public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
-        .withControlMode(ControlMode.OPEN_LOOP)
-        .withGearing(36)
-        // Motor properties to prevent over currenting.
+        .withControlMode(ControlMode.CLOSED_LOOP)
+        // Feedback Constants (PID Constants)
+        .withClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
+        .withSimClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
+        // Feedforward Constants
+        .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+        .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.0, 0.0))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
         .withStatorCurrentLimit(Amps.of(30))
-        .withClosedLoopRampRate(Seconds.of(0.2))
+        .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.2));
+
+    // Intake positions
+    public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(90);
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(160);
+
+    public static final Function<SmartMotorController, ArmConfig> deployArmConfigFunction =
+        (SmartMotorController deployMotor) ->
+            new ArmConfig(deployMotor)
+                .withLength(Inches.of(12))
+                .withMass(Pounds.of(7.5))
+                .withHardLimit(Degrees.of(70), Degrees.of(200))
+                .withSoftLimits(INTAKE_RETRACTED_ANGLE, Degrees.of(180))
+                .withStartingPosition(INTAKE_RETRACTED_ANGLE);
+    // .withMechanismPositionConfig(null)
 
     // Auto intake (constants for swerve)
     public static final Angle MAX_AUTO_INTAKE_YAW_ASSIST = Degrees.of(15);

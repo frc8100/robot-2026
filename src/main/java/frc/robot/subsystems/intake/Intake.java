@@ -1,13 +1,22 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.subsystems.CANIdAlert;
@@ -80,12 +89,13 @@ public class Intake extends SubsystemBase {
 
     // Alerts for disconnected motors
     private final CANIdAlert intakeDisconnectedAlert = new CANIdAlert(CANIdConstants.INTAKE_MOTOR_ID, "IntakeMotor");
-    // private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
+    private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
 
     // Deploy state visualization
     private final LinearFilter deployStateFilter = LinearFilter.movingAverage(
         (int) ((1000.0 * Constants.LOOP_PERIOD_SECONDS) * IntakeConstants.SIMULATION_TIME_FOR_INTAKE_DEPLOY.in(Seconds))
     );
+    private final MutAngle deployStateForVisualization = Radians.mutable(0.0);
 
     public Intake(IntakeIO io) {
         this.io = io;
@@ -121,9 +131,25 @@ public class Intake extends SubsystemBase {
      * @return A value from 0 to 1 representing the deploy state of the intake for visualization. Goes from 0 to 1 as the intake deploys, and from 1 to 0 as the intake retracts, with a delay to match the time it takes for the intake to deploy/retract in simulation.
      */
     public double getDeployStateForVisualization() {
-        return deployStateFilter.calculate(
-            inputs.measuredDeployState == IntakeIO.MeasuredDeployState.DEPLOYED ? 1.0 : 0.0
+        // return deployStateFilter.calculate(
+        //     inputs.measuredDeployState == IntakeIO.MeasuredDeployState.DEPLOYED ? 1.0 : 0.0
+        // );
+
+        return MathUtil.inverseInterpolate(
+            IntakeConstants.INTAKE_RETRACTED_ANGLE.baseUnitMagnitude(),
+            IntakeConstants.INTAKE_DEPLOYED_ANGLE.baseUnitMagnitude(),
+            inputs.deployMotorData.positionAngle.baseUnitMagnitude()
         );
+    }
+
+    public Angle getDeployAngle() {
+        // return deployStateForVisualization.mut_replace(MathUtil.interpolate(
+        //     IntakeConstants.INTAKE_RETRACTED_ANGLE.in(Radians),
+        //     IntakeConstants.INTAKE_DEPLOYED_ANGLE.in(Radians),
+        //     getDeployStateForVisualization()
+        // ), Radians);
+
+        return deployStateForVisualization.mut_replace(inputs.deployMotorData.positionAngle);
     }
 
     // temporary
@@ -136,10 +162,32 @@ public class Intake extends SubsystemBase {
         return Commands.run(() -> io.runIntake(0));
     }
 
+    /**
+     * @return A command that moves the intake deploy back until it hits the hard stop and then zeros the intake.
+     */
+    public Command calibrateIntakeDeploy() {
+        /**
+         * A trigger that is true when the intake deploy motor is stalled which indicates that the intake has hit the hard stop.
+         */
+        final Trigger calibrationCompleteTrigger = new Trigger(() ->
+            inputs.deployMotorData.torqueCurrent.gte(Amps.of(10))
+        ).debounce(0.1);
+
+        return run(() -> io.runDeployDutyCycle(-0.1))
+            .until(calibrationCompleteTrigger)
+            .andThen(runOnce(() -> io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE)));
+    }
+
+    /**
+     * Deploys the intake.
+     */
     public void deploy() {
         io.deploy();
     }
 
+    /**
+     * Retracts the intake.
+     */
     public void retract() {
         io.retract();
     }
@@ -151,7 +199,17 @@ public class Intake extends SubsystemBase {
 
         // Update alerts
         intakeDisconnectedAlert.updateConnectionStatus(inputs.intakeMotorConnected);
-        // deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
+        deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
+
+        // Visualization
+        Logger.recordOutput("Intake/VisualizationPose", getIntakePose());
+    }
+
+    /**
+     * @return The pose of the intake for visualization purposes.
+     */
+    public Transform3d getIntakePose() {
+        return new Transform3d(Translation3d.kZero, new Rotation3d(Radians.zero(), getDeployAngle(), Radians.zero()));
     }
 
     @Override
