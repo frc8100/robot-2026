@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.414194058039821,
-        "y": 5.700355206147513
+        "x": 3.3858385518916103,
+        "y": 5.816
       },
       "isLocked": false,
       "linkedName": null
@@ -79,21 +79,21 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 1.0,
-      "rotationDegrees": 150.0
+      "rotationDegrees": -29.999999999999996
     },
     {
       "waypointRelativePos": 3.278557114228457,
-      "rotationDegrees": 90.0
+      "rotationDegrees": -90.0
     }
   ],
   "constraintZones": [
     {
       "name": "Back Up",
-      "minWaypointRelativePos": 0.9047619047619051,
-      "maxWaypointRelativePos": 1.4000000000000001,
+      "minWaypointRelativePos": 0.9904761904761902,
+      "maxWaypointRelativePos": 1.1,
       "constraints": {
-        "maxVelocity": 3.751,
-        "maxAcceleration": 2.0,
+        "maxVelocity": 0.35,
+        "maxAcceleration": 7.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -142,7 +142,7 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.75,
-    "maxAcceleration": 7.0,
+    "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -150,13 +150,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": -90.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }
