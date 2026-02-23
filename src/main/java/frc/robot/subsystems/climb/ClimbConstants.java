@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.Seconds;
 import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import java.util.function.Function;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -37,4 +38,16 @@ public class ClimbConstants {
     public static final Angle RETRACTED_ANGLE = Degrees.of(90.0);
     public static final Angle DEPLOY_ANGLE = Degrees.of(190.0);
     public static final Angle CLIMB_ANGLE = Degrees.of(50.0);
+
+    public static final Angle TOLERANCE = Degrees.of(5.0);
+
+    /**
+     * The minimum current that the climb motors should draw when latched onto the bar. If the current is below this threshold, assume that the climb is not latched.
+     */
+    public static final Current MIN_LATCH_CURRENT = Amps.of(25.0);
+
+    /**
+     * The current that is drawn when the climb is at the target angle. If current is above this threshold, assume that the climb is at the target angle.
+     */
+    public static final Current MIN_AT_TARGET_CURRENT = Amps.of(45.0);
 }
