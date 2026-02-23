@@ -1,5 +1,6 @@
 package frc.robot.subsystems.climb;
 
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CANIdConstants;
 import frc.robot.subsystems.CANIdAlert;
@@ -8,6 +9,11 @@ import frc.util.statemachine.StateMachineState;
 import org.littletonrobotics.junction.Logger;
 
 public class Climb extends SubsystemBase {
+
+    public enum ClimbLocation {
+        LEFT,
+        RIGHT,
+    }
 
     public enum ClimbState {
         /**
@@ -41,13 +47,20 @@ public class Climb extends SubsystemBase {
          * The climb is descending.
          */
         DESCENDING,
+
+        /**
+         * The climb is retracting from the deployed position back to the stowed position.
+         */
+        RETRACTING,
     }
 
     public final StateMachine<ClimbState, Object> stateMachine = new StateMachine<ClimbState, Object>(
         ClimbState.class,
         "Climb"
     )
-        .withDefaultState(new StateMachineState<>(ClimbState.IDLE, "Idle"))
+        .withDefaultState(
+            new StateMachineState<>(ClimbState.IDLE, "Idle").requirePreviousStateToBe(ClimbState.RETRACTING)
+        )
         .withState(new StateMachineState<>(ClimbState.DEPLOYING, "Deploying").requirePreviousStateToBe(ClimbState.IDLE))
         .withState(
             new StateMachineState<>(ClimbState.DEPLOYED, "Deployed").requirePreviousStateToBe(ClimbState.DEPLOYING)
@@ -59,7 +72,16 @@ public class Climb extends SubsystemBase {
             new StateMachineState<>(ClimbState.HOLD_CLIMB, "HoldClimb").requirePreviousStateToBe(ClimbState.CLIMBING)
         )
         .withState(
-            new StateMachineState<>(ClimbState.DESCENDING, "Descending").requirePreviousStateToBe(ClimbState.CLIMBING)
+            new StateMachineState<>(ClimbState.DESCENDING, "Descending").requirePreviousStateToBeOneOf(
+                ClimbState.CLIMBING,
+                ClimbState.HOLD_CLIMB
+            )
+        )
+        .withState(
+            new StateMachineState<>(ClimbState.RETRACTING, "Retracting").requirePreviousStateToBeOneOf(
+                ClimbState.DEPLOYED,
+                ClimbState.DEPLOYING
+            )
         );
 
     private final ClimbIO io;
@@ -87,6 +109,61 @@ public class Climb extends SubsystemBase {
         // Update alerts
         leftDisconnectedAlert.updateConnectionStatus(inputs.leftClimbMotorConnected);
         rightDisconnectedAlert.updateConnectionStatus(inputs.rightClimbMotorConnected);
+
+        // State machine bindings
+        stateMachine.whileState(ClimbState.DEPLOYING, this::handleDeploying);
+        stateMachine.whileState(ClimbState.DEPLOYED, this::handleDeployed);
+        stateMachine.whileState(ClimbState.CLIMBING, this::handleClimbing);
+        stateMachine.whileState(ClimbState.HOLD_CLIMB, this::handleHoldClimb);
+        stateMachine.whileState(ClimbState.DESCENDING, this::handleDescending);
+
+        setDefaultCommand(stateMachine.getRunnableCommand(this));
+    }
+
+    // State bindings
+    private void handleDeploying() {
+        io.setClimbTarget(ClimbConstants.DEPLOY_ANGLE);
+
+        if (isAtTargetAngle(ClimbConstants.DEPLOY_ANGLE)) {
+            stateMachine.scheduleStateChange(ClimbState.DEPLOYED);
+        }
+    }
+
+    private void handleDeployed() {
+        io.setClimbTarget(ClimbConstants.DEPLOY_ANGLE);
+
+        if (!isAtTargetAngle(ClimbConstants.DEPLOY_ANGLE)) {
+            stateMachine.scheduleStateChange(ClimbState.DEPLOYING);
+        }
+    }
+
+    private void handleClimbing() {
+        io.setClimbTarget(ClimbConstants.CLIMB_ANGLE);
+
+        if (isAtTargetAngle(ClimbConstants.CLIMB_ANGLE)) {
+            stateMachine.scheduleStateChange(ClimbState.HOLD_CLIMB);
+        }
+    }
+
+    private void handleHoldClimb() {
+        io.setClimbTarget(ClimbConstants.CLIMB_ANGLE);
+
+        if (!isAtTargetAngle(ClimbConstants.CLIMB_ANGLE)) {
+            stateMachine.scheduleStateChange(ClimbState.CLIMBING);
+        }
+    }
+
+    private void handleDescending() {
+        handleDeploying();
+        // io.setClimbTarget(ClimbConstants.DEPLOY_ANGLE);
+
+        // if (isAtTargetAngle(ClimbConstants.DEPLOY_ANGLE)) {
+        //     stateMachine.scheduleStateChange(ClimbState.DEPLOYED);
+        // }
+    }
+
+    public boolean isAtTargetAngle(Angle target) {
+        return target.isNear(inputs.leftClimbMotorData.positionAngle, ClimbConstants.TOLERANCE);
     }
 
     @Override

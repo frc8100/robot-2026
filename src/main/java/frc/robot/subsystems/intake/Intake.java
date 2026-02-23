@@ -206,7 +206,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * @return The pose of the intake for visualization purposes.
+     * @return The pose of the intake relative to the robot.
      */
     public Transform3d getIntakePose() {
         return new Transform3d(Translation3d.kZero, new Rotation3d(Radians.zero(), getDeployAngle(), Radians.zero()));

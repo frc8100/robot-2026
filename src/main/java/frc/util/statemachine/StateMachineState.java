@@ -66,6 +66,21 @@ public class StateMachineState<TEnumType extends Enum<TEnumType>> {
     }
 
     /**
+     * A convenience method to set a condition that requires the previous state to be one of the specified states for the change to occur.
+     */
+    @SafeVarargs
+    public final StateMachineState<TEnumType> requirePreviousStateToBeOneOf(TEnumType... requiredPreviousStates) {
+        return withCanChangeCondition(previousState -> {
+            for (TEnumType requiredPreviousState : requiredPreviousStates) {
+                if (previousState == requiredPreviousState) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    /**
      * Sets the color associated with this state.
      */
     public StateMachineState<TEnumType> withColor(Color color) {
