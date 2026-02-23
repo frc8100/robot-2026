@@ -190,7 +190,7 @@ public class SwerveConstants {
     public static final double DRIVE_KD = 0.0;
     public static final TunableValue driveKPTunable = new TunableValue("Drive/kP", DRIVE_KP);
     public static final TunableValue driveKDTunable = new TunableValue("Drive/kD", DRIVE_KD);
-    public static final double DRIVE_SIM_KP = 0.2;
+    public static final double DRIVE_SIM_KP = 0.05;
     public static final double DRIVE_SIM_KD = 0.0;
 
     public static final AngularVelocity ALLOWED_DRIVE_CLOSE_LOOP_ERROR = RadiansPerSecond.of(0.25);
@@ -205,18 +205,28 @@ public class SwerveConstants {
         0.0563
     );
     public static final LinearForceFeedForwardConstants driveFFConstantsSim = new LinearForceFeedForwardConstants(
-        0.0752,
-        0.0436,
-        0,
-        0.8849
+        // 0.0752,
+        // 0.0436,
+        // 0,
+        // 0.8849
+
+        0.0,
+        0.16366,
+        0.052619,
+        0.0
     );
 
     // Angle Motor Characterization Values
     public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(
         0.13338,
-        0.42676
+        0.42676,
+        0.0
     );
-    public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(0.0, 0.42514);
+    public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(
+        0.0,
+        0.42442,
+        0.010259
+    );
 
     // Swerve path constraints
     public static final LinearVelocity MAX_SPEED = MetersPerSecond.of(3.75);

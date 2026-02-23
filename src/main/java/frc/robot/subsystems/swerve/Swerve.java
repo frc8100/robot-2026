@@ -14,8 +14,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
-import com.pathplanner.lib.util.swerve.SwerveSetpoint;
-import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import com.therekrab.autopilot.APTarget;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -50,6 +48,8 @@ import frc.robot.subsystems.swerve.module.Module;
 import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.util.LocalADStarAK;
 import frc.util.SwerveFeedForwards;
+import frc.util.SwerveSetpointGenerator;
+import frc.util.SwerveSetpointGenerator.SwerveSetpoint;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import java.util.OptionalDouble;
@@ -411,7 +411,8 @@ public class Swerve extends SubsystemBase {
         moduleStateSetpoint = setpointGenerator.generateSetpoint(
             moduleStateSetpoint,
             setpointSpeeds,
-            Constants.LOOP_PERIOD_SECONDS
+            Constants.LOOP_PERIOD_SECONDS,
+            false
         );
 
         SwerveModuleState[] setpointStates = moduleStateSetpoint.moduleStates();
@@ -427,6 +428,14 @@ public class Swerve extends SubsystemBase {
             angleMotorVelocitiesRadPerSec[i] /= Constants.LOOP_PERIOD_SECONDS;
         }
 
+        // Compute next setpoint for acceleration feedforwards
+        SwerveSetpoint nextSetpoint = setpointGenerator.generateSetpoint(
+            moduleStateSetpoint,
+            setpointSpeeds,
+            Constants.LOOP_PERIOD_SECONDS,
+            false
+        );
+
         // Log setpoints
         Logger.recordOutput("Swerve/States/Setpoints", setpointStates);
         Logger.recordOutput("Swerve/ChassisSpeeds/Setpoints", moduleStateSetpoint.robotRelativeSpeeds());
@@ -437,7 +446,13 @@ public class Swerve extends SubsystemBase {
         Logger.recordOutput("Swerve/States/FeedforwardTorqueCurrent", feedforwards.torqueCurrentsAmps());
 
         // Set the desired state for each swerve module
-        setModuleStates(setpointStates, feedforwardLinearForcesNewtons, angleMotorVelocitiesRadPerSec);
+        setModuleStates(
+            setpointStates,
+            moduleStateSetpoint.robotRelativeSpeeds(),
+            nextSetpoint.moduleStates(),
+            feedforwardLinearForcesNewtons,
+            angleMotorVelocitiesRadPerSec
+        );
     }
 
     /**
@@ -445,6 +460,10 @@ public class Swerve extends SubsystemBase {
      */
     public void stop() {
         runVelocityChassisSpeeds(new ChassisSpeeds());
+    }
+
+    public void setModuleStates(SwerveModuleState[] desiredStates) {
+        setModuleStates(desiredStates, getChassisSpeeds(), desiredStates, new double[4], new double[4]);
     }
 
     /**
@@ -455,19 +474,51 @@ public class Swerve extends SubsystemBase {
      */
     public void setModuleStates(
         SwerveModuleState[] desiredStates,
+        ChassisSpeeds desiredChassisSpeeds,
+        SwerveModuleState[] nextSetpointStates,
         double[] feedforwardLinearForcesNewtons,
         double[] angleMotorVelocitiesRadPerSec
     ) {
+        boolean useDriveKAFeedforward = true;
+        boolean useAngleKAFeedforward = false;
+
+        if (
+            // Don't use kA feedforward if the desired speeds or measured speeds are low
+            (Math.abs(getChassisSpeeds().vxMetersPerSecond) < 0.1 ||
+                Math.abs(getChassisSpeeds().vyMetersPerSecond) < 0.1)
+            // Don't use kA feedforward if the actual speeds are significantly different from the desired speeds to prevent overshooting from kA
+            // This would occur when the robot hits a obstacle or other scenario where the robot is not able to achieve the desired speeds, and we don't want the kA feedforward to keep increasing and cause more overshooting
+            // (Math.abs(getChassisSpeeds().vxMetersPerSecond - desiredChassisSpeeds.vxMetersPerSecond) > 0.85 ||
+            //     Math.abs(getChassisSpeeds().vyMetersPerSecond - desiredChassisSpeeds.vyMetersPerSecond) > 0.85)
+        ) {
+            // nextSetpointStates = desiredStates;
+            useDriveKAFeedforward = false;
+        }
+
         // Set the desired state for each swerve module
         for (int i = 0; i < 4; i++) {
             Module mod = swerveModules[i];
 
+            double desiredDriveVelocityRadPerSec =
+                desiredStates[mod.index].speedMetersPerSecond / SwerveConstants.WHEEL_RADIUS.in(Meters);
+            double nextDriveVelocityRadPerSec = useDriveKAFeedforward
+                ? nextSetpointStates[mod.index].speedMetersPerSecond / SwerveConstants.WHEEL_RADIUS.in(Meters)
+                : desiredDriveVelocityRadPerSec;
             double driveFFVolts = swerveFeedForwards.getDriveMotorFFVolts(
-                desiredStates[mod.index].speedMetersPerSecond / SwerveConstants.WHEEL_RADIUS.in(Meters),
+                desiredDriveVelocityRadPerSec,
+                nextDriveVelocityRadPerSec,
                 feedforwardLinearForcesNewtons[mod.index]
             );
 
-            double angleFFVolts = swerveFeedForwards.getAngleMotorFFVolts(angleMotorVelocitiesRadPerSec[mod.index]);
+            double desiredAngleVelocityRadPerSec = angleMotorVelocitiesRadPerSec[mod.index];
+            double nextAngleVelocityRadPerSec = useAngleKAFeedforward
+                ? nextSetpointStates[mod.index].angle.minus(desiredStates[mod.index].angle).getRadians() /
+                Constants.LOOP_PERIOD_SECONDS
+                : desiredAngleVelocityRadPerSec;
+            double angleFFVolts = swerveFeedForwards.getAngleMotorFFVolts(
+                desiredAngleVelocityRadPerSec,
+                nextAngleVelocityRadPerSec
+            );
 
             mod.runSetpoint(desiredStates[mod.index], driveFFVolts, angleFFVolts);
         }
@@ -738,7 +789,8 @@ public class Swerve extends SubsystemBase {
                 moduleStateSetpointWithoutRotation = setpointGenerator.generateSetpoint(
                     moduleStateSetpointWithoutRotation,
                     setpointSpeeds,
-                    Constants.LOOP_PERIOD_SECONDS
+                    Constants.LOOP_PERIOD_SECONDS,
+                    false
                 );
 
                 Translation2d desiredChassisSpeedAcceleration = new Translation2d(
