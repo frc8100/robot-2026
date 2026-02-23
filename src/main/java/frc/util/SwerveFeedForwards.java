@@ -2,6 +2,8 @@ package frc.util;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import frc.robot.Constants;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import java.util.function.BooleanSupplier;
 
@@ -18,9 +20,9 @@ public class SwerveFeedForwards {
 
     /**
      * Constants for simple feedforward calculations.
-     * Satisfies the equation: V_applied = kS * sign(velocityRadiansPerSecond) + kV * velocityRadiansPerSecond
+     * Satisfies the equation: V_applied = kS * sign(velocityRadiansPerSecond) + kV * velocityRadiansPerSecond + kA * accelerationRadiansPerSecond2.
      */
-    public static record SimpleFeedForwardConstants(double kS, double kV) {}
+    public static record SimpleFeedForwardConstants(double kS, double kV, double kA) {}
 
     /**
      * Calculates the required voltage for the given linear forces and desired ground speed.
@@ -70,6 +72,10 @@ public class SwerveFeedForwards {
     private final SimpleFeedForwardConstants angleMotorFFConstants;
     private final LinearForceFeedForwardConstants driveMotorFFConstants;
 
+    // Deltas for acceleration feedforward
+    // private double previousDriveVelocityRadPerSec = 0.0;
+    // private double previousAngleVelocityRadPerSec = 0.0;
+
     /**
      * Indicates whether the feedforwards are for simulation or real hardware.
      */
@@ -102,33 +108,81 @@ public class SwerveFeedForwards {
      * @param velocityRadPerSec - The desired velocity in radians per second.
      * @return The required voltage to achieve the desired velocity.
      */
-    public double getAngleMotorFFVolts(double velocityRadPerSec) {
-        return (
-            angleMotorFFConstants.kS * Math.signum(velocityRadPerSec) + angleMotorFFConstants.kV * velocityRadPerSec
-        );
+    public double getAngleMotorFFVolts(double velocityRadPerSec, double nextVelocityRadPerSec) {
+        // See wpimath/algorithms.md#Simple_motor_feedforward for derivation
+        double outputVolts = 0.0;
+
+        if (angleMotorFFConstants.kA < 1e-9) {
+            // TODO: this should be using nextVelocityRadPerSec, but could fail to converge
+            outputVolts =
+                angleMotorFFConstants.kS * Math.signum(velocityRadPerSec) +
+                angleMotorFFConstants.kV * velocityRadPerSec;
+        } else {
+            double A = -angleMotorFFConstants.kV / angleMotorFFConstants.kA;
+            double B = 1.0 / angleMotorFFConstants.kA;
+            double A_d = Math.exp(A * Constants.LOOP_PERIOD_SECONDS);
+            double B_d = A > -1e-9 ? B * Constants.LOOP_PERIOD_SECONDS : (1.0 / A) * (A_d - 1.0) * B;
+            outputVolts =
+                angleMotorFFConstants.kS * Math.signum(velocityRadPerSec) +
+                (1.0 / B_d) * (nextVelocityRadPerSec - A_d * velocityRadPerSec);
+        }
+
+        // Update previous velocity
+        // previousAngleVelocityRadPerSec = velocityRadPerSec;
+
+        return outputVolts;
     }
 
     /**
      * Calculates the required voltage for the given linear force feedforward constants, desired velocity, and feedforward linear forces.
      * If in real hardware, only the kF portion is calculated and returned as kS, kV, and kA are handled by the SparkMax.
      * @param desiredVelocityRadPerSec - The desired velocity in radians per second.
+     * @param nextVelocityRadPerSec - The next velocity in radians per second.
      * @param feedforwardLinearForcesNewtons - The desired linear forces in Newtons.
      * @return The required voltage to achieve the desired velocity and forces.
      */
-    public double getDriveMotorFFVolts(double desiredVelocityRadPerSec, double feedforwardLinearForcesNewtons) {
+    public double getDriveMotorFFVolts(
+        double desiredVelocityRadPerSec,
+        double nextVelocityRadPerSec,
+        double feedforwardLinearForcesNewtons
+    ) {
         // If real, kS and kV are automatically handled by SparkMax
-        if (!isSimulation) {
-            return (
-                driveMotorFFConstants.kF *
-                getLinearForcesFFVoltsFromRadPerSec(feedforwardLinearForcesNewtons, desiredVelocityRadPerSec)
-            );
-        }
+        // if (!isSimulation) {
+        //     return (
+        //         driveMotorFFConstants.kF *
+        //         getLinearForcesFFVoltsFromRadPerSec(feedforwardLinearForcesNewtons, desiredVelocityRadPerSec)
+        //     );
+        // }
 
-        return (
-            driveMotorFFConstants.kS * Math.signum(desiredVelocityRadPerSec) +
-            driveMotorFFConstants.kV * desiredVelocityRadPerSec +
+        // return (
+        //     driveMotorFFConstants.kS * Math.signum(desiredVelocityRadPerSec) +
+        //     driveMotorFFConstants.kV * desiredVelocityRadPerSec +
+        //     driveMotorFFConstants.kF *
+        //     getLinearForcesFFVoltsFromRadPerSec(feedforwardLinearForcesNewtons, desiredVelocityRadPerSec)
+        // );
+
+        // See wpimath/algorithms.md#Simple_motor_feedforward for derivation
+        double feedforwardVoltsFromForces =
             driveMotorFFConstants.kF *
-            getLinearForcesFFVoltsFromRadPerSec(feedforwardLinearForcesNewtons, desiredVelocityRadPerSec)
-        );
+            getLinearForcesFFVoltsFromRadPerSec(feedforwardLinearForcesNewtons, desiredVelocityRadPerSec);
+        double outputVolts = 0.0;
+
+        if (driveMotorFFConstants.kA < 1e-9) {
+            outputVolts =
+                driveMotorFFConstants.kS * Math.signum(nextVelocityRadPerSec) +
+                driveMotorFFConstants.kV * nextVelocityRadPerSec +
+                feedforwardVoltsFromForces;
+        } else {
+            double A = -driveMotorFFConstants.kV / driveMotorFFConstants.kA;
+            double B = 1.0 / driveMotorFFConstants.kA;
+            double A_d = Math.exp(A * Constants.LOOP_PERIOD_SECONDS);
+            double B_d = A > -1e-9 ? B * Constants.LOOP_PERIOD_SECONDS : (1.0 / A) * (A_d - 1.0) * B;
+            outputVolts =
+                driveMotorFFConstants.kS * Math.signum(desiredVelocityRadPerSec) +
+                (1.0 / B_d) * (nextVelocityRadPerSec - A_d * desiredVelocityRadPerSec) +
+                feedforwardVoltsFromForces;
+        }
+        // previousDriveVelocityRadPerSec = desiredVelocityRadPerSec;
+        return outputVolts;
     }
 }

@@ -1,5 +1,6 @@
 package frc.util;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -7,7 +8,6 @@ import static edu.wpi.first.units.Units.Volts;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.DriveFeedforwards;
-import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -18,9 +18,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import frc.robot.subsystems.swerve.SwerveConstants;
 
 /**
  * Swerve setpoint generator based on a version created by FRC team 254.
@@ -31,11 +29,39 @@ import java.util.Optional;
  */
 public class SwerveSetpointGenerator {
 
+    /**
+     * A setpoint for a swerve drivetrain, containing robot-relative chassis speeds and individual
+     * module states
+     *
+     * @param robotRelativeSpeeds Robot-relative chassis speeds
+     * @param moduleStates Array of individual swerve module states. These will be in FL, FR, BL, BR
+     *     order.
+     * @param feedforwards Feedforwards for each module's drive motor. The arrays in this record will be
+     *     in FL, FR, BL, BR order.
+     */
+    public record SwerveSetpoint(
+        ChassisSpeeds robotRelativeSpeeds,
+        SwerveModuleState[] moduleStates,
+        DriveFeedforwards feedforwards
+    ) {}
+
     private static final double kEpsilon = 1E-6;
 
     private final RobotConfig config;
     private final double maxSteerVelocityRadsPerSec;
     private final double brownoutVoltage;
+
+    // Cached arrays
+    private final double[] prev_vx;
+    private final double[] prev_vy;
+    private final Rotation2d[] prev_heading;
+    private final double[] desired_vx;
+    private final double[] desired_vy;
+    private final Rotation2d[] desired_heading;
+
+    private final Rotation2d[] overrideSteering;
+
+    // private final double MAX_WHEEL_TORQUE_AMPS = SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT.in(Amps);
 
     /**
      * Create a new swerve setpoint generator
@@ -48,6 +74,15 @@ public class SwerveSetpointGenerator {
         this.config = config;
         this.maxSteerVelocityRadsPerSec = maxSteerVelocityRadsPerSec;
         this.brownoutVoltage = RobotController.getBrownoutVoltage();
+
+        this.prev_vx = new double[config.numModules];
+        this.prev_vy = new double[config.numModules];
+        this.prev_heading = new Rotation2d[config.numModules];
+        this.desired_vx = new double[config.numModules];
+        this.desired_vy = new double[config.numModules];
+        this.desired_heading = new Rotation2d[config.numModules];
+
+        this.overrideSteering = new Rotation2d[config.numModules];
     }
 
     /**
@@ -76,6 +111,7 @@ public class SwerveSetpointGenerator {
      *     be a static nominal voltage if you do not want the setpoint generator to react to changes
      *     in input voltage. If the given voltage is NaN, it will be assumed to be 12v. The input
      *     voltage will be clamped to a minimum of the robot controller's brownout voltage.
+     * @param prioritizeSteering If true, the generator will prioritize converging to the desired angular velocity over translational velocity.
      * @return A Setpoint object that satisfies all the kinematic/friction limits while converging to
      *     desiredState quickly.
      */
@@ -84,7 +120,8 @@ public class SwerveSetpointGenerator {
         ChassisSpeeds desiredStateRobotRelative,
         PathConstraints constraints,
         double dt,
-        double inputVoltage
+        double inputVoltage,
+        boolean prioritizeSteering
     ) {
         if (Double.isNaN(inputVoltage)) {
             inputVoltage = 12.0;
@@ -115,8 +152,52 @@ public class SwerveSetpointGenerator {
         }
 
         SwerveModuleState[] desiredModuleStates = config.toSwerveModuleStates(desiredStateRobotRelative);
+
         // Make sure desiredState respects velocity limits.
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredModuleStates, maxSpeed);
+        if (!prioritizeSteering) {
+            SwerveDriveKinematics.desaturateWheelSpeeds(desiredModuleStates, maxSpeed);
+        } else {
+            // Instead of standard desaturateWheelSpeeds, prioritize rotation:
+            ChassisSpeeds rotationOnly = new ChassisSpeeds(0, 0, desiredStateRobotRelative.omegaRadiansPerSecond);
+            SwerveModuleState[] rotationStates = config.toSwerveModuleStates(rotationOnly);
+
+            double maxRotSpeed = 0;
+            for (SwerveModuleState state : rotationStates) {
+                maxRotSpeed = Math.max(maxRotSpeed, Math.abs(state.speedMetersPerSecond));
+            }
+
+            // Ensure rotation doesn't exceed absolute max speed on its own
+            maxRotSpeed = Math.min(maxRotSpeed, maxSpeed);
+
+            // The remaining budget is given to translation
+            double translationMaxSpeed = maxSpeed - maxRotSpeed;
+
+            ChassisSpeeds translationOnly = new ChassisSpeeds(
+                desiredStateRobotRelative.vxMetersPerSecond,
+                desiredStateRobotRelative.vyMetersPerSecond,
+                0
+            );
+            SwerveModuleState[] translationStates = config.toSwerveModuleStates(translationOnly);
+            SwerveDriveKinematics.desaturateWheelSpeeds(translationStates, translationMaxSpeed);
+
+            // Now combine them back together
+            for (int i = 0; i < config.numModules; i++) {
+                // Vector addition of the translation state and rotation state to get your final, aim-prioritized module state
+                Translation2d translationVec = new Translation2d(
+                    translationStates[i].speedMetersPerSecond * translationStates[i].angle.getCos(),
+                    translationStates[i].speedMetersPerSecond * translationStates[i].angle.getSin()
+                );
+                Translation2d rotationVec = new Translation2d(
+                    rotationStates[i].speedMetersPerSecond * rotationStates[i].angle.getCos(),
+                    rotationStates[i].speedMetersPerSecond * rotationStates[i].angle.getSin()
+                );
+                desiredModuleStates[i] = new SwerveModuleState(
+                    translationVec.getNorm() + rotationVec.getNorm(),
+                    translationVec.getAngle().plus(rotationVec.getAngle())
+                );
+            }
+        }
+
         desiredStateRobotRelative = config.toChassisSpeeds(desiredModuleStates);
 
         // Special case: desiredState is a complete stop. In this case, module angle is arbitrary, so
@@ -131,13 +212,8 @@ public class SwerveSetpointGenerator {
         }
 
         // For each module, compute local Vx and Vy vectors.
-        double[] prev_vx = new double[config.numModules];
-        double[] prev_vy = new double[config.numModules];
-        Rotation2d[] prev_heading = new Rotation2d[config.numModules];
-        double[] desired_vx = new double[config.numModules];
-        double[] desired_vy = new double[config.numModules];
-        Rotation2d[] desired_heading = new Rotation2d[config.numModules];
         boolean all_modules_should_flip = true;
+
         for (int m = 0; m < config.numModules; m++) {
             prev_vx[m] =
                 prevSetpoint.moduleStates()[m].angle.getCos() * prevSetpoint.moduleStates()[m].speedMetersPerSecond;
@@ -169,7 +245,14 @@ public class SwerveSetpointGenerator {
         ) {
             // It will (likely) be faster to stop the robot, rotate the modules in place to the complement
             // of the desired angle, and accelerate again.
-            return generateSetpoint(prevSetpoint, new ChassisSpeeds(), constraints, dt, inputVoltage);
+            return generateSetpoint(
+                prevSetpoint,
+                new ChassisSpeeds(),
+                constraints,
+                dt,
+                inputVoltage,
+                prioritizeSteering
+            );
         }
 
         // Compute the deltas between start and goal. We can then interpolate from the start state to
@@ -187,16 +270,16 @@ public class SwerveSetpointGenerator {
         // In cases where an individual module is stopped, we want to remember the right steering angle
         // to command (since inverse kinematics doesn't care about angle, we can be opportunistically
         // lazy).
-        List<Optional<Rotation2d>> overrideSteering = new ArrayList<>(config.numModules);
+
         // Enforce steering velocity limits. We do this by taking the derivative of steering angle at
         // the current angle, and then backing out the maximum interpolant between start and goal
         // states. We remember the minimum across all modules, since that is the active constraint.
         for (int m = 0; m < config.numModules; m++) {
             if (!need_to_steer) {
-                overrideSteering.add(Optional.of(prevSetpoint.moduleStates()[m].angle));
+                overrideSteering[m] = prevSetpoint.moduleStates()[m].angle;
                 continue;
             }
-            overrideSteering.add(Optional.empty());
+            overrideSteering[m] = null;
 
             double max_theta_step = dt * maxSteerVelocityRadsPerSec;
 
@@ -205,7 +288,7 @@ public class SwerveSetpointGenerator {
                 // angle, so limit based purely on rotation in place.
                 if (epsilonEquals(desiredModuleStates[m].speedMetersPerSecond, 0.0)) {
                     // Goal angle doesn't matter. Just leave module at its current angle.
-                    overrideSteering.set(m, Optional.of(prevSetpoint.moduleStates()[m].angle));
+                    overrideSteering[m] = prevSetpoint.moduleStates()[m].angle;
                     continue;
                 }
 
@@ -221,18 +304,13 @@ public class SwerveSetpointGenerator {
 
                 if (numStepsNeeded <= 1.0) {
                     // Steer directly to goal angle.
-                    overrideSteering.set(m, Optional.of(desiredModuleStates[m].angle));
+                    overrideSteering[m] = desiredModuleStates[m].angle;
                 } else {
                     // Adjust steering by max_theta_step.
-                    overrideSteering.set(
-                        m,
-                        Optional.of(
-                            prevSetpoint
-                                .moduleStates()[m].angle.rotateBy(
-                                    Rotation2d.fromRadians(Math.signum(necessaryRotation.getRadians()) * max_theta_step)
-                                )
-                        )
-                    );
+                    overrideSteering[m] = prevSetpoint
+                        .moduleStates()[m].angle.rotateBy(
+                            Rotation2d.fromRadians(Math.signum(necessaryRotation.getRadians()) * max_theta_step)
+                        );
                     min_s = 0.0;
                 }
                 continue;
@@ -402,9 +480,9 @@ public class SwerveSetpointGenerator {
             double wheelTorque = appliedForce * config.moduleConfig.wheelRadiusMeters;
             double torqueCurrent = config.moduleConfig.driveMotor.getCurrent(wheelTorque);
 
-            final var maybeOverride = overrideSteering.get(m);
-            if (maybeOverride.isPresent()) {
-                var override = maybeOverride.get();
+            final Rotation2d maybeOverride = overrideSteering[m];
+            if (maybeOverride != null) {
+                var override = maybeOverride;
                 if (flipHeading(retStates[m].angle.unaryMinus().rotateBy(override))) {
                     retStates[m].speedMetersPerSecond *= -1.0;
                     appliedForce *= -1.0;
@@ -458,14 +536,16 @@ public class SwerveSetpointGenerator {
         ChassisSpeeds desiredStateRobotRelative,
         PathConstraints constraints,
         Time dt,
-        Voltage inputVoltage
+        Voltage inputVoltage,
+        boolean prioritizeSteering
     ) {
         return generateSetpoint(
             prevSetpoint,
             desiredStateRobotRelative,
             constraints,
             dt.in(Seconds),
-            inputVoltage.in(Volts)
+            inputVoltage.in(Volts),
+            prioritizeSteering
         );
     }
 
@@ -490,14 +570,16 @@ public class SwerveSetpointGenerator {
         SwerveSetpoint prevSetpoint,
         ChassisSpeeds desiredStateRobotRelative,
         PathConstraints constraints,
-        double dt
+        double dt,
+        boolean prioritizeSteering
     ) {
         return generateSetpoint(
             prevSetpoint,
             desiredStateRobotRelative,
             constraints,
             dt,
-            RobotController.getInputVoltage()
+            RobotController.getInputVoltage(),
+            prioritizeSteering
         );
     }
 
@@ -522,14 +604,16 @@ public class SwerveSetpointGenerator {
         SwerveSetpoint prevSetpoint,
         ChassisSpeeds desiredStateRobotRelative,
         PathConstraints constraints,
-        Time dt
+        Time dt,
+        boolean prioritizeSteering
     ) {
         return generateSetpoint(
             prevSetpoint,
             desiredStateRobotRelative,
             constraints,
             dt.in(Seconds),
-            RobotController.getBatteryVoltage()
+            RobotController.getBatteryVoltage(),
+            prioritizeSteering
         );
     }
 
@@ -553,58 +637,76 @@ public class SwerveSetpointGenerator {
         final SwerveSetpoint prevSetpoint,
         ChassisSpeeds desiredStateRobotRelative,
         Time dt,
-        Voltage inputVoltage
-    ) {
-        return generateSetpoint(prevSetpoint, desiredStateRobotRelative, null, dt.in(Seconds), inputVoltage.in(Volts));
-    }
-
-    /**
-     * Generate a new setpoint. Note: Do not discretize ChassisSpeeds passed into or returned from
-     * this method. This method will discretize the speeds for you.
-     *
-     * <p>Note: This method will automatically use the current robot controller input voltage.
-     *
-     * @param prevSetpoint The previous setpoint motion. Normally, you'd pass in the previous
-     *     iteration setpoint instead of the actual measured/estimated kinematic state.
-     * @param desiredStateRobotRelative The desired state of motion, such as from the driver sticks or
-     *     a path following algorithm.
-     * @param dt The loop time.
-     * @return A Setpoint object that satisfies all the kinematic/friction limits while converging to
-     *     desiredState quickly.
-     */
-    public SwerveSetpoint generateSetpoint(
-        SwerveSetpoint prevSetpoint,
-        ChassisSpeeds desiredStateRobotRelative,
-        double dt
-    ) {
-        return generateSetpoint(prevSetpoint, desiredStateRobotRelative, null, dt, RobotController.getInputVoltage());
-    }
-
-    /**
-     * Generate a new setpoint. Note: Do not discretize ChassisSpeeds passed into or returned from
-     * this method. This method will discretize the speeds for you.
-     *
-     * <p>Note: This method will automatically use the current robot controller input voltage.
-     *
-     * @param prevSetpoint The previous setpoint motion. Normally, you'd pass in the previous
-     *     iteration setpoint instead of the actual measured/estimated kinematic state.
-     * @param desiredStateRobotRelative The desired state of motion, such as from the driver sticks or
-     *     a path following algorithm.
-     * @param dt The loop time.
-     * @return A Setpoint object that satisfies all the kinematic/friction limits while converging to
-     *     desiredState quickly.
-     */
-    public SwerveSetpoint generateSetpoint(
-        SwerveSetpoint prevSetpoint,
-        ChassisSpeeds desiredStateRobotRelative,
-        Time dt
+        Voltage inputVoltage,
+        boolean prioritizeSteering
     ) {
         return generateSetpoint(
             prevSetpoint,
             desiredStateRobotRelative,
             null,
             dt.in(Seconds),
-            RobotController.getBatteryVoltage()
+            inputVoltage.in(Volts),
+            prioritizeSteering
+        );
+    }
+
+    /**
+     * Generate a new setpoint. Note: Do not discretize ChassisSpeeds passed into or returned from
+     * this method. This method will discretize the speeds for you.
+     *
+     * <p>Note: This method will automatically use the current robot controller input voltage.
+     *
+     * @param prevSetpoint The previous setpoint motion. Normally, you'd pass in the previous
+     *     iteration setpoint instead of the actual measured/estimated kinematic state.
+     * @param desiredStateRobotRelative The desired state of motion, such as from the driver sticks or
+     *     a path following algorithm.
+     * @param dt The loop time.
+     * @return A Setpoint object that satisfies all the kinematic/friction limits while converging to
+     *     desiredState quickly.
+     */
+    public SwerveSetpoint generateSetpoint(
+        SwerveSetpoint prevSetpoint,
+        ChassisSpeeds desiredStateRobotRelative,
+        double dt,
+        boolean prioritizeSteering
+    ) {
+        return generateSetpoint(
+            prevSetpoint,
+            desiredStateRobotRelative,
+            null,
+            dt,
+            RobotController.getInputVoltage(),
+            prioritizeSteering
+        );
+    }
+
+    /**
+     * Generate a new setpoint. Note: Do not discretize ChassisSpeeds passed into or returned from
+     * this method. This method will discretize the speeds for you.
+     *
+     * <p>Note: This method will automatically use the current robot controller input voltage.
+     *
+     * @param prevSetpoint The previous setpoint motion. Normally, you'd pass in the previous
+     *     iteration setpoint instead of the actual measured/estimated kinematic state.
+     * @param desiredStateRobotRelative The desired state of motion, such as from the driver sticks or
+     *     a path following algorithm.
+     * @param dt The loop time.
+     * @return A Setpoint object that satisfies all the kinematic/friction limits while converging to
+     *     desiredState quickly.
+     */
+    public SwerveSetpoint generateSetpoint(
+        SwerveSetpoint prevSetpoint,
+        ChassisSpeeds desiredStateRobotRelative,
+        Time dt,
+        boolean prioritizeSteering
+    ) {
+        return generateSetpoint(
+            prevSetpoint,
+            desiredStateRobotRelative,
+            null,
+            dt.in(Seconds),
+            RobotController.getBatteryVoltage(),
+            prioritizeSteering
         );
     }
 
