@@ -17,32 +17,32 @@ import yams.mechanisms.positional.Arm;
 public class IntakeIOYAMS implements IntakeIO {
 
     // Deploy pneumatics
-    protected final Solenoid deploySolenoidLeft = new Solenoid(
-        PneumaticsModuleType.CTREPCM,
-        CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
-    );
-    protected final Solenoid deploySolenoidRight = new Solenoid(
-        PneumaticsModuleType.CTREPCM,
-        CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
-    );
-    protected final Compressor compressor = new Compressor(PneumaticsModuleType.CTREPCM);
+    // protected final Solenoid deploySolenoidLeft = new Solenoid(
+    //     PneumaticsModuleType.CTREPCM,
+    //     CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
+    // );
+    // protected final Solenoid deploySolenoidRight = new Solenoid(
+    //     PneumaticsModuleType.CTREPCM,
+    //     CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
+    // );
+    // protected final Compressor compressor = new Compressor(PneumaticsModuleType.CTREPCM);
 
     // Intake motor
     protected final SparkMax intakeMotor = new SparkMax(CANIdConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
     protected final WrappedSpark intakeMotorWrapped = new WrappedSpark(intakeMotor, IntakeConstants.intakeMotorConfig);
 
     // Deploy motor
-    protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
-    protected final WrappedSpark deployMotorWrapped = new WrappedSpark(deployMotor, IntakeConstants.deployMotorConfig);
+    // protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
+    // protected final WrappedSpark deployMotorWrapped = new WrappedSpark(deployMotor, IntakeConstants.deployMotorConfig);
 
-    protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
+    // protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
 
     @Override
     public void deploy() {
         // deploySolenoidLeft.set(true);
         // deploySolenoidRight.set(true);
 
-        deployArm.setMechanismPositionSetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE);
+        // deployArm.setMechanismPositionSetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class IntakeIOYAMS implements IntakeIO {
         // deploySolenoidLeft.set(false);
         // deploySolenoidRight.set(false);
 
-        deployArm.setMechanismPositionSetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
+        // deployArm.setMechanismPositionSetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
     }
 
     @Override
@@ -60,27 +60,27 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void runDeployDutyCycle(double output) {
-        deployArm.setDutyCycleSetpoint(output);
+        // deployArm.setDutyCycleSetpoint(output);
     }
 
     @Override
     public void setDeployEncoderPosition(Angle position) {
-        deployMotorWrapped.setEncoderPosition(position);
+        // deployMotorWrapped.setEncoderPosition(position);
     }
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
         inputs.intakeMotorConnected = intakeMotorWrapped.updateData(inputs.intakeMotorData);
-        inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
+        // inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
 
-        inputs.deploySolenoidLeftState = deploySolenoidLeft.get();
-        inputs.deploySolenoidRightState = deploySolenoidRight.get();
-        inputs.measuredDeployState = (deploySolenoidLeft.get() && deploySolenoidRight.get())
-            ? MeasuredDeployState.DEPLOYED
-            : MeasuredDeployState.RETRACTED;
+        // inputs.deploySolenoidLeftState = deploySolenoidLeft.get();
+        // inputs.deploySolenoidRightState = deploySolenoidRight.get();
+        // inputs.measuredDeployState = (deploySolenoidLeft.get() && deploySolenoidRight.get())
+        //     ? MeasuredDeployState.DEPLOYED
+        //     : MeasuredDeployState.RETRACTED;
 
-        inputs.compressorEnabled = compressor.isEnabled();
-        inputs.isPressureSwitchValveNotFull = compressor.getPressureSwitchValue();
-        inputs.compressorCurrent.mut_replace(compressor.getCurrent(), Amps);
+        // inputs.compressorEnabled = compressor.isEnabled();
+        // inputs.isPressureSwitchValveNotFull = compressor.getPressureSwitchValue();
+        // inputs.compressorCurrent.mut_replace(compressor.getCurrent(), Amps);
     }
 }

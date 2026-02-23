@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -19,6 +20,9 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
 import java.util.function.Function;
 import org.ironmaple.simulation.IntakeSimulation;
+import yams.gearing.GearBox;
+import yams.gearing.MechanismGearing;
+import yams.gearing.Sprocket;
 import yams.mechanisms.config.ArmConfig;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
@@ -32,29 +36,32 @@ public final class IntakeConstants {
 
     private IntakeConstants() {}
 
-    public static final double INTAKE_RUN_SPEED = 0.5;
+    public static final double INTAKE_RUN_SPEED = 0.7;
 
     public static final SmartMotorControllerConfig intakeMotorConfig = new SmartMotorControllerConfig()
         .withControlMode(ControlMode.OPEN_LOOP)
         .withGearing(3)
         // Motor properties to prevent over currenting.
-        .withMotorInverted(false)
-        .withIdleMode(MotorMode.BRAKE)
-        .withStatorCurrentLimit(Amps.of(30))
+        .withMotorInverted(true)
+        .withIdleMode(MotorMode.COAST)
+        .withStatorCurrentLimit(Amps.of(32))
         .withClosedLoopRampRate(Seconds.of(0.2))
-        .withOpenLoopRampRate(Seconds.of(0.2));
+        .withOpenLoopRampRate(Seconds.of(0.35));
 
     public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
         .withControlMode(ControlMode.CLOSED_LOOP)
+        .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5), new Sprocket(15.0 / 22.0)))
+        // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
-        .withSimClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
+        .withClosedLoopController(5.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
+        .withSimClosedLoopController(5.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
         // Feedforward Constants
-        .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-        .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.0, 0.0))
+        // .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+        .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
+        .withSimFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
-        .withStatorCurrentLimit(Amps.of(30))
+        .withStatorCurrentLimit(Amps.of(40))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
@@ -92,7 +99,7 @@ public final class IntakeConstants {
         ORIENTATION_AS_ROTATION
     );
 
-    public static final int MAX_CAPACITY = 24;
+    public static final int MAX_CAPACITY = 48;
 
     // 2d arrangement of fuel in intake visualization
     public static final int ROWS_OF_FUEL = 5;
