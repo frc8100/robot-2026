@@ -162,6 +162,11 @@ public class Intake extends SubsystemBase {
         return Commands.run(() -> io.runIntake(0));
     }
 
+    public Command runDeployDutyCycle(double output) {
+        // No requirement because also run state machine at same time (state machine does not require intake subsystem, so can run at same time as this command)
+        return run(() -> io.runDeployDutyCycle(output));
+    }
+
     /**
      * @return A command that moves the intake deploy back until it hits the hard stop and then zeros the intake.
      */

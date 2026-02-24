@@ -16,9 +16,12 @@ import frc.robot.commands.ShooterCharacterization;
 import frc.robot.commands.SwerveSysidRoutines;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.ClimbConstants;
+import frc.robot.subsystems.climb.ClimbIO;
+import frc.robot.subsystems.climb.ClimbIOSim;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSim;
+import frc.robot.subsystems.intake.IntakeIOYAMS;
 import frc.robot.subsystems.questnav.QuestNavIO;
 import frc.robot.subsystems.questnav.QuestNavIOReal;
 import frc.robot.subsystems.questnav.QuestNavIOSim;
@@ -52,6 +55,7 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -111,11 +115,12 @@ public class RobotContainer {
                 );
 
                 // TODO: use IO
-                // intakeSubsystem = new Intake(new IntakeIOYAMS());
-                intakeSubsystem = new Intake(new IntakeIO() {});
+                intakeSubsystem = new Intake(new IntakeIOYAMS());
 
                 // TODO: add ShooterIOSpark
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
+
+                climbSubsystem = new Climb(new ClimbIO() {});
 
                 objectiveIO = new ObjectiveIODashboard();
                 break;
@@ -196,6 +201,7 @@ public class RobotContainer {
                     new ShooterIOSim(swerveSubsystem, intakeIO::removeFuelFromIntake, intakeIO::isAbleToShoot),
                     swerveSubsystem
                 );
+                climbSubsystem = new Climb(new ClimbIOSim());
 
                 objectiveIO = new ObjectiveIODashboard();
 
@@ -238,6 +244,7 @@ public class RobotContainer {
                 visionSubsystem = new Vision(swerveSubsystem, questNavSubsystem, new VisionIO() {});
                 intakeSubsystem = new Intake(new IntakeIO() {});
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
+                climbSubsystem = new Climb(new ClimbIO() {});
                 objectiveIO = new ObjectiveIO() {};
                 break;
         }
@@ -399,7 +406,7 @@ public class RobotContainer {
 
         Logger.recordOutput(
             "Climb/RobotPose",
-            robotPose3d.rotateAround(pivotLocation, climbSubsystem.getRobotTransform())
+            robotPose3d.rotateAround(pivotLocation.getTranslation(), climbSubsystem.getRobotTransform())
         );
     }
 
