@@ -1,5 +1,10 @@
 package frc.robot.subsystems.climb;
 
+import static edu.wpi.first.units.Units.Radians;
+
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CANIdConstants;
@@ -164,6 +169,27 @@ public class Climb extends SubsystemBase {
 
     public boolean isAtTargetAngle(Angle target) {
         return target.isNear(inputs.leftClimbMotorData.positionAngle, ClimbConstants.TOLERANCE);
+    }
+
+    /**
+     * @return The robot transform based on the state of the climber.
+     */
+    public Rotation3d getRobotTransform() {
+        // If climb is not climbing, no robot transform
+        if (
+            stateMachine.is(ClimbState.IDLE) ||
+            stateMachine.is(ClimbState.DEPLOYING) ||
+            stateMachine.is(ClimbState.DEPLOYED) ||
+            stateMachine.is(ClimbState.RETRACTING)
+        ) {
+            return Rotation3d.kZero;
+        }
+
+        double climbImpartedRad =
+            ClimbConstants.ANGLE_BEFORE_START_TO_LATCH.in(Radians) -
+            inputs.leftClimbMotorData.positionAngle.in(Radians);
+
+        return new Rotation3d(0.0, climbImpartedRad, 0.0);
     }
 
     @Override

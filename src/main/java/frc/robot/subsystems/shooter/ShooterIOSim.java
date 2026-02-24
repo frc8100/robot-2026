@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer;
@@ -20,6 +21,7 @@ import frc.util.FuelSim;
 import java.util.function.BooleanSupplier;
 import org.ironmaple.simulation.motorsims.SimulatedBattery;
 import org.littletonrobotics.junction.Logger;
+import yams.motorcontrollers.SmartMotorControllerConfig;
 
 public class ShooterIOSim extends ShooterIOYAMS {
 
@@ -38,11 +40,7 @@ public class ShooterIOSim extends ShooterIOYAMS {
     private final Runnable onShoot;
     private final BooleanSupplier isAbleToShoot;
 
-    // TODO: Add PID controller for shooter motor velocity because YAMS does not simulate that
-    private final ProfiledPIDController shootMotorVelocityController = super.shootMotorWrapped
-        .getConfig()
-        .getClosedLoopController()
-        .orElseThrow();
+    private final ProfiledPIDController shootMotorVelocityController;
     private final SimpleMotorFeedforward shootMotorFeedforward = super.shootMotorWrapped
         .getConfig()
         .getSimpleFeedforward()
@@ -60,6 +58,16 @@ public class ShooterIOSim extends ShooterIOYAMS {
         super.indexerMotorWrapped.setupCustomSimulation();
 
         super.shootMotorWrapped.stopClosedLoopController();
+
+        SmartMotorControllerConfig config = super.shootMotorWrapped.getConfig();
+        PIDController configSimPIDController = config.getPID().orElseThrow();
+
+        shootMotorVelocityController = new ProfiledPIDController(
+            configSimPIDController.getP(),
+            configSimPIDController.getI(),
+            configSimPIDController.getD(),
+            config.getTrapezoidProfile().orElseThrow()
+        );
     }
 
     @Override

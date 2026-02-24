@@ -4,10 +4,14 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Seconds;
 
 import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
 import java.util.function.Function;
@@ -50,4 +54,18 @@ public class ClimbConstants {
      * The current that is drawn when the climb is at the target angle. If current is above this threshold, assume that the climb is at the target angle.
      */
     public static final Current MIN_AT_TARGET_CURRENT = Amps.of(45.0);
+
+    /**
+     * When climbing, this angle is the max that the climb can go back before it starts lifting the robot up.
+     * Only used for visualization.
+     */
+    public static final Angle ANGLE_BEFORE_START_TO_LATCH = Degrees.of(120.0);
+
+    /**
+     * The position that the robot rotates around when climbing. This is used for visualization and simulation.
+     */
+    public static final Transform3d CLIMB_CENTER_OF_ROTATION = new Transform3d(
+        new Translation3d(Inches.of(6), Inches.of(24), Inches.of(0)),
+        Rotation3d.kZero
+    );
 }
