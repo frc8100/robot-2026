@@ -32,8 +32,8 @@ public class IntakeIOYAMS implements IntakeIO {
     protected final WrappedSpark intakeMotorWrapped = new WrappedSpark(intakeMotor, IntakeConstants.intakeMotorConfig);
 
     // Deploy motor
-    // protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
-    // protected final WrappedSpark deployMotorWrapped = new WrappedSpark(deployMotor, IntakeConstants.deployMotorConfig);
+    protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
+    protected final WrappedSpark deployMotorWrapped = new WrappedSpark(deployMotor, IntakeConstants.deployMotorConfig);
 
     // protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
 
@@ -60,7 +60,7 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void runDeployDutyCycle(double output) {
-        // deployArm.setDutyCycleSetpoint(output);
+        deployMotorWrapped.setDutyCycle(output);
     }
 
     @Override
@@ -71,8 +71,7 @@ public class IntakeIOYAMS implements IntakeIO {
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
         inputs.intakeMotorConnected = intakeMotorWrapped.updateData(inputs.intakeMotorData);
-        // inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
-
+        inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
         // inputs.deploySolenoidLeftState = deploySolenoidLeft.get();
         // inputs.deploySolenoidRightState = deploySolenoidRight.get();
         // inputs.measuredDeployState = (deploySolenoidLeft.get() && deploySolenoidRight.get())

@@ -198,19 +198,25 @@ public class ButtonBindings {
         // Intake deploy/retract toggle
         driverController
             .getButtonTrigger(ControlConstants.toggleIntakeDeploy)
-            .onTrue(
-                Commands.runOnce(() -> {
-                    // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
-                    if (
-                        intakeSubsystem.stateMachine.is(IntakeState.RETRACTED) ||
-                        intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
-                    ) {
-                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
-                    } else {
-                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
-                    }
-                })
-            );
+            .whileTrue(
+                // Commands.runOnce(() -> {
+                //     // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
+                //     if (
+                //         intakeSubsystem.stateMachine.is(IntakeState.RETRACTED) ||
+                //         intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
+                //     ) {
+                //         intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
+                //     } else {
+                //         intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
+                //     }
+                // })
+                intakeSubsystem.runDeployDutyCycle(0.2)
+            )
+            .onFalse(intakeSubsystem.runDeployDutyCycle(0));
+        driverController
+            .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
+            .whileTrue(intakeSubsystem.runDeployDutyCycle(-0.5))
+            .onFalse(intakeSubsystem.runDeployDutyCycle(0));
     }
 
     /**
