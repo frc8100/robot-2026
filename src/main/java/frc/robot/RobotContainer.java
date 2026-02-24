@@ -14,6 +14,8 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.ShooterCharacterization;
 import frc.robot.commands.SwerveSysidRoutines;
+import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.climb.ClimbConstants;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSim;
@@ -66,6 +68,7 @@ public class RobotContainer {
     private final Swerve swerveSubsystem;
     private final Intake intakeSubsystem;
     private final Shooter shooterSubsystem;
+    private final Climb climbSubsystem;
 
     private final RobotActions robotActions;
 
@@ -386,7 +389,19 @@ public class RobotContainer {
     /**
      * Run in `Robot.periodic()`.
      */
-    public void periodic() {}
+    public void periodic() {
+        if (!Constants.shouldLogAdditionalData()) {
+            return;
+        }
+
+        Pose3d robotPose3d = new Pose3d(swerveSubsystem.getActualPose());
+        Pose3d pivotLocation = robotPose3d.transformBy(ClimbConstants.CLIMB_CENTER_OF_ROTATION);
+
+        Logger.recordOutput(
+            "Climb/RobotPose",
+            robotPose3d.rotateAround(pivotLocation, climbSubsystem.getRobotTransform())
+        );
+    }
 
     /**
      * Sets the vision subsystem state to {@link Vision.VisionState#BEFORE_MATCH}.
