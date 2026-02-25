@@ -20,14 +20,13 @@ public interface IntakeIO {
     public static class IntakeIOInputs {
 
         // Deploy pneumatics
-        public boolean compressorEnabled = false;
-        public boolean isPressureSwitchValveNotFull = false;
-        public MutCurrent compressorCurrent = Amps.mutable(0.0);
+        // public boolean compressorEnabled = false;
+        // public boolean isPressureSwitchValveNotFull = false;
+        // public MutCurrent compressorCurrent = Amps.mutable(0.0);
 
-        public boolean deploySolenoidLeftState = false;
-        public boolean deploySolenoidRightState = false;
+        // public boolean deploySolenoidLeftState = false;
+        // public boolean deploySolenoidRightState = false;
 
-        // TODO: test
         // Deploy motor
         public SparkMotorControllerData deployMotorData = new SparkMotorControllerData();
         public boolean deployMotorConnected = true;

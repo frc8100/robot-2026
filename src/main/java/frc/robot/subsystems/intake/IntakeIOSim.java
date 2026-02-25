@@ -28,15 +28,15 @@ public class IntakeIOSim extends IntakeIOYAMS {
     private int fuelInIntake = 0;
 
     // Pneumatics
-    private final CTREPCMSim pcmSim = new CTREPCMSim();
-    private final SolenoidSim deploySolenoidLeftSim = new SolenoidSim(
-        pcmSim,
-        CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
-    );
-    private final SolenoidSim deploySolenoidRightSim = new SolenoidSim(
-        pcmSim,
-        CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
-    );
+    // private final CTREPCMSim pcmSim = new CTREPCMSim();
+    // private final SolenoidSim deploySolenoidLeftSim = new SolenoidSim(
+    //     pcmSim,
+    //     CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
+    // );
+    // private final SolenoidSim deploySolenoidRightSim = new SolenoidSim(
+    //     pcmSim,
+    //     CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
+    // );
 
     /**
      * Stores the fuel positions as a transform relative to the robot.
@@ -63,12 +63,11 @@ public class IntakeIOSim extends IntakeIOYAMS {
             );
 
         super.intakeMotorWrapped.setupCustomSimulation();
-
         // Init pneumatics simulation
-        pcmSim.setCompressorOn(true);
-        pcmSim.setPressureSwitch(true);
-        pcmSim.setClosedLoopEnabled(true);
-        pcmSim.setInitialized(true);
+        // pcmSim.setCompressorOn(true);
+        // pcmSim.setPressureSwitch(true);
+        // pcmSim.setClosedLoopEnabled(true);
+        // pcmSim.setInitialized(true);
     }
 
     private void onIntake() {
@@ -142,23 +141,24 @@ public class IntakeIOSim extends IntakeIOYAMS {
             .toArray(Translation3d[]::new);
     }
 
-    @Override
-    public void updateInputs(IntakeIOInputs inputs) {
-        super.updateInputs(inputs);
+    // @Override
+    // public void updateInputs(IntakeIOInputs inputs) {
+    //     super.updateInputs(inputs);
 
-        inputs.measuredDeployState = isDeployed
-            ? IntakeIO.MeasuredDeployState.DEPLOYED
-            : IntakeIO.MeasuredDeployState.RETRACTED;
+    //     inputs.measuredDeployState = isDeployed
+    //         ? IntakeIO.MeasuredDeployState.DEPLOYED
+    //         : IntakeIO.MeasuredDeployState.RETRACTED;
 
-        // Override the solenoid states to match the simulation
-        inputs.deploySolenoidLeftState = deploySolenoidLeftSim.getOutput();
-        inputs.deploySolenoidRightState = deploySolenoidRightSim.getOutput();
-        inputs.compressorCurrent.mut_replace(pcmSim.getCompressorCurrent(), Amps);
-        inputs.compressorEnabled = pcmSim.getCompressorOn();
-    }
+    //     // Override the solenoid states to match the simulation
+    //     inputs.deploySolenoidLeftState = deploySolenoidLeftSim.getOutput();
+    //     inputs.deploySolenoidRightState = deploySolenoidRightSim.getOutput();
+    //     inputs.compressorCurrent.mut_replace(pcmSim.getCompressorCurrent(), Amps);
+    //     inputs.compressorEnabled = pcmSim.getCompressorOn();
+    // }
 
     @Override
     public void simIterate() {
+        super.deployMotorWrapped.simIterate();
         super.intakeMotorWrapped.simIterate();
 
         updateFuelPositions();
