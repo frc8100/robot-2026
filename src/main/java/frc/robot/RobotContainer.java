@@ -373,6 +373,8 @@ public class RobotContainer {
         // Shooter SysId routines
         autoChooser.addOption("Shooter SysId", shooterSubsystem.shooterSysidCommand());
         autoChooser.addOption("Shooter Shooting Characterization", new ShooterCharacterization(shooterSubsystem));
+
+        autoChooser.addOption("Intake SysId", intakeSubsystem.sysid());
     }
 
     /**

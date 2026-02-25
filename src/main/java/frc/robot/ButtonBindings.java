@@ -1,7 +1,10 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Volts;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -10,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.Intake.IntakeState;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Shooter.ShooterState;
 import frc.robot.subsystems.swerve.Swerve;
@@ -213,14 +215,50 @@ public class ButtonBindings {
                 //         intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
                 //     }
                 // })
-                intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.DEPLOYING, 0.2)
+                intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.DEPLOYING, 0.1)
             )
             .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
         driverController
             .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
             // higher to overcome gravity
-            .whileTrue(intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.RETRACTING, 0.5))
+            .whileTrue(intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.RETRACTING, 0.4))
             .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
+
+        // TODO: Test voltage control
+        // intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_VOLTAGE_CONTROL);
+
+        final Voltage incrementVoltage = Volts.of(0.1);
+        final Voltage fineIncrementVoltage = Volts.of(0.01);
+        final Voltage decrementVoltage = incrementVoltage.times(-1);
+        final Voltage fineDecrementVoltage = fineIncrementVoltage.times(-1);
+
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
+            .onTrue(
+                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(incrementVoltage)).ignoringDisable(true)
+            );
+
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
+            .onTrue(
+                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(decrementVoltage)).ignoringDisable(true)
+            );
+
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+            .onTrue(
+                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(fineIncrementVoltage)).ignoringDisable(true)
+            );
+
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.LEFT)
+            .onTrue(
+                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(fineDecrementVoltage)).ignoringDisable(true)
+            );
+
+        operatorController
+            .getButtonTrigger(XboxController.Button.kA)
+            .onTrue(Commands.runOnce(() -> intakeSubsystem.setTestOutVoltage(Volts.zero())).ignoringDisable(true));
 
         // TODO: Climb deploy/retract toggle
         StateCycle<Climb.ClimbState, Object> toggleClimbDeploy =
@@ -239,20 +277,19 @@ public class ButtonBindings {
             ),
             StateCycle.StateCycleBehavior.RELY_ON_INDEX
         );
+        // driverController
+        //     .getButtonTrigger(ControlConstants.deployClimbButton)
+        //     // .onTrue(Commands.runOnce(toggleClimbDeploy::scheduleNextState));
+        //     .onTrue(
+        //         Commands.runOnce(() -> {
+        //             System.out.println("Toggling climb deploy/retract");
+        //             toggleClimbDeploy.scheduleNextState();
+        //         })
+        //     );
 
-        driverController
-            .getButtonTrigger(ControlConstants.deployClimbButton)
-            // .onTrue(Commands.runOnce(toggleClimbDeploy::scheduleNextState));
-            .onTrue(
-                Commands.runOnce(() -> {
-                    System.out.println("Toggling climb deploy/retract");
-                    toggleClimbDeploy.scheduleNextState();
-                })
-            );
-
-        driverController
-            .getButtonTrigger(ControlConstants.climbButton)
-            .onTrue(Commands.runOnce(toggleClimbClimb::scheduleNextState));
+        // driverController
+        //     .getButtonTrigger(ControlConstants.climbButton)
+        //     .onTrue(Commands.runOnce(toggleClimbClimb::scheduleNextState));
     }
 
     /**

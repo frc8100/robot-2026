@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
@@ -13,8 +14,11 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -91,6 +95,8 @@ public class Intake extends SubsystemBase {
          * The intake is fully retracted.
          */
         RETRACTED,
+
+        TEST_VOLTAGE_CONTROL,
     }
 
     public final StateMachine<IntakeState, Object> stateMachine = new StateMachine<IntakeState, Object>(
@@ -108,7 +114,8 @@ public class Intake extends SubsystemBase {
             )
         )
         .withState(new StateMachineState<>(IntakeState.TRANSITION_DEPLOYING, "TransitionDeploying"))
-        .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "TransitionRetracting"));
+        .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "TransitionRetracting"))
+        .withState(new StateMachineState<>(IntakeState.TEST_VOLTAGE_CONTROL, "TestVoltage"));
 
     private final IntakeIO io;
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
@@ -124,6 +131,8 @@ public class Intake extends SubsystemBase {
     private final MutAngle deployStateForVisualization = Radians.mutable(0.0);
 
     private final SysIdRoutine intakeSysid;
+
+    private final MutVoltage testVoltageOutput = Volts.mutable(0.0);
 
     public Intake(IntakeIO io) {
         this.io = io;
@@ -150,6 +159,10 @@ public class Intake extends SubsystemBase {
             if (inputs.measuredDeployState == IntakeIO.MeasuredDeployState.RETRACTED) {
                 stateMachine.scheduleStateChange(IntakeState.RETRACTED);
             }
+        });
+
+        stateMachine.whileState(IntakeState.TEST_VOLTAGE_CONTROL, () -> {
+            io.runDeployVoltage(testVoltageOutput);
         });
 
         setDefaultCommand(stateMachine.getRunnableCommand(this));
@@ -228,7 +241,7 @@ public class Intake extends SubsystemBase {
             inputs.deployMotorData.torqueCurrent.gte(Amps.of(10))
         ).debounce(0.2);
 
-        return runOnce(() -> io.removeSoftLimits()).andThen(
+        return runOnce(io::removeSoftLimits).andThen(
             run(() -> io.runDeployDutyCycle(-0.2))
                 .until(calibrationCompleteTrigger)
                 .andThen(
@@ -237,6 +250,18 @@ public class Intake extends SubsystemBase {
                         io.applySoftLimits();
                     })
                 )
+        );
+    }
+
+    public Command sysid() {
+        return new SequentialCommandGroup(
+            intakeSysid.quasistatic(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(1),
+            intakeSysid.quasistatic(SysIdRoutine.Direction.kReverse),
+            Commands.waitSeconds(1),
+            intakeSysid.dynamic(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(1),
+            intakeSysid.dynamic(SysIdRoutine.Direction.kReverse)
         );
     }
 
@@ -254,6 +279,14 @@ public class Intake extends SubsystemBase {
         io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
     }
 
+    public void changeTestOutVoltage(Voltage change) {
+        testVoltageOutput.mut_plus(change);
+    }
+
+    public void setTestOutVoltage(Voltage set) {
+        testVoltageOutput.mut_replace(set);
+    }
+
     @Override
     public void periodic() {
         io.updateInputs(inputs);
@@ -264,6 +297,7 @@ public class Intake extends SubsystemBase {
         deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
 
         // Visualization
+        Logger.recordOutput("Intake/TestVoltOut", testVoltageOutput);
         Logger.recordOutput("Intake/VisualizationPose", getIntakePose());
     }
 

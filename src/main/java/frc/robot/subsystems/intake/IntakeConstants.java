@@ -67,27 +67,26 @@ public final class IntakeConstants {
         // .withSimFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
-        .withStatorCurrentLimit(Amps.of(47))
+        .withStatorCurrentLimit(Amps.of(40))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
     // Intake positions
-    public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(90);
-    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(200);
+    public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(85);
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(180);
 
-    // public static final Function<SmartMotorController, ArmConfig> deployArmConfigFunction =
-    //     (SmartMotorController deployMotor) ->
-    //         new ArmConfig(deployMotor)
-    //             .withLength(Inches.of(12))
-    //             .withMass(Pounds.of(17))
-    //             .withHardLimit(Degrees.of(70), Degrees.of(200))
-    //             .withSoftLimits(INTAKE_RETRACTED_ANGLE.minus(Degrees.of(15)), Degrees.of(270))
-    //             .withStartingPosition(INTAKE_RETRACTED_ANGLE);
-    // .withMechanismPositionConfig(null)
+    public static final Function<SmartMotorController, ArmConfig> deployArmConfigFunction =
+        (SmartMotorController deployMotor) ->
+            new ArmConfig(deployMotor)
+                .withLength(Inches.of(12))
+                .withMass(Pounds.of(17))
+                .withHardLimit(Degrees.of(60), Degrees.of(210))
+                .withSoftLimits(INTAKE_RETRACTED_ANGLE.minus(Degrees.of(1)), INTAKE_DEPLOYED_ANGLE.plus(Degrees.of(1)))
+                .withStartingPosition(INTAKE_RETRACTED_ANGLE);
 
     // Sysid constants
-    public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(8.0);
-    public static final Velocity<VoltageUnit> SYSID_RAMP_RATE = Volts.of(0.8).per(Seconds);
+    public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(6.0);
+    public static final Velocity<VoltageUnit> SYSID_RAMP_RATE = Volts.of(0.5).per(Seconds);
     public static final Time SYSID_TEST_DURATION = Seconds.of(7.0);
 
     // Auto intake (constants for swerve)
