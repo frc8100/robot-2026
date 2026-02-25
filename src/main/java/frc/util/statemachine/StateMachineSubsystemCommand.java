@@ -22,4 +22,9 @@ public class StateMachineSubsystemCommand<TStateType extends Enum<TStateType>, T
     public void execute() {
         stateMachine.runCurrentStatePeriodicAction();
     }
+
+    @Override
+    public boolean runsWhenDisabled() {
+        return true;
+    }
 }
