@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.subsystems.CANIdAlert;
@@ -39,6 +40,31 @@ public class Intake extends SubsystemBase {
         return robotPose
             .getTranslation()
             .plus(IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getTranslation().rotateBy(robotPose.getRotation()));
+    }
+
+    /**
+     * The direction the intake is moving.
+     * Used when commanding duty cycle outputs.
+     *
+     * The angle of the intake is based on if you look at the robot such that the intake is on the left, a counter clockwise rotation is an increase in the reported angle.
+     * Ex. when the intake angle is 90*, the intake is straight up/retracted. When the intake angle is 180*, the intake is pointing to the left/deployed.
+     */
+    public enum IntakeDeployDirection {
+        /**
+         * The intake rotates outwards/counterclockwise/positive.
+         */
+        DEPLOYING(1.0),
+
+        /**
+         * The intake rotates backwards/clockwise/negative.
+         */
+        RETRACTING(-1.0);
+
+        public final double factor;
+
+        private IntakeDeployDirection(double factor) {
+            this.factor = factor;
+        }
     }
 
     /**
@@ -97,6 +123,8 @@ public class Intake extends SubsystemBase {
     );
     private final MutAngle deployStateForVisualization = Radians.mutable(0.0);
 
+    private final SysIdRoutine intakeSysid;
+
     public Intake(IntakeIO io) {
         this.io = io;
 
@@ -125,6 +153,25 @@ public class Intake extends SubsystemBase {
         });
 
         setDefaultCommand(stateMachine.getRunnableCommand(this));
+
+        intakeSysid = new SysIdRoutine(
+            new SysIdRoutine.Config(
+                IntakeConstants.SYSID_RAMP_RATE,
+                IntakeConstants.SYSID_MAX_VOLTAGE,
+                IntakeConstants.SYSID_TEST_DURATION,
+                state -> Logger.recordOutput("Intake/SysIdState", state.toString())
+            ),
+            new SysIdRoutine.Mechanism(io::runDeployVoltage, null, this)
+        );
+    }
+
+    /**
+     * Runs the intake deploy motor at a given duty cycle in a given direction. Used for manual control of the intake deploy for testing and as a backup to the state machine.
+     * @param direction - The direction to run the intake deploy motor.
+     * @param speed - The duty cycle to run the intake deploy motor at from 0 to 1. The direction parameter determines if this is positive or negative duty cycle.
+     */
+    public void runDeployDutyCycle(IntakeDeployDirection direction, double speed) {
+        io.runDeployDutyCycle(direction.factor * MathUtil.clamp(speed, 0, 1));
     }
 
     /**
@@ -162,9 +209,12 @@ public class Intake extends SubsystemBase {
         return Commands.run(() -> io.runIntake(0));
     }
 
-    public Command runDeployDutyCycle(double output) {
-        // No requirement because also run state machine at same time (state machine does not require intake subsystem, so can run at same time as this command)
-        return run(() -> io.runDeployDutyCycle(output));
+    public Command runDeployDutyCycleCommand(IntakeDeployDirection direction, double speed) {
+        return run(() -> runDeployDutyCycle(direction, speed));
+    }
+
+    public Command stopDeployDutyCycleCommand() {
+        return run(() -> runDeployDutyCycle(IntakeDeployDirection.DEPLOYING, 0));
     }
 
     /**
@@ -176,25 +226,32 @@ public class Intake extends SubsystemBase {
          */
         final Trigger calibrationCompleteTrigger = new Trigger(() ->
             inputs.deployMotorData.torqueCurrent.gte(Amps.of(10))
-        ).debounce(0.1);
+        ).debounce(0.2);
 
-        return run(() -> io.runDeployDutyCycle(-0.1))
-            .until(calibrationCompleteTrigger)
-            .andThen(runOnce(() -> io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE)));
+        return runOnce(() -> io.removeSoftLimits()).andThen(
+            run(() -> io.runDeployDutyCycle(-0.2))
+                .until(calibrationCompleteTrigger)
+                .andThen(
+                    runOnce(() -> {
+                        io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE);
+                        io.applySoftLimits();
+                    })
+                )
+        );
     }
 
     /**
      * Deploys the intake.
      */
     public void deploy() {
-        io.deploy();
+        io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE);
     }
 
     /**
      * Retracts the intake.
      */
     public void retract() {
-        io.retract();
+        io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
     }
 
     @Override

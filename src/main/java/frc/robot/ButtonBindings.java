@@ -213,13 +213,14 @@ public class ButtonBindings {
                 //         intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
                 //     }
                 // })
-                intakeSubsystem.runDeployDutyCycle(0.2)
+                intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.DEPLOYING, 0.2)
             )
-            .onFalse(intakeSubsystem.runDeployDutyCycle(0));
+            .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
         driverController
             .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
-            .whileTrue(intakeSubsystem.runDeployDutyCycle(-0.5))
-            .onFalse(intakeSubsystem.runDeployDutyCycle(0));
+            // higher to overcome gravity
+            .whileTrue(intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.RETRACTING, 0.5))
+            .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
 
         // TODO: Climb deploy/retract toggle
         StateCycle<Climb.ClimbState, Object> toggleClimbDeploy =

@@ -143,26 +143,6 @@ public class IntakeIOSim extends IntakeIOYAMS {
     }
 
     @Override
-    public void deploy() {
-        // TODO: rn this is instant deployment, make it take time later
-        // isDeployed = true;
-        // pcmSim.setCompressorOn(true);
-        // deploySolenoidLeftSim.setOutput(true);
-        // deploySolenoidRightSim.setOutput(true);
-
-        super.deploy();
-    }
-
-    @Override
-    public void retract() {
-        // isDeployed = false;
-        // deploySolenoidLeftSim.setOutput(false);
-        // deploySolenoidRightSim.setOutput(false);
-
-        super.retract();
-    }
-
-    @Override
     public void updateInputs(IntakeIOInputs inputs) {
         super.updateInputs(inputs);
 
