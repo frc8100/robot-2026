@@ -26,6 +26,11 @@ public class ControlConstants {
 
     public static final XboxController.Button runIntakeButton = XboxController.Button.kB;
 
+    public static final ButtonBindings.Controller.POVButtonDirection deployClimbButton =
+        ButtonBindings.Controller.POVButtonDirection.RIGHT;
+    public static final ButtonBindings.Controller.POVButtonDirection climbButton =
+        ButtonBindings.Controller.POVButtonDirection.LEFT;
+
     // Drive controls
     public static final XboxController.Button toggleAutoAimToHub = XboxController.Button.kX;
     public static final ButtonBindings.Controller.POVButtonDirection toggleAutoDriveIntake =

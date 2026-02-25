@@ -257,6 +257,7 @@ public class RobotContainer {
             visionSubsystem,
             intakeSubsystem,
             shooterSubsystem,
+            climbSubsystem,
             objectiveIO
         );
 

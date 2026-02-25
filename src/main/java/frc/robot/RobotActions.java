@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import frc.robot.commands.DriveToPosePID;
+import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.shooter.Shooter;
@@ -161,6 +162,7 @@ public class RobotActions {
     public final Vision visionSubsystem;
     public final Intake intakeSubsystem;
     public final Shooter shooterSubsystem;
+    public final Climb climbSubsystem;
 
     /**
      * Creates a new AutoRoutines object given required subsystems.
@@ -170,12 +172,14 @@ public class RobotActions {
         Vision visionSubsystem,
         Intake intakeSubsystem,
         Shooter shooterSubsystem,
+        Climb climbSubsystem,
         ObjectiveIO objectiveIO
     ) {
         this.swerveSubsystem = swerveSubsystem;
         this.visionSubsystem = visionSubsystem;
         this.intakeSubsystem = intakeSubsystem;
         this.shooterSubsystem = shooterSubsystem;
+        this.climbSubsystem = climbSubsystem;
 
         this.objectiveTracker = new ObjectiveTracker(this, objectiveIO);
         // test
