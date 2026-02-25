@@ -8,16 +8,20 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.units.measure.Velocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import java.util.function.Function;
 import org.ironmaple.simulation.IntakeSimulation;
@@ -80,6 +84,11 @@ public final class IntakeConstants {
     //             .withSoftLimits(INTAKE_RETRACTED_ANGLE.minus(Degrees.of(15)), Degrees.of(270))
     //             .withStartingPosition(INTAKE_RETRACTED_ANGLE);
     // .withMechanismPositionConfig(null)
+
+    // Sysid constants
+    public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(8.0);
+    public static final Velocity<VoltageUnit> SYSID_RAMP_RATE = Volts.of(0.8).per(Seconds);
+    public static final Time SYSID_TEST_DURATION = Seconds.of(7.0);
 
     // Auto intake (constants for swerve)
     public static final Angle MAX_AUTO_INTAKE_YAW_ASSIST = Degrees.of(15);

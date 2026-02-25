@@ -38,19 +38,10 @@ public class IntakeIOYAMS implements IntakeIO {
     // protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
 
     @Override
-    public void deploy() {
-        // deploySolenoidLeft.set(true);
-        // deploySolenoidRight.set(true);
+    public void setDeploySetpoint(Angle setpoint) {
+        // deployArm.setMechanismPositionSetpoint(setpoint);
 
-        // deployArm.setMechanismPositionSetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE);
-    }
-
-    @Override
-    public void retract() {
-        // deploySolenoidLeft.set(false);
-        // deploySolenoidRight.set(false);
-
-        // deployArm.setMechanismPositionSetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
+        deployMotorWrapped.setPosition(setpoint);
     }
 
     @Override
@@ -65,7 +56,17 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void setDeployEncoderPosition(Angle position) {
-        // deployMotorWrapped.setEncoderPosition(position);
+        deployMotorWrapped.setEncoderPosition(position);
+    }
+
+    @Override
+    public void removeSoftLimits() {
+        // TODO: implement
+    }
+
+    @Override
+    public void applySoftLimits() {
+        // TODO: implement
     }
 
     @Override
