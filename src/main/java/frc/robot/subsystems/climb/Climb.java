@@ -2,6 +2,7 @@ package frc.robot.subsystems.climb;
 
 import static edu.wpi.first.units.Units.Radians;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -68,10 +69,13 @@ public class Climb extends SubsystemBase {
         )
         .withState(new StateMachineState<>(ClimbState.DEPLOYING, "Deploying").requirePreviousStateToBe(ClimbState.IDLE))
         .withState(
-            new StateMachineState<>(ClimbState.DEPLOYED, "Deployed").requirePreviousStateToBe(ClimbState.DEPLOYING)
+            new StateMachineState<>(ClimbState.DEPLOYED, "Deployed").requirePreviousStateToBeOneOf(
+                ClimbState.DEPLOYING,
+                ClimbState.DESCENDING
+            )
         )
         .withState(
-            new StateMachineState<>(ClimbState.CLIMBING, "Climbing").requirePreviousStateToBe(ClimbState.DEPLOYING)
+            new StateMachineState<>(ClimbState.CLIMBING, "Climbing").requirePreviousStateToBe(ClimbState.DEPLOYED)
         )
         .withState(
             new StateMachineState<>(ClimbState.HOLD_CLIMB, "HoldClimb").requirePreviousStateToBe(ClimbState.CLIMBING)
@@ -121,6 +125,7 @@ public class Climb extends SubsystemBase {
         stateMachine.whileState(ClimbState.CLIMBING, this::handleClimbing);
         stateMachine.whileState(ClimbState.HOLD_CLIMB, this::handleHoldClimb);
         stateMachine.whileState(ClimbState.DESCENDING, this::handleDescending);
+        stateMachine.whileState(ClimbState.RETRACTING, this::handleRetracting);
 
         setDefaultCommand(stateMachine.getRunnableCommand(this));
     }
@@ -167,6 +172,14 @@ public class Climb extends SubsystemBase {
         // }
     }
 
+    private void handleRetracting() {
+        io.setClimbTarget(ClimbConstants.RETRACTED_ANGLE);
+
+        if (isAtTargetAngle(ClimbConstants.RETRACTED_ANGLE)) {
+            stateMachine.scheduleStateChange(ClimbState.IDLE);
+        }
+    }
+
     public boolean isAtTargetAngle(Angle target) {
         return target.isNear(inputs.leftClimbMotorData.positionAngle, ClimbConstants.TOLERANCE);
     }
@@ -185,9 +198,10 @@ public class Climb extends SubsystemBase {
             return Rotation3d.kZero;
         }
 
-        double climbImpartedRad =
-            ClimbConstants.ANGLE_BEFORE_START_TO_LATCH.in(Radians) -
-            inputs.leftClimbMotorData.positionAngle.in(Radians);
+        double climbImpartedRad = Math.max(
+            0,
+            ClimbConstants.ANGLE_BEFORE_START_TO_LATCH.in(Radians) - inputs.leftClimbMotorData.positionAngle.in(Radians)
+        );
 
         return new Rotation3d(0.0, climbImpartedRad, 0.0);
     }

@@ -29,7 +29,7 @@ public class ClimbConstants {
             .withGearing(500)
             // Feedback Constants (PID Constants)
             .withClosedLoopController(6.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
-            .withSimClosedLoopController(6.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
+            .withSimClosedLoopController(300, 0.0, 0.0, DegreesPerSecond.of(1800), DegreesPerSecondPerSecond.of(3000))
             // Motor properties to prevent over currenting.
             .withMotorInverted(false)
             .withIdleMode(MotorMode.BRAKE)

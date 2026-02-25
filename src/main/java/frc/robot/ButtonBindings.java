@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.Intake.IntakeState;
 import frc.robot.subsystems.shooter.Shooter;
@@ -119,6 +120,7 @@ public class ButtonBindings {
     private final Vision visionSubsystem;
     private final Intake intakeSubsystem;
     private final Shooter shooterSubsystem;
+    private final Climb climbSubsystem;
 
     public static final Controller driverController = new Controller(ControlConstants.DRIVER_CONTROLLER_PORT);
     private final Controller operatorController = new Controller(ControlConstants.OPERATOR_CONTROLLER_PORT);
@@ -131,6 +133,7 @@ public class ButtonBindings {
         this.visionSubsystem = autoRoutines.visionSubsystem;
         this.intakeSubsystem = autoRoutines.intakeSubsystem;
         this.shooterSubsystem = autoRoutines.shooterSubsystem;
+        this.climbSubsystem = autoRoutines.climbSubsystem;
     }
 
     /**
@@ -217,6 +220,38 @@ public class ButtonBindings {
             .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
             .whileTrue(intakeSubsystem.runDeployDutyCycle(-0.5))
             .onFalse(intakeSubsystem.runDeployDutyCycle(0));
+
+        // TODO: Climb deploy/retract toggle
+        StateCycle<Climb.ClimbState, Object> toggleClimbDeploy =
+            climbSubsystem.stateMachine.createStateCycleWithPayload(
+                List.of(
+                    new StateMachine.StateWithPayload<>(Climb.ClimbState.RETRACTING, null),
+                    new StateMachine.StateWithPayload<>(Climb.ClimbState.DEPLOYING, null)
+                ),
+                StateCycle.StateCycleBehavior.RELY_ON_INDEX
+            );
+
+        StateCycle<Climb.ClimbState, Object> toggleClimbClimb = climbSubsystem.stateMachine.createStateCycleWithPayload(
+            List.of(
+                new StateMachine.StateWithPayload<>(Climb.ClimbState.DESCENDING, null),
+                new StateMachine.StateWithPayload<>(Climb.ClimbState.CLIMBING, null)
+            ),
+            StateCycle.StateCycleBehavior.RELY_ON_INDEX
+        );
+
+        driverController
+            .getButtonTrigger(ControlConstants.deployClimbButton)
+            // .onTrue(Commands.runOnce(toggleClimbDeploy::scheduleNextState));
+            .onTrue(
+                Commands.runOnce(() -> {
+                    System.out.println("Toggling climb deploy/retract");
+                    toggleClimbDeploy.scheduleNextState();
+                })
+            );
+
+        driverController
+            .getButtonTrigger(ControlConstants.climbButton)
+            .onTrue(Commands.runOnce(toggleClimbClimb::scheduleNextState));
     }
 
     /**
@@ -224,7 +259,7 @@ public class ButtonBindings {
      */
     public void configureSimulationBindings() {
         // Spawn game pieces
-        driverController
+        operatorController
             .getButtonTrigger(XboxController.Button.kB)
             .onTrue(
                 Commands.runOnce(() ->
