@@ -4,6 +4,7 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SparkBaseConfig;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import java.util.ArrayList;
@@ -32,6 +33,20 @@ public class TunableValue implements DoubleSupplier {
         private final SparkBaseConfig currentConfig;
 
         private final String name;
+
+        public static SparkPIDTunable fromWrapped(String name, WrappedSpark wrapped) {
+            SparkBaseConfig motorConfig = (SparkBaseConfig) wrapped.getMotorControllerConfig();
+
+            PIDController pid = wrapped.getConfig().getPID().orElse(new PIDController(0, 0, 0));
+
+            return new SparkPIDTunable(
+                name,
+                (SparkBase) wrapped.getMotorController(),
+                motorConfig,
+                pid.getP(),
+                pid.getD()
+            );
+        }
 
         public SparkPIDTunable(
             String name,
