@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import frc.robot.CANIdConstants;
+import frc.util.TunableValue;
 import frc.util.WrappedSpark;
 import yams.mechanisms.positional.Arm;
 
@@ -42,12 +43,17 @@ public class IntakeIOYAMS implements IntakeIO {
 
     protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
 
+    public final TunableValue.SparkPIDTunable tuning = TunableValue.SparkPIDTunable.fromWrapped(
+        "Intake/Deploy",
+        deployMotorWrapped
+    );
+
     @Override
     public void setDeploySetpoint(Angle setpoint) {
         // deployArm.setMechanismPositionSetpoint(setpoint);
 
         // TODO: current disabled for "safety"
-        // deployMotorWrapped.setPosition(setpoint);
+        deployMotorWrapped.setPosition(setpoint);
     }
 
     @Override
@@ -78,6 +84,8 @@ public class IntakeIOYAMS implements IntakeIO {
         config.softLimit.reverseSoftLimitEnabled(false);
 
         deployMotor.configureAsync(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        System.out.println("Remove soft limits");
     }
 
     @Override
@@ -88,6 +96,8 @@ public class IntakeIOYAMS implements IntakeIO {
         config.softLimit.reverseSoftLimitEnabled(true);
 
         deployMotor.configureAsync(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        System.out.println("Apply soft limits");
     }
 
     @Override

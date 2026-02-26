@@ -55,19 +55,23 @@ public final class IntakeConstants {
 
     public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
         .withSubsystem(new Subsystem() {})
-        .withControlMode(ControlMode.OPEN_LOOP)
-        .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 4), new Sprocket(15.0 / 22.0)))
+        .withControlMode(ControlMode.CLOSED_LOOP)
+        .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5), new Sprocket(15.0 / 22.0)))
         // 15:22
         // Feedback Constants (PID Constants)
-        // .withClosedLoopController(5.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
-        // .withSimClosedLoopController(5.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
+        .withClosedLoopController(50, 0.0, 0.0, DegreesPerSecond.of(260), DegreesPerSecondPerSecond.of(800))
+        .withSimClosedLoopController(50, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(300))
         // Feedforward Constants
-        // .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-        // .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
-        // .withSimFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
+
+        // See https://docs.revrobotics.com/revlib/spark/closed-loop/feed-forward-control#manually-finding-kcos-and-ks-for-an-arm
+        // V1 = 0.76
+        // V2 = 0.6
+        // .withFeedforward(new ArmFeedforward(0.08, 0.68, 0.0, 0.0))
+        .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
+        .withSimFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
-        .withStatorCurrentLimit(Amps.of(40))
+        .withStatorCurrentLimit(Amps.of(37))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
@@ -81,13 +85,17 @@ public final class IntakeConstants {
                 .withLength(Inches.of(12))
                 .withMass(Pounds.of(17))
                 .withHardLimit(Degrees.of(60), Degrees.of(210))
-                .withSoftLimits(INTAKE_RETRACTED_ANGLE.minus(Degrees.of(1)), INTAKE_DEPLOYED_ANGLE.plus(Degrees.of(1)))
+                // TODO: limits
+                .withSoftLimits(
+                    INTAKE_RETRACTED_ANGLE.minus(Degrees.of(50)),
+                    INTAKE_DEPLOYED_ANGLE.plus(Degrees.of(200))
+                )
                 .withStartingPosition(INTAKE_RETRACTED_ANGLE);
 
     // Sysid constants
-    public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(6.0);
-    public static final Velocity<VoltageUnit> SYSID_RAMP_RATE = Volts.of(0.5).per(Seconds);
-    public static final Time SYSID_TEST_DURATION = Seconds.of(7.0);
+    public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(3.0);
+    public static final Velocity<VoltageUnit> SYSID_RAMP_RATE = Volts.of(0.25).per(Seconds);
+    public static final Time SYSID_TEST_DURATION = Seconds.of(10.0);
 
     // Auto intake (constants for swerve)
     public static final Angle MAX_AUTO_INTAKE_YAW_ASSIST = Degrees.of(15);

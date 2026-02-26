@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.subsystems.CANIdAlert;
+import frc.util.TunableValue;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import java.util.function.DoubleSupplier;
@@ -140,25 +141,21 @@ public class Intake extends SubsystemBase {
         // State machine bindings
         stateMachine.whileState(IntakeState.DEPLOYED, () -> {
             // If intake is ever "undeployed" while in the deployed state, deploy again
-            if (inputs.measuredDeployState != IntakeIO.MeasuredDeployState.DEPLOYED) {
-                stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
-            }
+            // if (inputs.measuredDeployState != IntakeIO.MeasuredDeployState.DEPLOYED) {
+            //     stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
+            // }
+
+            deploy();
         });
-        stateMachine.whileState(IntakeState.RETRACTED, () -> {});
+        stateMachine.whileState(IntakeState.RETRACTED, () -> {
+            retract();
+        });
 
         stateMachine.whileState(IntakeState.TRANSITION_DEPLOYING, () -> {
             deploy();
-            // If intake is deployed, transition to deployed state
-            if (inputs.measuredDeployState == IntakeIO.MeasuredDeployState.DEPLOYED) {
-                stateMachine.scheduleStateChange(IntakeState.DEPLOYED);
-            }
         });
         stateMachine.whileState(IntakeState.TRANSITION_RETRACTING, () -> {
             retract();
-            // If intake is retracted, transition to retracted state
-            if (inputs.measuredDeployState == IntakeIO.MeasuredDeployState.RETRACTED) {
-                stateMachine.scheduleStateChange(IntakeState.RETRACTED);
-            }
         });
 
         stateMachine.whileState(IntakeState.TEST_VOLTAGE_CONTROL, () -> {
@@ -238,19 +235,20 @@ public class Intake extends SubsystemBase {
          * A trigger that is true when the intake deploy motor is stalled which indicates that the intake has hit the hard stop.
          */
         final Trigger calibrationCompleteTrigger = new Trigger(() ->
-            inputs.deployMotorData.torqueCurrent.gte(Amps.of(10))
-        ).debounce(0.2);
+            inputs.deployMotorData.torqueCurrent.gte(Amps.of(22))
+        ).debounce(0.25);
 
-        return runOnce(io::removeSoftLimits).andThen(
-            run(() -> io.runDeployDutyCycle(-0.2))
-                .until(calibrationCompleteTrigger)
-                .andThen(
-                    runOnce(() -> {
-                        io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE);
-                        io.applySoftLimits();
-                    })
-                )
-        );
+        return runOnce(io::removeSoftLimits)
+            .andThen(
+                run(() -> io.runDeployDutyCycle(-0.175))
+                    .until(calibrationCompleteTrigger)
+                    .andThen(
+                        runOnce(() -> {
+                            io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE);
+                        })
+                    )
+            )
+            .finallyDo(io::applySoftLimits);
     }
 
     public Command sysid() {

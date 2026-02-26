@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.Intake.IntakeState;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Shooter.ShooterState;
 import frc.robot.subsystems.swerve.Swerve;
@@ -203,29 +204,39 @@ public class ButtonBindings {
         // Intake deploy/retract toggle
         driverController
             .getButtonTrigger(ControlConstants.toggleIntakeDeploy)
-            .whileTrue(
-                // Commands.runOnce(() -> {
-                //     // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
-                //     if (
-                //         intakeSubsystem.stateMachine.is(IntakeState.RETRACTED) ||
-                //         intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
-                //     ) {
-                //         intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
-                //     } else {
-                //         intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
-                //     }
-                // })
-                intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.DEPLOYING, 0.1)
-            )
-            .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
-        driverController
+            .onTrue(
+                Commands.runOnce(() -> {
+                    // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
+                    if (
+                        intakeSubsystem.stateMachine.is(IntakeState.RETRACTED) ||
+                        intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
+                    ) {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
+                    } else {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
+                    }
+                })
+                // intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.DEPLOYING, 0.1)
+            );
+        // .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
+        operatorController
             .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
             // higher to overcome gravity
-            .whileTrue(intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.RETRACTING, 0.4))
+            .whileTrue(intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.RETRACTING, 0.2))
             .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
 
-        // TODO: Test voltage control
-        // intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_VOLTAGE_CONTROL);
+        // TODO: temporary voltage control
+        operatorController
+            .getButtonTrigger(XboxController.Button.kB)
+            .onTrue(
+                Commands.runOnce(() ->
+                    intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_VOLTAGE_CONTROL)
+                ).ignoringDisable(true)
+            );
+
+        operatorController
+            .getButtonTrigger(XboxController.Button.kY)
+            .whileTrue(intakeSubsystem.calibrateIntakeDeploy());
 
         final Voltage incrementVoltage = Volts.of(0.1);
         final Voltage fineIncrementVoltage = Volts.of(0.01);
