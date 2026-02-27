@@ -79,6 +79,8 @@ public final class IntakeConstants {
     public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(85);
     public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(180);
 
+    public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(5);
+
     public static final Function<SmartMotorController, ArmConfig> deployArmConfigFunction =
         (SmartMotorController deployMotor) ->
             new ArmConfig(deployMotor)

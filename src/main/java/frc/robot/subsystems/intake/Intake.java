@@ -25,10 +25,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.subsystems.CANIdAlert;
-import frc.util.TunableValue;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
-import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -45,6 +43,12 @@ public class Intake extends SubsystemBase {
         return robotPose
             .getTranslation()
             .plus(IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getTranslation().rotateBy(robotPose.getRotation()));
+    }
+
+    public enum MeasuredDeployState {
+        DEPLOYED,
+        RETRACTED,
+        TRANSITION,
     }
 
     /**
@@ -73,7 +77,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * States for the intake state machine.
+     * States for the intake state machine. Mostly for the deploy state (intake rollers run independently).
      * - In {@link #TRANSITION_DEPLOYING} and {@link #TRANSITION_RETRACTING}, the intake is in the process of deploying or retracting, and cannot transition to the opposite state until it finishes transitioning to the current state.
      */
     public enum IntakeState {
@@ -85,19 +89,30 @@ public class Intake extends SubsystemBase {
         /**
          * The intake is going from retracted to deployed.
          */
-        TRANSITION_DEPLOYING,
+        // TRANSITION_DEPLOYING,
 
         /**
          * The intake is going from deployed to retracted.
          */
-        TRANSITION_RETRACTING,
+        // TRANSITION_RETRACTING,
 
         /**
          * The intake is fully retracted.
          */
         RETRACTED,
 
+        // TODO: determine if states below are needed
+
+        /**
+         * The intake deploy is running duty cycle based on the voltage controlled by the human operator.
+         */
         TEST_VOLTAGE_CONTROL,
+
+        /**
+         * The intake deploy is running duty cycle to retract.
+         * Automatically transitions to {@link #RETRACTED} when deploy has hit the hard stop.
+         */
+        CALIBRATE_RETRACT,
     }
 
     public final StateMachine<IntakeState, Object> stateMachine = new StateMachine<IntakeState, Object>(
@@ -105,18 +120,22 @@ public class Intake extends SubsystemBase {
         "Intake"
     )
         .withDefaultState(
-            new StateMachineState<>(IntakeState.RETRACTED, "Retracted").withCanChangeCondition(
-                previousState -> previousState == IntakeState.TRANSITION_RETRACTING
-            )
+            // new StateMachineState<>(IntakeState.RETRACTED, "Retracted").withCanChangeCondition(
+            //     previousState -> previousState == IntakeState.TRANSITION_RETRACTING
+            // )
+            new StateMachineState<>(IntakeState.RETRACTED, "Retract")
         )
         .withState(
-            new StateMachineState<>(IntakeState.DEPLOYED, "Deployed").withCanChangeCondition(
-                previousState -> previousState == IntakeState.TRANSITION_DEPLOYING
-            )
+            // new StateMachineState<>(IntakeState.DEPLOYED, "Deployed").withCanChangeCondition(
+            //     previousState -> previousState == IntakeState.TRANSITION_DEPLOYING
+            // )
+            new StateMachineState<>(IntakeState.DEPLOYED, "Deploy")
         )
-        .withState(new StateMachineState<>(IntakeState.TRANSITION_DEPLOYING, "TransitionDeploying"))
-        .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "TransitionRetracting"))
-        .withState(new StateMachineState<>(IntakeState.TEST_VOLTAGE_CONTROL, "TestVoltage"));
+        // .withState(new StateMachineState<>(IntakeState.TRANSITION_DEPLOYING, "TransitionDeploying"))
+        // .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "TransitionRetracting"))
+        .withState(new StateMachineState<>(IntakeState.TEST_VOLTAGE_CONTROL, "TestVoltage"))
+        .withState(new StateMachineState<>(IntakeState.CALIBRATE_RETRACT, "CalibrateRetract"))
+
 
     private final IntakeIO io;
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
@@ -151,12 +170,12 @@ public class Intake extends SubsystemBase {
             retract();
         });
 
-        stateMachine.whileState(IntakeState.TRANSITION_DEPLOYING, () -> {
-            deploy();
-        });
-        stateMachine.whileState(IntakeState.TRANSITION_RETRACTING, () -> {
-            retract();
-        });
+        // stateMachine.whileState(IntakeState.TRANSITION_DEPLOYING, () -> {
+        //     deploy();
+        // });
+        // stateMachine.whileState(IntakeState.TRANSITION_RETRACTING, () -> {
+        //     retract();
+        // });
 
         stateMachine.whileState(IntakeState.TEST_VOLTAGE_CONTROL, () -> {
             io.runDeployVoltage(testVoltageOutput);
@@ -173,6 +192,31 @@ public class Intake extends SubsystemBase {
             ),
             new SysIdRoutine.Mechanism(io::runDeployVoltage, null, this)
         );
+    }
+
+    public MeasuredDeployState getMeasuredDeployState() {
+        Angle currentTargetDeployAngle = Radians.zero();
+
+        // Determine target angle based on state
+        if (stateMachine.is(IntakeState.DEPLOYED)) {
+            currentTargetDeployAngle = IntakeConstants.INTAKE_DEPLOYED_ANGLE;
+        } else if (stateMachine.is(IntakeState.RETRACTED)) {
+            currentTargetDeployAngle = IntakeConstants.INTAKE_RETRACTED_ANGLE;
+        } else {
+            return MeasuredDeployState.TRANSITION;
+        }
+
+        // Compare
+        if (
+            inputs.deployMotorData.positionAngle.isNear(
+                currentTargetDeployAngle,
+                IntakeConstants.DEPLOY_TARGET_TOLERANCE
+            )
+        ) {
+            return stateMachine.is(IntakeState.DEPLOYED) ? MeasuredDeployState.DEPLOYED : MeasuredDeployState.RETRACTED;
+        } else {
+            return MeasuredDeployState.TRANSITION;
+        }
     }
 
     /**
@@ -251,6 +295,10 @@ public class Intake extends SubsystemBase {
             .finallyDo(io::applySoftLimits);
     }
 
+    /**
+     * @return A command to do all 4 sysid routines.
+     * Start with deploy retracted.
+     */
     public Command sysid() {
         return new SequentialCommandGroup(
             intakeSysid.quasistatic(SysIdRoutine.Direction.kForward),

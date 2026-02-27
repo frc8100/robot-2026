@@ -50,9 +50,6 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void setDeploySetpoint(Angle setpoint) {
-        // deployArm.setMechanismPositionSetpoint(setpoint);
-
-        // TODO: current disabled for "safety"
         deployMotorWrapped.setPosition(setpoint);
     }
 
@@ -85,7 +82,7 @@ public class IntakeIOYAMS implements IntakeIO {
 
         deployMotor.configureAsync(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
-        System.out.println("Remove soft limits");
+        System.out.println("[Deploy] Removing soft limits");
     }
 
     @Override
@@ -97,7 +94,7 @@ public class IntakeIOYAMS implements IntakeIO {
 
         deployMotor.configureAsync(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
-        System.out.println("Apply soft limits");
+        System.out.println("[Deploy] Applying soft limits");
     }
 
     @Override
