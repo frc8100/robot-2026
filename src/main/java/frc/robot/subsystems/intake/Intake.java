@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.CANIdConstants;
 import frc.robot.Constants;
-import frc.robot.subsystems.CANIdAlert;
+import frc.robot.subsystems.DeviceAlert;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import org.littletonrobotics.junction.Logger;
@@ -120,8 +120,8 @@ public class Intake extends SubsystemBase {
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
     // Alerts for disconnected motors
-    private final CANIdAlert intakeDisconnectedAlert = new CANIdAlert(CANIdConstants.ROLLER_MOTOR_ID, "IntakeMotor");
-    private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
+    private final DeviceAlert intakeDisconnectedAlert = new DeviceAlert(CANIdConstants.ROLLER_MOTOR_ID, "IntakeMotor");
+    private final DeviceAlert deployDisconnectedAlert = new DeviceAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
 
     // Deploy state visualization
     private final LinearFilter deployStateFilter = LinearFilter.movingAverage(

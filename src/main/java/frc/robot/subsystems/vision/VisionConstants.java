@@ -14,15 +14,18 @@
 package frc.robot.subsystems.vision;
 
 import static edu.wpi.first.units.Units.Centimeters;
+import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Value;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Frequency;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Filesystem;
 import java.nio.file.Path;
@@ -39,22 +42,22 @@ public class VisionConstants {
     /**
      * The AprilTag field layout. Note: see TU 12
      */
-    // public static final AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(
-    //     AprilTagFields.k2025ReefscapeWelded
-    // );
-    public static AprilTagFieldLayout aprilTagLayout;
+    public static final AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(
+        AprilTagFields.k2026RebuiltWelded
+    );
 
-    // TODO: Use official field layout when available
-    static {
-        try {
-            aprilTagLayout = new AprilTagFieldLayout(
-                Path.of(Filesystem.getDeployDirectory().getPath(), "apriltags", "2026-rebuilt-welded.json")
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
-        }
-    }
+    // public static AprilTagFieldLayout aprilTagLayout;
+
+    // static {
+    //     try {
+    //         aprilTagLayout = new AprilTagFieldLayout(
+    //             Path.of(Filesystem.getDeployDirectory().getPath(), "apriltags", "2026-rebuilt-welded.json")
+    //         );
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+    //     }
+    // }
 
     /**
      * A type of game piece observation that can be detected by the neural detector.
@@ -179,13 +182,15 @@ public class VisionConstants {
     /**
      * The maximum unseen time for a tracked target before it is deleted.
      */
-    // public static final Time MAX_TARGET_AGE = Seconds.of(0.5);
-    public static final int MAX_TARGET_MISSES = 7;
+    public static final Time MAX_TARGET_AGE = Seconds.of(0.5);
+
+    // public static final Frequency DETECTION_FPS = Hertz.of(10);
+    public static final int MAX_TARGET_MISSES = (int) Hertz.of(50).times(MAX_TARGET_AGE).in(Value);
 
     /**
      * Camera 0 simulated properties
      */
-    public static final SimCameraProperties CAMERA_0_PROPERTIES = SimCameraProperties.LL2_1280_720().setFPS(20);
+    public static final SimCameraProperties CAMERA_0_PROPERTIES = SimCameraProperties.LL2_1280_720().setFPS(10);
 
     // Basic filtering thresholds
     public static final double MAX_AMBIGUITY = 0.3;

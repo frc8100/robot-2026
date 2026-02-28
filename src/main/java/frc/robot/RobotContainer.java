@@ -93,14 +93,18 @@ public class RobotContainer {
         switch (Constants.currentMode) {
             case REAL:
                 // Real robot, instantiate hardware IO implementations
+                // swerveSubsystem = new Swerve(
+                //     new GyroIOPigeon2(),
+                //     new ModuleIO[] {
+                //         new ModuleIOSpark(0),
+                //         new ModuleIOSpark(1),
+                //         new ModuleIOSpark(2),
+                //         new ModuleIOSpark(3),
+                //     }
+                // );
                 swerveSubsystem = new Swerve(
-                    new GyroIOPigeon2(),
-                    new ModuleIO[] {
-                        new ModuleIOSpark(0),
-                        new ModuleIOSpark(1),
-                        new ModuleIOSpark(2),
-                        new ModuleIOSpark(3),
-                    }
+                    new GyroIO() {},
+                    new ModuleIO[] { new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {} }
                 );
 
                 questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIOReal());
@@ -115,7 +119,8 @@ public class RobotContainer {
                 );
 
                 // TODO: replace with real IO implementation when ready
-                intakeSubsystem = new Intake(new IntakeIOYAMS());
+                // intakeSubsystem = new Intake(new IntakeIOYAMS());
+                intakeSubsystem = new Intake(new IntakeIO() {});
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
 

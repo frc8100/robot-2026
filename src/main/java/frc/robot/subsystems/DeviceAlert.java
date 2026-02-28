@@ -10,7 +10,12 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 /**
  * Contains an alert for a specific CAN ID to monitor its connection status.
  */
-public class CANIdAlert {
+public class DeviceAlert {
+
+    public enum DeviceAlertType {
+        CAN_ID,
+        NETWORK_TABLE,
+    }
 
     /**
      * The default debounce time for CAN connection alerts.
@@ -26,7 +31,15 @@ public class CANIdAlert {
     /**
      * A debouncer to prevent alert flapping.
      */
-    private final Debouncer connectionDebouncer = new Debouncer(DEFAULT_DEBOUNCE_TIME.in(Seconds));
+    private final Debouncer connectionDebouncer = new Debouncer(
+        DEFAULT_DEBOUNCE_TIME.in(Seconds),
+        Debouncer.DebounceType.kFalling
+    );
+
+    /**
+     * The type of alert (CAN ID or Network Table) for this device alert.
+     */
+    public final DeviceAlertType alertType;
 
     /**
      * The alert to be triggered on disconnection.
@@ -35,8 +48,14 @@ public class CANIdAlert {
 
     /**
      * The CAN ID of the device being monitored.
+     * If {@link #alertType} is {@link DeviceAlertType#NETWORK_TABLE}, this will be set to -1 since it won't be used.
      */
     public final int canId;
+
+    /**
+     * The name of the device being monitored. Used in the alert message.
+     */
+    public final String deviceName;
 
     /**
      * The current connection status of the CAN device.
@@ -49,16 +68,36 @@ public class CANIdAlert {
      * @param canId - The CAN ID of the device.
      * @param deviceName - The name of the device. Used in the alert message.
      */
-    public CANIdAlert(int canId, String deviceName) {
+    public DeviceAlert(int canId, String deviceName) {
+        this.deviceName = deviceName;
+        this.alertType = DeviceAlertType.CAN_ID;
+
         this.canId = canId;
 
         this.disconnectionAlert = new Alert(
-            CANIdConnections.ALERT_GROUP,
+            CANIdConnections.CAN_ID_ALERT_GROUP,
             "Disconnected CAN device: " + deviceName + " (ID " + Integer.toString(canId) + ").",
             DEFAULT_ALERT_TYPE
         );
 
         CANIdConnections.registerCANIdAlert(this);
+    }
+
+    /**
+     * Creates a Network alert for the given device name.
+     * @param networkDeviceName - The name of the network device. Used in the alert message.
+     */
+    public DeviceAlert(String networkDeviceName) {
+        this.deviceName = networkDeviceName;
+        this.alertType = DeviceAlertType.NETWORK_TABLE;
+
+        this.canId = -1;
+
+        this.disconnectionAlert = new Alert(
+            CANIdConnections.NETWORK_ALERT_GROUP,
+            "Disconnected Network device: " + networkDeviceName + ".",
+            DEFAULT_ALERT_TYPE
+        );
     }
 
     /**

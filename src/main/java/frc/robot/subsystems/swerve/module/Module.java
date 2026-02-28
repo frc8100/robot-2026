@@ -24,7 +24,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import frc.robot.CANIdConstants;
-import frc.robot.subsystems.CANIdAlert;
+import frc.robot.subsystems.DeviceAlert;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import org.littletonrobotics.junction.Logger;
 
@@ -52,9 +52,9 @@ public class Module {
     public final String dashboardInputsTableName;
 
     // Alerts for disconnected motors
-    private final CANIdAlert driveDisconnectedAlert;
-    private final CANIdAlert turnDisconnectedAlert;
-    private final CANIdAlert cancoderDisconnectedAlert;
+    private final DeviceAlert driveDisconnectedAlert;
+    private final DeviceAlert turnDisconnectedAlert;
+    private final DeviceAlert cancoderDisconnectedAlert;
 
     /** The odometry positions received this cycle. This is processed in {@link SparkSwerveOdometryThread}. */
     private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
@@ -68,9 +68,9 @@ public class Module {
 
         CANIdConstants.SwerveModuleCanIDs canIds = CANIdConstants.getModuleCANIdsFromIndex(index);
 
-        driveDisconnectedAlert = new CANIdAlert(canIds.driveMotorID(), "DriveMotor" + Integer.toString(index));
-        turnDisconnectedAlert = new CANIdAlert(canIds.angleMotorID(), "TurnMotor" + Integer.toString(index));
-        cancoderDisconnectedAlert = new CANIdAlert(canIds.canCoderID(), "CANCoder" + Integer.toString(index));
+        driveDisconnectedAlert = new DeviceAlert(canIds.driveMotorID(), "DriveMotor" + Integer.toString(index));
+        turnDisconnectedAlert = new DeviceAlert(canIds.angleMotorID(), "TurnMotor" + Integer.toString(index));
+        cancoderDisconnectedAlert = new DeviceAlert(canIds.canCoderID(), "CANCoder" + Integer.toString(index));
     }
 
     /** Updates the inputs to the module. */

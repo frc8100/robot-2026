@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.CANIdConstants;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +17,19 @@ public class CANIdConnections {
     /**
      * The alert group for CAN ID alerts.
      */
-    public static final String ALERT_GROUP = "CANAlerts";
+    public static final String CAN_ID_ALERT_GROUP = "CANAlerts";
+
+    /**
+     * The alert group for NetworkTable alerts.
+     * Used for the Limelight and Quest.
+     * Currently the same as {@link #CAN_ID_ALERT_GROUP} since there are only a few alerts, but can be separated if more NetworkTable alerts are added in the future.
+     */
+    public static final String NETWORK_ALERT_GROUP = CAN_ID_ALERT_GROUP;
 
     /**
      * List of CAN ID alerts for monitoring CAN device connections.
      */
-    private static final List<CANIdAlert> canIdAlerts = new ArrayList<>();
+    private static final List<DeviceAlert> canIdAlerts = new ArrayList<>();
 
     /**
      * List of CAN IDs that were last detected as disconnected.
@@ -47,7 +55,15 @@ public class CANIdConnections {
      * Registers a CAN ID alert to be monitored.
      * @param alert - The CAN ID alert to register.
      */
-    public static void registerCANIdAlert(CANIdAlert alert) {
+    public static void registerCANIdAlert(DeviceAlert alert) {
+        if (alert.alertType != DeviceAlert.DeviceAlertType.CAN_ID || alert.canId < 0) {
+            // Should not happen but just in case
+            DriverStation.reportWarning(
+                "[CANIdConnections] Attempted to register a non-CAN ID alert: " + alert.deviceName,
+                false
+            );
+        }
+
         canIdAlerts.add(alert);
     }
 
@@ -55,7 +71,7 @@ public class CANIdConnections {
      * Alert for CAN bus disruptions (two or more consecutive disconnected CAN IDs).
      * Empty message; will be set in {@link #periodic()}
      */
-    public static final Alert canBusDisruptionAlert = new Alert(ALERT_GROUP, "", AlertType.kError);
+    public static final Alert canBusDisruptionAlert = new Alert(CAN_ID_ALERT_GROUP, "", AlertType.kError);
 
     /**
      * Gets a list connections that are disrupted based on the list of disconnected CAN IDs {@link #lastDisconnectedIds}.
@@ -97,7 +113,7 @@ public class CANIdConnections {
      */
     public static void periodic() {
         lastDisconnectedIds.clear();
-        for (CANIdAlert alert : canIdAlerts) {
+        for (DeviceAlert alert : canIdAlerts) {
             if (!alert.isConnected()) {
                 // Add the CAN ID to the disconnected list
                 lastDisconnectedIds.add(alert.canId);
