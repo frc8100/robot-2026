@@ -50,7 +50,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
         this.swerveSubsystem = swerveSubsystem;
 
         // super.deployMotorWrapped.setupSimulation();
-        super.intakeMotorWrapped.setupSimulation();
+        super.rollerMotorWrapped.setupSimulation();
 
         FuelSim.getInstance()
             .registerIntake(
@@ -62,7 +62,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
                 this::onIntake
             );
 
-        super.intakeMotorWrapped.setupCustomSimulation();
+        super.rollerMotorWrapped.setupCustomSimulation();
         // Init pneumatics simulation
         // pcmSim.setCompressorOn(true);
         // pcmSim.setPressureSwitch(true);
@@ -159,7 +159,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
     @Override
     public void simIterate() {
         super.deployMotorWrapped.simIterate();
-        super.intakeMotorWrapped.simIterate();
+        super.rollerMotorWrapped.simIterate();
 
         updateFuelPositions();
         Logger.recordOutput("Intake/FuelInIntake", getFuelPositions());

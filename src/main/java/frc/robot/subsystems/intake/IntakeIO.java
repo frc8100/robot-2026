@@ -13,35 +13,23 @@ public interface IntakeIO {
     @AutoLog
     public static class IntakeIOInputs {
 
-        // Deploy pneumatics
-        // public boolean compressorEnabled = false;
-        // public boolean isPressureSwitchValveNotFull = false;
-        // public MutCurrent compressorCurrent = Amps.mutable(0.0);
-
-        // public boolean deploySolenoidLeftState = false;
-        // public boolean deploySolenoidRightState = false;
-
         // Deploy motor
         public SparkMotorControllerData deployMotorData = new SparkMotorControllerData();
         public boolean deployMotorConnected = true;
 
-        // Motor controller data for the intake motor
-        public SparkMotorControllerData intakeMotorData = new SparkMotorControllerData();
-        public boolean intakeMotorConnected = true;
-        /**
-         * The measured deploy state of the intake. Independent of the desired deploy state; this is what the intake is actually doing. Should be determined by sensors on the intake.
-         */
-        // public MeasuredDeployState measuredDeployState = MeasuredDeployState.RETRACTED;
+        // Intake roller motor
+        public SparkMotorControllerData rollerMotorData = new SparkMotorControllerData();
+        public boolean rollerMotorConnected = true;
     }
 
     /** Updates the set of loggable inputs. */
     public default void updateInputs(IntakeIOInputs inputs) {}
 
     /**
-     * Runs the intake at the given speed. Positive is intaking.
-     * @param speed - The duty cycle speed from [-1, 1].
+     * Runs the intake rollers at the given speed. Positive is intaking.
+     * @param output - The duty cycle speed from [-1, 1].
      */
-    public default void runIntake(double speed) {}
+    public default void runRollerDutyCycle(double output) {}
 
     /**
      * Runs the deploy motor at the given duty cycle output. See {@link Intake.IntakeDeployDirection} for direction conventions.
@@ -75,16 +63,12 @@ public interface IntakeIO {
     public default void setDeploySetpoint(Angle setpoint) {}
 
     /**
-     * Remove the soft limits (software on motor controller stops motor from moving past certain positions) on the deploy motor.
+     * Set whether the soft limits (software on motor controller stops motor from moving past certain positions) are enabled on the deploy motor.
      * Used for testing. Also used for calibration sequence to return back to hard stop without worrying about soft limits.
-     * Should be used with caution, as it can lead to mechanical damage if the deploy motor is allowed to run into the hard stop too much (although current limits prevent most damage)
+     * Should be used with caution, as it can lead to mechanical damage if the deploy motor is allowed to run into the hard stop too much (although current limits prevent most damage).
+     * @param enabled - Whether the soft limits should be enabled or not.
      */
-    public default void removeSoftLimits() {}
-
-    /**
-     * Reapplies the soft limits on the deploy motor after they have been removed.
-     */
-    public default void applySoftLimits() {}
+    public default void setSoftLimits(boolean enabled) {}
 
     /**
      * Runs during {@link Intake#simulationPeriodic}.
