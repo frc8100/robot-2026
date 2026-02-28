@@ -22,20 +22,9 @@ import yams.mechanisms.positional.Arm;
 
 public class IntakeIOYAMS implements IntakeIO {
 
-    // Deploy pneumatics
-    // protected final Solenoid deploySolenoidLeft = new Solenoid(
-    //     PneumaticsModuleType.CTREPCM,
-    //     CANIdConstants.DEPLOY_SOLENOID_LEFT_CHANNEL
-    // );
-    // protected final Solenoid deploySolenoidRight = new Solenoid(
-    //     PneumaticsModuleType.CTREPCM,
-    //     CANIdConstants.DEPLOY_SOLENOID_RIGHT_CHANNEL
-    // );
-    // protected final Compressor compressor = new Compressor(PneumaticsModuleType.CTREPCM);
-
     // Intake motor
-    protected final SparkMax intakeMotor = new SparkMax(CANIdConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
-    protected final WrappedSpark intakeMotorWrapped = new WrappedSpark(intakeMotor, IntakeConstants.intakeMotorConfig);
+    protected final SparkMax rollerMotor = new SparkMax(CANIdConstants.ROLLER_MOTOR_ID, MotorType.kBrushless);
+    protected final WrappedSpark rollerMotorWrapped = new WrappedSpark(rollerMotor, IntakeConstants.intakeMotorConfig);
 
     // Deploy motor
     protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
@@ -54,8 +43,8 @@ public class IntakeIOYAMS implements IntakeIO {
     }
 
     @Override
-    public void runIntake(double speed) {
-        intakeMotorWrapped.setDutyCycle(speed);
+    public void runRollerDutyCycle(double speed) {
+        rollerMotorWrapped.setDutyCycle(speed);
     }
 
     @Override
@@ -74,41 +63,19 @@ public class IntakeIOYAMS implements IntakeIO {
     }
 
     @Override
-    public void removeSoftLimits() {
+    public void setSoftLimits(boolean enabled) {
         SparkMaxConfig config = (SparkMaxConfig) deployMotorWrapped.getMotorControllerConfig();
 
-        config.softLimit.forwardSoftLimitEnabled(false);
-        config.softLimit.reverseSoftLimitEnabled(false);
-
+        config.softLimit.forwardSoftLimitEnabled(enabled);
+        config.softLimit.reverseSoftLimitEnabled(enabled);
         deployMotor.configureAsync(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
-        System.out.println("[Deploy] Removing soft limits");
-    }
-
-    @Override
-    public void applySoftLimits() {
-        SparkMaxConfig config = (SparkMaxConfig) deployMotorWrapped.getMotorControllerConfig();
-
-        config.softLimit.forwardSoftLimitEnabled(true);
-        config.softLimit.reverseSoftLimitEnabled(true);
-
-        deployMotor.configureAsync(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-
-        System.out.println("[Deploy] Applying soft limits");
+        System.out.println("[Deploy] " + (enabled ? "Applying" : "Removing") + " soft limits");
     }
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
-        inputs.intakeMotorConnected = intakeMotorWrapped.updateData(inputs.intakeMotorData);
+        inputs.rollerMotorConnected = rollerMotorWrapped.updateData(inputs.rollerMotorData);
         inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
-        // inputs.deploySolenoidLeftState = deploySolenoidLeft.get();
-        // inputs.deploySolenoidRightState = deploySolenoidRight.get();
-        // inputs.measuredDeployState = (deploySolenoidLeft.get() && deploySolenoidRight.get())
-        //     ? MeasuredDeployState.DEPLOYED
-        //     : MeasuredDeployState.RETRACTED;
-
-        // inputs.compressorEnabled = compressor.isEnabled();
-        // inputs.isPressureSwitchValveNotFull = compressor.getPressureSwitchValue();
-        // inputs.compressorCurrent.mut_replace(compressor.getCurrent(), Amps);
     }
 }

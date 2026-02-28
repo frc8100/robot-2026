@@ -114,12 +114,9 @@ public class RobotContainer {
                     )
                 );
 
-                // TODO: use IO
+                // TODO: replace with real IO implementation when ready
                 intakeSubsystem = new Intake(new IntakeIOYAMS());
-
-                // TODO: add ShooterIOSpark
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
-
                 climbSubsystem = new Climb(new ClimbIO() {});
 
                 objectiveIO = new ObjectiveIODashboard();

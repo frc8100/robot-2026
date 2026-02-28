@@ -198,8 +198,8 @@ public class ButtonBindings {
 
         driverController
             .getButtonTrigger(ControlConstants.runIntakeButton)
-            .whileTrue(intakeSubsystem.runIntake())
-            .whileFalse(intakeSubsystem.stopIntake());
+            .whileTrue(intakeSubsystem.runRollerCommand())
+            .whileFalse(intakeSubsystem.stopRollerCommand());
 
         // Intake deploy/retract toggle
         driverController
@@ -207,18 +207,15 @@ public class ButtonBindings {
             .onTrue(
                 Commands.runOnce(() -> {
                     // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
-                    if (
-                        intakeSubsystem.stateMachine.is(IntakeState.RETRACTED) ||
-                        intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
-                    ) {
-                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
+                    if (intakeSubsystem.stateMachine.is(IntakeState.RETRACTED)) {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.DEPLOYED);
                     } else {
-                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.RETRACTED);
                     }
                 })
-                // intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.DEPLOYING, 0.1)
             );
-        // .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
+
+        // Debug
         operatorController
             .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
             // higher to overcome gravity
@@ -236,7 +233,15 @@ public class ButtonBindings {
 
         operatorController
             .getButtonTrigger(XboxController.Button.kY)
-            .whileTrue(intakeSubsystem.calibrateIntakeDeploy());
+            .onTrue(
+                Commands.runOnce(() ->
+                    intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.CALIBRATE_RETRACT)
+                ).ignoringDisable(true)
+            )
+            .onFalse(
+                Commands.runOnce(() -> intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.RETRACTED)
+                ).ignoringDisable(true)
+            );
 
         final Voltage incrementVoltage = Volts.of(0.1);
         final Voltage fineIncrementVoltage = Volts.of(0.01);
@@ -270,24 +275,23 @@ public class ButtonBindings {
         operatorController
             .getButtonTrigger(XboxController.Button.kA)
             .onTrue(Commands.runOnce(() -> intakeSubsystem.setTestOutVoltage(Volts.zero())).ignoringDisable(true));
-
         // TODO: Climb deploy/retract toggle
-        StateCycle<Climb.ClimbState, Object> toggleClimbDeploy =
-            climbSubsystem.stateMachine.createStateCycleWithPayload(
-                List.of(
-                    new StateMachine.StateWithPayload<>(Climb.ClimbState.RETRACTING, null),
-                    new StateMachine.StateWithPayload<>(Climb.ClimbState.DEPLOYING, null)
-                ),
-                StateCycle.StateCycleBehavior.RELY_ON_INDEX
-            );
+        // StateCycle<Climb.ClimbState, Object> toggleClimbDeploy =
+        //     climbSubsystem.stateMachine.createStateCycleWithPayload(
+        //         List.of(
+        //             new StateMachine.StateWithPayload<>(Climb.ClimbState.RETRACTING, null),
+        //             new StateMachine.StateWithPayload<>(Climb.ClimbState.DEPLOYING, null)
+        //         ),
+        //         StateCycle.StateCycleBehavior.RELY_ON_INDEX
+        //     );
 
-        StateCycle<Climb.ClimbState, Object> toggleClimbClimb = climbSubsystem.stateMachine.createStateCycleWithPayload(
-            List.of(
-                new StateMachine.StateWithPayload<>(Climb.ClimbState.DESCENDING, null),
-                new StateMachine.StateWithPayload<>(Climb.ClimbState.CLIMBING, null)
-            ),
-            StateCycle.StateCycleBehavior.RELY_ON_INDEX
-        );
+        // StateCycle<Climb.ClimbState, Object> toggleClimbClimb = climbSubsystem.stateMachine.createStateCycleWithPayload(
+        //     List.of(
+        //         new StateMachine.StateWithPayload<>(Climb.ClimbState.DESCENDING, null),
+        //         new StateMachine.StateWithPayload<>(Climb.ClimbState.CLIMBING, null)
+        //     ),
+        //     StateCycle.StateCycleBehavior.RELY_ON_INDEX
+        // );
         // driverController
         //     .getButtonTrigger(ControlConstants.deployClimbButton)
         //     // .onTrue(Commands.runOnce(toggleClimbDeploy::scheduleNextState));

@@ -45,6 +45,9 @@ public class Intake extends SubsystemBase {
             .plus(IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getTranslation().rotateBy(robotPose.getRotation()));
     }
 
+    /**
+     * The measured deploy state of the intake based on the deploy motor encoder position.
+     */
     public enum MeasuredDeployState {
         DEPLOYED,
         RETRACTED,
@@ -78,23 +81,12 @@ public class Intake extends SubsystemBase {
 
     /**
      * States for the intake state machine. Mostly for the deploy state (intake rollers run independently).
-     * - In {@link #TRANSITION_DEPLOYING} and {@link #TRANSITION_RETRACTING}, the intake is in the process of deploying or retracting, and cannot transition to the opposite state until it finishes transitioning to the current state.
      */
     public enum IntakeState {
         /**
          * The intake is fully deployed.
          */
         DEPLOYED,
-
-        /**
-         * The intake is going from retracted to deployed.
-         */
-        // TRANSITION_DEPLOYING,
-
-        /**
-         * The intake is going from deployed to retracted.
-         */
-        // TRANSITION_RETRACTING,
 
         /**
          * The intake is fully retracted.
@@ -119,29 +111,16 @@ public class Intake extends SubsystemBase {
         IntakeState.class,
         "Intake"
     )
-        .withDefaultState(
-            // new StateMachineState<>(IntakeState.RETRACTED, "Retracted").withCanChangeCondition(
-            //     previousState -> previousState == IntakeState.TRANSITION_RETRACTING
-            // )
-            new StateMachineState<>(IntakeState.RETRACTED, "Retract")
-        )
-        .withState(
-            // new StateMachineState<>(IntakeState.DEPLOYED, "Deployed").withCanChangeCondition(
-            //     previousState -> previousState == IntakeState.TRANSITION_DEPLOYING
-            // )
-            new StateMachineState<>(IntakeState.DEPLOYED, "Deploy")
-        )
-        // .withState(new StateMachineState<>(IntakeState.TRANSITION_DEPLOYING, "TransitionDeploying"))
-        // .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "TransitionRetracting"))
+        .withDefaultState(new StateMachineState<>(IntakeState.RETRACTED, "Retract"))
+        .withState(new StateMachineState<>(IntakeState.DEPLOYED, "Deploy"))
         .withState(new StateMachineState<>(IntakeState.TEST_VOLTAGE_CONTROL, "TestVoltage"))
-        .withState(new StateMachineState<>(IntakeState.CALIBRATE_RETRACT, "CalibrateRetract"))
-
+        .withState(new StateMachineState<>(IntakeState.CALIBRATE_RETRACT, "CalibrateRetract"));
 
     private final IntakeIO io;
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
     // Alerts for disconnected motors
-    private final CANIdAlert intakeDisconnectedAlert = new CANIdAlert(CANIdConstants.INTAKE_MOTOR_ID, "IntakeMotor");
+    private final CANIdAlert intakeDisconnectedAlert = new CANIdAlert(CANIdConstants.ROLLER_MOTOR_ID, "IntakeMotor");
     private final CANIdAlert deployDisconnectedAlert = new CANIdAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
 
     // Deploy state visualization
@@ -154,32 +133,26 @@ public class Intake extends SubsystemBase {
 
     private final MutVoltage testVoltageOutput = Volts.mutable(0.0);
 
+    /**
+     * A trigger that is true when the intake deploy motor is stalled which indicates that the intake has hit the hard stop.
+     */
+    private final Trigger calibrationCompleteTrigger = new Trigger(() ->
+        inputs.deployMotorData.torqueCurrent.gte(Amps.of(22))
+    ).debounce(0.25);
+
+    /**
+     * Creates a new Intake subsystem.
+     * @param io - The IO interface for the intake subsystem.
+     */
     public Intake(IntakeIO io) {
         this.io = io;
 
         // State machine bindings
-        stateMachine.whileState(IntakeState.DEPLOYED, () -> {
-            // If intake is ever "undeployed" while in the deployed state, deploy again
-            // if (inputs.measuredDeployState != IntakeIO.MeasuredDeployState.DEPLOYED) {
-            //     stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
-            // }
+        stateMachine.whileState(IntakeState.DEPLOYED, this::deploy);
+        stateMachine.whileState(IntakeState.RETRACTED, this::retract);
+        stateMachine.whileState(IntakeState.TEST_VOLTAGE_CONTROL, () -> io.runDeployVoltage(testVoltageOutput));
 
-            deploy();
-        });
-        stateMachine.whileState(IntakeState.RETRACTED, () -> {
-            retract();
-        });
-
-        // stateMachine.whileState(IntakeState.TRANSITION_DEPLOYING, () -> {
-        //     deploy();
-        // });
-        // stateMachine.whileState(IntakeState.TRANSITION_RETRACTING, () -> {
-        //     retract();
-        // });
-
-        stateMachine.whileState(IntakeState.TEST_VOLTAGE_CONTROL, () -> {
-            io.runDeployVoltage(testVoltageOutput);
-        });
+        stateMachine.onStateChange(IntakeState.CALIBRATE_RETRACT, this::onCalibrateDeploy);
 
         setDefaultCommand(stateMachine.getRunnableCommand(this));
 
@@ -194,6 +167,9 @@ public class Intake extends SubsystemBase {
         );
     }
 
+    /**
+     * @return The measured deploy state of the intake based on the deploy motor encoder position.
+     */
     public MeasuredDeployState getMeasuredDeployState() {
         Angle currentTargetDeployAngle = Radians.zero();
 
@@ -231,7 +207,7 @@ public class Intake extends SubsystemBase {
     /**
      * @return A value from 0 to 1 representing the deploy state of the intake for visualization. Goes from 0 to 1 as the intake deploys, and from 1 to 0 as the intake retracts, with a delay to match the time it takes for the intake to deploy/retract in simulation.
      */
-    public double getDeployStateForVisualization() {
+    private double getDeployStateForVisualization() {
         // return deployStateFilter.calculate(
         //     inputs.measuredDeployState == IntakeIO.MeasuredDeployState.DEPLOYED ? 1.0 : 0.0
         // );
@@ -243,6 +219,9 @@ public class Intake extends SubsystemBase {
         );
     }
 
+    /**
+     * @return The angle to use for visualization of the intake deploy state.
+     */
     public Angle getDeployAngle() {
         // return deployStateForVisualization.mut_replace(MathUtil.interpolate(
         //     IntakeConstants.INTAKE_RETRACTED_ANGLE.in(Radians),
@@ -253,46 +232,55 @@ public class Intake extends SubsystemBase {
         return deployStateForVisualization.mut_replace(inputs.deployMotorData.positionAngle);
     }
 
-    // temporary
-    public Command runIntake() {
-        // No requirement because also run state machine at same time (state machine does not require intake subsystem, so can run at same time as this command)
-        return Commands.run(() -> io.runIntake(IntakeConstants.INTAKE_RUN_SPEED));
+    /**
+     * @return A command to run the roller.
+     * No requirement because also run state machine at same time (state machine does not require intake subsystem, so can run at same time as this command)
+     */
+    public Command runRollerCommand() {
+        return Commands.run(() -> io.runRollerDutyCycle(IntakeConstants.INTAKE_RUN_SPEED));
     }
 
-    public Command stopIntake() {
-        return Commands.run(() -> io.runIntake(0));
+    /**
+     * @return A command to stop the roller.
+     */
+    public Command stopRollerCommand() {
+        return Commands.run(() -> io.runRollerDutyCycle(0));
     }
 
+    /**
+     * @return A command to run the intake deploy motor at a given duty cycle in a given direction.
+     * @param direction - The direction to run the intake deploy motor.
+     * @param speed - The duty cycle to run the intake deploy motor at from 0 to 1. The direction parameter determines if this is positive or negative duty cycle.
+     */
     public Command runDeployDutyCycleCommand(IntakeDeployDirection direction, double speed) {
         return run(() -> runDeployDutyCycle(direction, speed));
     }
 
+    /**
+     * @return A command to stop the intake deploy motor.
+     */
     public Command stopDeployDutyCycleCommand() {
         return run(() -> runDeployDutyCycle(IntakeDeployDirection.DEPLOYING, 0));
     }
 
     /**
-     * @return A command that moves the intake deploy back until it hits the hard stop and then zeros the intake.
+     * Called when transitioning to the {@link IntakeState#CALIBRATE_RETRACT} state.
+     * Removes the soft limits on the deploy motor to allow the intake to hit the hard stop and calibrate the encoder.
      */
-    public Command calibrateIntakeDeploy() {
-        /**
-         * A trigger that is true when the intake deploy motor is stalled which indicates that the intake has hit the hard stop.
-         */
-        final Trigger calibrationCompleteTrigger = new Trigger(() ->
-            inputs.deployMotorData.torqueCurrent.gte(Amps.of(22))
-        ).debounce(0.25);
+    public void onCalibrateDeploy() {
+        io.setSoftLimits(false);
+    }
 
-        return runOnce(io::removeSoftLimits)
-            .andThen(
-                run(() -> io.runDeployDutyCycle(-0.175))
-                    .until(calibrationCompleteTrigger)
-                    .andThen(
-                        runOnce(() -> {
-                            io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE);
-                        })
-                    )
-            )
-            .finallyDo(io::applySoftLimits);
+    /**
+     * Called periodically while in the {@link IntakeState#CALIBRATE_RETRACT} state.
+     */
+    public void handleCalibrateDeploy() {
+        runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.175);
+
+        if (calibrationCompleteTrigger.getAsBoolean()) {
+            io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE);
+            stateMachine.scheduleStateChange(IntakeState.RETRACTED);
+        }
     }
 
     /**
@@ -313,15 +301,17 @@ public class Intake extends SubsystemBase {
 
     /**
      * Deploys the intake.
+     * Called periodically while in the {@link IntakeState#DEPLOYED} state by the state machine.
      */
-    public void deploy() {
+    private void deploy() {
         io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE);
     }
 
     /**
      * Retracts the intake.
+     * Called periodically while in the {@link IntakeState#RETRACTED} state by the state machine.
      */
-    public void retract() {
+    private void retract() {
         io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
     }
 
@@ -339,7 +329,7 @@ public class Intake extends SubsystemBase {
         Logger.processInputs("Intake", inputs);
 
         // Update alerts
-        intakeDisconnectedAlert.updateConnectionStatus(inputs.intakeMotorConnected);
+        intakeDisconnectedAlert.updateConnectionStatus(inputs.rollerMotorConnected);
         deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
 
         // Visualization
