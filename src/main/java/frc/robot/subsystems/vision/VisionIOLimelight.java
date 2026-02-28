@@ -100,6 +100,7 @@ public class VisionIOLimelight implements VisionIO {
     @Override
     public void setPipeline(VisionConstants.CameraPipelines pipelineToSwitchTo) {
         LimelightHelpers.setPipelineIndex(name, pipelineToSwitchTo.index);
+        currentPipeline = pipelineToSwitchTo;
         NetworkTableInstance.getDefault().flush();
     }
 
@@ -176,9 +177,8 @@ public class VisionIOLimelight implements VisionIO {
             Translation2d pose = VisionUtil.estimateTargetPose2d(
                 swerveSubsystem.poseEstimator.sampleAt(timestampSeconds).orElse(swerveSubsystem.getPose()),
                 transformRobotToCamera,
-                // TODO: should tx or ty be inverted?
                 Units.degreesToRadians(LimelightHelpers.extractArrayEntry(rawSample.value, baseIndex + 1)),
-                Units.degreesToRadians(LimelightHelpers.extractArrayEntry(rawSample.value, baseIndex + 2)),
+                -Units.degreesToRadians(LimelightHelpers.extractArrayEntry(rawSample.value, baseIndex + 2)),
                 type.heightOffFloor
             );
 

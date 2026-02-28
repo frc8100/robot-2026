@@ -24,6 +24,8 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.CANIdConnections;
+import frc.robot.subsystems.DeviceAlert;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
@@ -95,7 +97,7 @@ public class Vision extends SubsystemBase {
     private final String[] ioDashboardNames;
 
     private final VisionIOInputsAutoLogged[] inputs;
-    private final Alert[] disconnectedAlerts;
+    private final DeviceAlert[] disconnectedAlerts;
 
     public final GamePiecePoseEstimator gamePiecePoseEstimator = new GamePiecePoseEstimator();
 
@@ -117,12 +119,9 @@ public class Vision extends SubsystemBase {
         }
 
         // Initialize disconnected alerts
-        this.disconnectedAlerts = new Alert[io.length];
+        this.disconnectedAlerts = new DeviceAlert[io.length];
         for (int i = 0; i < inputs.length; i++) {
-            disconnectedAlerts[i] = new Alert(
-                "Vision camera " + Integer.toString(i) + " is disconnected.",
-                AlertType.kWarning
-            );
+            disconnectedAlerts[i] = new DeviceAlert("Limelight" + Integer.toString(i + 1));
         }
 
         // State changes
@@ -223,7 +222,7 @@ public class Vision extends SubsystemBase {
         // Loop over cameras
         for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
             // Update disconnected alert
-            disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
+            disconnectedAlerts[cameraIndex].updateConnectionStatus(inputs[cameraIndex].connected);
 
             // Process inputs for this camera
             processInputsForCamera(cameraIndex, inputs[cameraIndex]);

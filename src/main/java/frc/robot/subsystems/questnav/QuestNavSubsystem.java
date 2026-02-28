@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.CANIdConnections;
+import frc.robot.subsystems.DeviceAlert;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.Vision.VisionConsumer;
 import gg.questnav.questnav.PoseFrame;
@@ -60,7 +62,7 @@ public class QuestNavSubsystem extends SubsystemBase {
      * The battery percentage threshold to trigger a low battery alert.
      * At or below this percentage, a warning alert will be triggered.
      */
-    private static final int LOW_BATTERY_THRESHOLD = 20;
+    private static final int LOW_BATTERY_THRESHOLD = 30;
 
     /**
      * Consumer to send pose data to.
@@ -71,8 +73,12 @@ public class QuestNavSubsystem extends SubsystemBase {
     private final QuestNavIOInputsAutoLogged inputs = new QuestNavIOInputsAutoLogged();
 
     // Alerts
-    private final Alert notConnectedAlert = new Alert("QuestNav not connected.", Alert.AlertType.kWarning);
-    private final Alert lowBatteryAlert = new Alert("QuestNav battery low.", Alert.AlertType.kWarning);
+    private final DeviceAlert notConnectedAlert = new DeviceAlert("Quest");
+    private final Alert lowBatteryAlert = new Alert(
+        CANIdConnections.NETWORK_ALERT_GROUP,
+        "Quest battery low.",
+        Alert.AlertType.kWarning
+    );
 
     /**
      * The last battery percentage reported. Used to detect changes in battery level and update alerts accordingly.
@@ -118,13 +124,13 @@ public class QuestNavSubsystem extends SubsystemBase {
         Logger.processInputs("QuestNav", inputs);
 
         // Handle alerts
-        notConnectedAlert.set(inputs.connected);
+        notConnectedAlert.updateConnectionStatus(inputs.connected);
         if (inputs.batteryPercent >= 0 && inputs.batteryPercent <= LOW_BATTERY_THRESHOLD) {
             lowBatteryAlert.set(true);
 
             // Update alert only if battery percentage has changed
             if (inputs.batteryPercent != lastBatteryPercent) {
-                lowBatteryAlert.setText("QuestNav battery low: " + inputs.batteryPercent + "% remaining.");
+                lowBatteryAlert.setText("Quest battery low: " + inputs.batteryPercent + "% remaining.");
 
                 lastBatteryPercent = inputs.batteryPercent;
             }
@@ -153,7 +159,9 @@ public class QuestNavSubsystem extends SubsystemBase {
             // You can put some sort of filtering here if you would like!
 
             // Add the measurement to our estimator
-            consumer.accept(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+            if (shouldConsumePoseData) {
+                consumer.accept(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+            }
         }
     }
 

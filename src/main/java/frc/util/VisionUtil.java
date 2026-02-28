@@ -26,8 +26,8 @@ public class VisionUtil {
      * Estimates the Pose2d of a detected object on the field using Limelight data.
      * @param robotPose - Supplies the current robot pose (field-relative)
      * @param robotToCamera - Transform from the robot center to the camera
-     * @param txRad - Horizontal offset from Limelight (degrees, +right)
-     * @param tyRad - Vertical offset from Limelight (degrees, +down)
+     * @param txRad - Horizontal offset from Limelight (radians, +right)
+     * @param tyRad - Vertical offset from Limelight (radians, +down)
      * @param targetHeight - Height of the target above the floor (≈ 0 if lying flat)
      * @return The estimated Pose2d of the object on the field
      */
