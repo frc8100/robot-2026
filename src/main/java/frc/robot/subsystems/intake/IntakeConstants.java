@@ -59,8 +59,8 @@ public final class IntakeConstants {
         .withOpenLoopRampRate(Seconds.of(0.35));
 
     // sim
-    public static final Distance SIM_INTAKE_LENGTH = Inches.of(12);
-    public static final Mass SIM_INTAKE_MASS = Pounds.of(10);
+    public static final Distance SIM_INTAKE_LENGTH = Inches.of(7);
+    public static final Mass SIM_INTAKE_MASS = Pounds.of(8);
 
     public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
         .withMomentOfInertia(
