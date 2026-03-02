@@ -160,6 +160,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
     public void simIterate() {
         super.deployMotorWrapped.simIterate();
         super.rollerMotorWrapped.simIterate();
+        // super.deployArm.simIterate();
 
         updateFuelPositions();
         Logger.recordOutput("Intake/FuelInIntake", getFuelPositions());

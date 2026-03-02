@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import frc.robot.CANIdConstants;
 import frc.util.TunableValue;
 import frc.util.WrappedSpark;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import yams.mechanisms.positional.Arm;
 
 public class IntakeIOYAMS implements IntakeIO {
@@ -30,7 +31,7 @@ public class IntakeIOYAMS implements IntakeIO {
     protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
     protected final WrappedSpark deployMotorWrapped = new WrappedSpark(deployMotor, IntakeConstants.deployMotorConfig);
 
-    protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
+    // protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
 
     public final TunableValue.SparkPIDTunable tuning = TunableValue.SparkPIDTunable.fromWrapped(
         "Intake/Deploy",

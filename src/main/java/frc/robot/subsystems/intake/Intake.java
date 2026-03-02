@@ -171,12 +171,16 @@ public class Intake extends SubsystemBase {
      * @return The measured deploy state of the intake based on the deploy motor encoder position.
      */
     public MeasuredDeployState getMeasuredDeployState() {
+        return getMeasuredDeployState(stateMachine.getCurrentState().enumType);
+    }
+
+    public MeasuredDeployState getMeasuredDeployState(IntakeState currentState) {
         Angle currentTargetDeployAngle = Radians.zero();
 
         // Determine target angle based on state
-        if (stateMachine.is(IntakeState.DEPLOYED)) {
+        if (currentState == IntakeState.DEPLOYED) {
             currentTargetDeployAngle = IntakeConstants.INTAKE_DEPLOYED_ANGLE;
-        } else if (stateMachine.is(IntakeState.RETRACTED)) {
+        } else if (currentState == IntakeState.RETRACTED) {
             currentTargetDeployAngle = IntakeConstants.INTAKE_RETRACTED_ANGLE;
         } else {
             return MeasuredDeployState.TRANSITION;
@@ -189,7 +193,7 @@ public class Intake extends SubsystemBase {
                 IntakeConstants.DEPLOY_TARGET_TOLERANCE
             )
         ) {
-            return stateMachine.is(IntakeState.DEPLOYED) ? MeasuredDeployState.DEPLOYED : MeasuredDeployState.RETRACTED;
+            return currentState == IntakeState.DEPLOYED ? MeasuredDeployState.DEPLOYED : MeasuredDeployState.RETRACTED;
         } else {
             return MeasuredDeployState.TRANSITION;
         }
@@ -288,14 +292,22 @@ public class Intake extends SubsystemBase {
      * Start with deploy retracted.
      */
     public Command sysid() {
+        final Trigger sysidCompleteForwardTrigger = new Trigger(
+            () -> getMeasuredDeployState(IntakeState.DEPLOYED) == MeasuredDeployState.DEPLOYED
+        ).debounce(0.2);
+
+        final Trigger sysidCompleteReverseTrigger = new Trigger(
+            () -> getMeasuredDeployState(IntakeState.RETRACTED) == MeasuredDeployState.RETRACTED
+        ).debounce(0.2);
+
         return new SequentialCommandGroup(
-            intakeSysid.quasistatic(SysIdRoutine.Direction.kForward),
-            Commands.waitSeconds(1),
-            intakeSysid.quasistatic(SysIdRoutine.Direction.kReverse),
-            Commands.waitSeconds(1),
-            intakeSysid.dynamic(SysIdRoutine.Direction.kForward),
-            Commands.waitSeconds(1),
-            intakeSysid.dynamic(SysIdRoutine.Direction.kReverse)
+            intakeSysid.quasistatic(SysIdRoutine.Direction.kForward).until(sysidCompleteForwardTrigger),
+            Commands.waitSeconds(0.5),
+            intakeSysid.quasistatic(SysIdRoutine.Direction.kReverse).until(sysidCompleteReverseTrigger),
+            Commands.waitSeconds(0.5),
+            intakeSysid.dynamic(SysIdRoutine.Direction.kForward).until(sysidCompleteForwardTrigger),
+            Commands.waitSeconds(0.5),
+            intakeSysid.dynamic(SysIdRoutine.Direction.kReverse).until(sysidCompleteReverseTrigger)
         );
     }
 
