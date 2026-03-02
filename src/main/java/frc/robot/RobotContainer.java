@@ -3,6 +3,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Meters;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -263,10 +264,12 @@ public class RobotContainer {
             objectiveIO
         );
 
-        // Set up teleop swerve command
-        // swerveSubsystem.setDefaultCommand(swerveSubsystem.stateMachine.getRunnableCommand(swerveSubsystem));
-
-        // TODO: Register pathplanner named commands
+        // Register PathPlanner named commands
+        NamedCommands.registerCommands(swerveSubsystem.stateMachine.getNamedCommands());
+        NamedCommands.registerCommands(visionSubsystem.stateMachine.getNamedCommands());
+        NamedCommands.registerCommands(intakeSubsystem.stateMachine.getNamedCommands());
+        NamedCommands.registerCommands(shooterSubsystem.stateMachine.getNamedCommands());
+        NamedCommands.registerCommands(climbSubsystem.stateMachine.getNamedCommands());
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 

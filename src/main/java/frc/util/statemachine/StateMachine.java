@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.util.statemachine.StateCycle.StateCycleBehavior;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -395,15 +396,21 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
         return false;
     }
 
-    public Command scheduleStateChangeCommand(TStateEnum newState) {
-        if (scheduleStateChange(newState)) {
-            // Finished immediately
-            return Commands.none();
-        } else {
-            return Commands.waitUntil(
-                () -> scheduledStateChange == null && currentState != null && currentState.enumType == newState
-            );
-        }
+    /**
+     * @return A command that when initialized, schedules the desired state and finishes when the scheduled state change is complete.
+     */
+    public Command deferredScheduleStateChangeCommand(TStateEnum newState) {
+        return new Command() {
+            @Override
+            public void initialize() {
+                scheduleStateChange(newState);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return scheduledStateChange == null && currentState != null && currentState.enumType == newState;
+            }
+        };
     }
 
     /**
@@ -703,5 +710,21 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
         List<StateWithPayload<TStateEnum, TPayload>> states
     ) {
         return new StateCycle<>(this, states);
+    }
+
+    /**
+     * @return A map of named commands for each state in the state machine. See {@link #deferredScheduleStateChangeCommand} for the command.
+     * Useful for binding state changes to buttons using the command-based framework.
+     * The command names are in the format "State.{dashboardKey}.{stateName}", where {dashboardKey} is the dashboard key of the state machine and {stateName} is the name of the enum constant for that state.
+     */
+    public Map<String, Command> getNamedCommands() {
+        Map<String, Command> namedCommands = new HashMap<>();
+
+        stateMap.forEach((TStateEnum key, StateMachineState<TStateEnum> value) -> {
+            String commandName = "State." + dashboardKey + "." + value.name;
+            namedCommands.put(commandName, deferredScheduleStateChangeCommand(key));
+        });
+
+        return namedCommands;
     }
 }
