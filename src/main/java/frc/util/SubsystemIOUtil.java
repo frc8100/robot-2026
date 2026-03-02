@@ -238,10 +238,14 @@ public final class SubsystemIOUtil {
             SparkUtil.ifOkElseValue(spark, motorController::getMechanismVelocity, RadiansPerSecond.zero())
         );
         dataToUpdate.appliedVolts.mut_replace(
-            SparkUtil.ifOkElseValue(spark, motorController::getVoltage, Volts.zero())
+            // SparkUtil.ifOkElseValue(spark, motorController::getVoltage, Volts.zero())
+            SparkUtil.ifOkOtherwiseZero(spark, () -> spark.getAppliedOutput() * spark.getBusVoltage()),
+            Volts
         );
         dataToUpdate.torqueCurrent.mut_replace(
-            SparkUtil.ifOkElseValue(spark, motorController::getStatorCurrent, Amps.zero())
+            // SparkUtil.ifOkElseValue(spark, motorController::getStatorCurrent, Amps.zero())
+            SparkUtil.ifOkOtherwiseZero(spark, spark::getOutputCurrent),
+            Amps
         );
         dataToUpdate.temperature.mut_replace(
             SparkUtil.ifOkElseValue(spark, motorController::getTemperature, Celsius.zero())
