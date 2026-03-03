@@ -18,6 +18,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -62,19 +63,23 @@ public final class IntakeConstants {
     public static final Distance SIM_INTAKE_LENGTH = Inches.of(7);
     public static final Mass SIM_INTAKE_MASS = Pounds.of(8);
 
+    // Intake positions
+    public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(85);
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(195);
+
     public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
-        .withMomentOfInertia(
-            KilogramSquareMeters.of(
-                SingleJointedArmSim.estimateMOI(SIM_INTAKE_LENGTH.in(Meters), SIM_INTAKE_MASS.in(Kilograms))
-            )
-        )
+        // .withMomentOfInertia(
+        //     KilogramSquareMeters.of(
+        //         SingleJointedArmSim.estimateMOI(SIM_INTAKE_LENGTH.in(Meters), SIM_INTAKE_MASS.in(Kilograms))
+        //     ).times(0.1)
+        // )
         .withSubsystem(new Subsystem() {})
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5), new Sprocket(15.0 / 22.0)))
         // 15:22
         // Feedback Constants (PID Constants)
         .withClosedLoopController(50, 0.0, 0.0, DegreesPerSecond.of(260), DegreesPerSecondPerSecond.of(800))
-        .withSimClosedLoopController(15, 0.0, 0.0, DegreesPerSecond.of(210), DegreesPerSecondPerSecond.of(500))
+        .withSimClosedLoopController(13, 0.0, 0.0, DegreesPerSecond.of(7000), DegreesPerSecondPerSecond.of(1000))
         // Feedforward Constants
         // See https://docs.revrobotics.com/revlib/spark/closed-loop/feed-forward-control#manually-finding-kcos-and-ks-for-an-arm
         // V1 = 0.76
@@ -87,11 +92,8 @@ public final class IntakeConstants {
         .withIdleMode(MotorMode.BRAKE)
         .withStatorCurrentLimit(Amps.of(37))
         .withClosedLoopRampRate(Seconds.of(0.1))
-        .withOpenLoopRampRate(Seconds.of(0.2));
-
-    // Intake positions
-    public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(85);
-    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(195);
+        .withOpenLoopRampRate(Seconds.of(0.2))
+        .withStartingPosition(INTAKE_RETRACTED_ANGLE);
 
     public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(10);
 
@@ -123,15 +125,17 @@ public final class IntakeConstants {
     public static final Rotation2d ORIENTATION_AS_ROTATION = Rotation2d.kZero;
     public static final Time SIMULATION_TIME_FOR_INTAKE_DEPLOY = Seconds.of(0.5);
 
-    public static final Distance WIDTH = Inches.of(20);
+    public static final Distance WIDTH = Meters.of(0.52);
     public static final Distance HALF_OF_WIDTH = WIDTH.div(2);
 
-    public static final Distance LENGTH = Inches.of(8);
-    public static final Distance INTAKE_FORWARD_OFFSET = Inches.of(12);
+    public static final Distance LENGTH = Meters.of(0.2);
+    public static final Distance INTAKE_FORWARD_OFFSET = Meters.of(0.430467);
     public static final Transform2d ROBOT_CENTER_TO_INTAKE_CENTER = new Transform2d(
         new Translation2d(INTAKE_FORWARD_OFFSET, Inches.of(0)),
         ORIENTATION_AS_ROTATION
     );
+
+    public static final Translation3d CENTER_TO_INTAKE_PIVOT = new Translation3d(0.316696, 0, 0.241539);
 
     public static final int MAX_CAPACITY = 48;
 

@@ -38,6 +38,10 @@ public class IntakeIOYAMS implements IntakeIO {
         deployMotorWrapped
     );
 
+    public IntakeIOYAMS() {
+        // deployMotorWrapped.setEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE);
+    }
+
     @Override
     public void setDeploySetpoint(Angle setpoint) {
         deployMotorWrapped.setPosition(setpoint);
