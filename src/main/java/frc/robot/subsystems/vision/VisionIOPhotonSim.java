@@ -16,14 +16,15 @@ package frc.robot.subsystems.vision;
 import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Radians;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.robot.subsystems.vision.VisionSim.NeuralDetectorSimPipeline;
+import frc.util.CustomSimulationArena;
 import frc.util.PoseUtil;
 import frc.util.VelocityNoiseGenerator;
 import java.lang.reflect.Field;
@@ -33,6 +34,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.dyn4j.dynamics.Body;
+import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.geometry.Ray;
+import org.dyn4j.world.World;
+import org.dyn4j.world.result.RaycastResult;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.utils.mathutils.GeometryConvertor;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionTargetSim;
@@ -157,6 +165,9 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
         }
     }
 
+    /**
+     * Updates the inputs with the simulated object detection data.
+     */
     private void updateDetection(VisionIOInputs inputs, long nextTimeMicroseconds) {
         Pose3d cameraPose = new Pose3d(robotPoseSupplier.get()).transformBy(robotToCamera);
 
@@ -172,25 +183,68 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
                     continue;
                 }
 
-                if (cameraSim.canSeeTargetPose(cameraPose, target)) {
-                    // Visible, add observation
-                    Pose3d noisyPose = poseNoiseGenerator.applyNoise(
-                        target.getPose(),
-                        swerveSubsystem.getVelocityMagnitudeAsDouble() +
-                        (robotPoseSupplier.get().minus(target.getPose().toPose2d()).getTranslation().getNorm() * 0.3)
-                    );
-
-                    gamePieceObservationsByType
-                        .get(pipeline.type())
-                        .add(
-                            new GamePieceObservation(
-                                nextTimeMicroseconds / 1e6,
-                                noisyPose.toPose2d().getTranslation(),
-                                0.0,
-                                pipeline.type()
-                            )
-                        );
+                // Exclude targets that are too far away
+                double distance = robotPoseSupplier
+                    .get()
+                    .getTranslation()
+                    .getDistance(target.getPose().toPose2d().getTranslation());
+                if (distance > VisionConstants.SIM_MAX_DETECTION_DISTANCE.in(Meters)) {
+                    continue;
                 }
+
+                // Check if target is visible
+                if (!cameraSim.canSeeTargetPose(cameraPose, target)) {
+                    continue;
+                }
+
+                // Check if target is obstructed by an obstacle in the arena
+                if (SimulatedArena.getInstance() instanceof CustomSimulationArena) {
+                    CustomSimulationArena arena = (CustomSimulationArena) SimulatedArena.getInstance();
+
+                    World<Body> physicsWorld = arena.getPhysicsWorld();
+
+                    Translation2d cameraToTarget = target
+                        .getPose()
+                        .toPose2d()
+                        .relativeTo(cameraPose.toPose2d())
+                        .getTranslation();
+
+                    // Perform raycast from camera to target and check if it hits any obstacles
+                    RaycastResult<Body, BodyFixture> raycastResults = physicsWorld.raycastClosest(
+                        new Ray(
+                            GeometryConvertor.toDyn4jVector2(cameraPose.getTranslation().toTranslation2d()),
+                            GeometryConvertor.toDyn4jVector2(cameraToTarget)
+                        ),
+                        cameraToTarget.getNorm(),
+                        // No filter
+                        null
+                    );
+                    // TODO: determine if any results
+
+                } else {
+                    // If not using custom arena, print warning and continue without obstruction checking
+                    System.out.println(
+                        "Warning: VisionIOPhotonSim is not using CustomSimulationArena, so target obstruction is not being checked."
+                    );
+                }
+
+                // Visible, add observation
+                Pose3d noisyPose = poseNoiseGenerator.applyNoise(
+                    target.getPose(),
+                    swerveSubsystem.getVelocityMagnitudeAsDouble() +
+                    (robotPoseSupplier.get().minus(target.getPose().toPose2d()).getTranslation().getNorm() * 0.3)
+                );
+
+                gamePieceObservationsByType
+                    .get(pipeline.type())
+                    .add(
+                        new GamePieceObservation(
+                            nextTimeMicroseconds / 1e6,
+                            noisyPose.toPose2d().getTranslation(),
+                            0.0,
+                            pipeline.type()
+                        )
+                    );
             }
         }
 

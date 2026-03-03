@@ -47,6 +47,7 @@ import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonSim;
 import frc.robot.subsystems.vision.VisionSim;
 import frc.robot.subsystems.vision.VisionSim.NeuralDetectorSimPipeline;
+import frc.util.CustomSimulationArena;
 import frc.util.EmptySimulationArena;
 import frc.util.FuelSim;
 import frc.util.TunableValue;
@@ -134,7 +135,7 @@ public class RobotContainer {
                     // Use an empty arena for SysId to reduce obstacles
                     SimulatedArena.overrideInstance(new EmptySimulationArena());
                 } else {
-                    SimulatedArena.overrideInstance(new Arena2026Rebuilt(false));
+                    SimulatedArena.overrideInstance(new CustomSimulationArena(false));
                 }
 
                 SimulatedArena.getInstance().clearGamePieces();
