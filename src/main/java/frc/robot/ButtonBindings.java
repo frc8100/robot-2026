@@ -20,6 +20,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
 import frc.robot.subsystems.vision.Vision;
+import frc.util.FuelSim;
 import frc.util.statemachine.StateCycle;
 import frc.util.statemachine.StateMachine;
 import java.util.List;
@@ -331,12 +332,13 @@ public class ButtonBindings {
         // Spawn all fuel
         operatorController
             .getButtonTrigger(ControlConstants.spawnAllFuelButton)
-            .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance().placeGamePiecesOnField()));
+            // .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance().placeGamePiecesOnField()));
+            .onTrue(Commands.runOnce(() -> FuelSim.getInstance().spawnStartingFuel()));
 
         // Clear all game pieces
         operatorController
             .getButtonTrigger(ControlConstants.clearFuelButton)
-            .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance().clearGamePieces()));
+            .onTrue(Commands.runOnce(() -> FuelSim.getInstance().clearFuel()));
     }
 
     /**

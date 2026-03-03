@@ -24,7 +24,6 @@ import org.littletonrobotics.junction.Logger;
 
 public class IntakeIOSim extends IntakeIOYAMS {
 
-    private boolean isDeployed = false;
     private int fuelInIntake = 0;
 
     // Pneumatics
@@ -58,7 +57,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
                 IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getX() + IntakeConstants.LENGTH.in(Meters),
                 IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getY() - IntakeConstants.WIDTH.in(Meters) / 2,
                 IntakeConstants.ROBOT_CENTER_TO_INTAKE_CENTER.getY() + IntakeConstants.WIDTH.in(Meters) / 2,
-                () -> isDeployed,
+                this::isAbleToIntake,
                 this::onIntake
             );
 
@@ -83,6 +82,20 @@ public class IntakeIOSim extends IntakeIOYAMS {
      */
     public boolean isAbleToShoot() {
         return fuelInIntake > 0;
+    }
+
+    public boolean isAbleToIntake() {
+        return // Intake is not already full
+        (
+            fuelInIntake < IntakeConstants.MAX_CAPACITY &&
+            // Intake is deployed
+            super.deployMotorWrapped
+                .getMechanismPosition()
+                .isNear(IntakeConstants.INTAKE_DEPLOYED_ANGLE, IntakeConstants.DEPLOY_TARGET_TOLERANCE) &&
+            // Intake rollers are running
+            super.rollerMotorWrapped.getDutyCycle() >
+            0.2
+        );
     }
 
     /**

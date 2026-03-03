@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -353,7 +354,10 @@ public class Intake extends SubsystemBase {
      * @return The pose of the intake relative to the robot.
      */
     public Transform3d getIntakePose() {
-        return new Transform3d(Translation3d.kZero, new Rotation3d(Radians.zero(), getDeployAngle(), Radians.zero()));
+        return new Transform3d(
+            IntakeConstants.CENTER_TO_INTAKE_PIVOT,
+            new Rotation3d(Radians.zero(), getDeployAngle(), Radians.zero())
+        );
     }
 
     @Override
