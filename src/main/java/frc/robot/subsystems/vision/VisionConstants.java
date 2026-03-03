@@ -187,6 +187,8 @@ public class VisionConstants {
     // public static final Frequency DETECTION_FPS = Hertz.of(10);
     public static final int MAX_TARGET_MISSES = (int) Hertz.of(50).times(MAX_TARGET_AGE).in(Value);
 
+    public static final Distance SIM_MAX_DETECTION_DISTANCE = Meters.of(5.0);
+
     /**
      * Camera 0 simulated properties
      */
