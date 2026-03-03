@@ -289,7 +289,7 @@ public class SwerveConstants {
 
     // Path Planner Values
     public static final Mass ROBOT_MASS = Pounds.of(110);
-    public static final double WHEEL_COF = 1.2;
+    public static final double WHEEL_COF = COTS.WHEELS.DEFAULT_NEOPRENE_TREAD.cof;
     // TODO: measure this
     public static final MomentOfInertia ROBOT_MOI = KilogramSquareMeters.of(3.9506340342);
 
@@ -337,19 +337,7 @@ public class SwerveConstants {
         .withBumperSize(FRONT_BUMPER_LENGTH, SIDE_BUMPER_LENGTH)
         .withRobotMass(ROBOT_MASS)
         .withGyro(COTS.ofPigeon2())
-        .withSwerveModule(
-            new SwerveModuleSimulationConfig(
-                driveGearbox,
-                turnGearbox,
-                DRIVE_GEAR_RATIO,
-                ANGLE_GEAR_RATIO,
-                Volts.of(0.1),
-                Volts.of(0.1),
-                WHEEL_RADIUS,
-                KilogramSquareMeters.of(0.02),
-                WHEEL_COF
-            )
-        );
+        .withSwerveModule(COTS.ofMark4i(driveGearbox, turnGearbox, WHEEL_COF, 2));
 
     /**
      * @return The PathPlanner RobotConfig
