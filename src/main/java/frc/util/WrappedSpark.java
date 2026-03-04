@@ -23,11 +23,11 @@ import yams.motorcontrollers.simulation.DCMotorSimSupplier;
 // TODO: rename
 public class WrappedSpark extends SparkWrapper {
 
-    // protected final SparkMax motor;
-    // protected final RelativeEncoder encoder;
-    // protected final SparkClosedLoopController controller;
+    protected final SparkMax motor;
+    protected final RelativeEncoder encoder;
+    protected final SparkClosedLoopController controller;
 
-    // protected final SparkWrapper motorWrapped;
+    // TODO: Workaround for using trapezoid profile
 
     public WrappedSpark(SparkMax motor, SmartMotorControllerConfig config) {
         // motor = new SparkMax(canId, MotorType.kBrushless);
@@ -37,6 +37,9 @@ public class WrappedSpark extends SparkWrapper {
         // motorWrapped = new SparkWrapper(motor, DCMotor.getNEO(1), config);
 
         super(motor, DCMotor.getNEO(1), config);
+        this.motor = motor;
+        this.encoder = motor.getEncoder();
+        this.controller = motor.getClosedLoopController();
     }
 
     /**
