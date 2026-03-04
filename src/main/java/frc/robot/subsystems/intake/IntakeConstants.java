@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -19,6 +20,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -67,6 +69,15 @@ public final class IntakeConstants {
     public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(85);
     public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(195);
 
+    // public static final TrapezoidProfile.State retractGoalState = new TrapezoidProfile.State(
+    //     INTAKE_RETRACTED_ANGLE.in(Rotations),
+    //     0
+    // );
+    // public static final TrapezoidProfile.State deployGoalState = new TrapezoidProfile.State(
+    //     INTAKE_DEPLOYED_ANGLE.in(Rotations),
+    //     0
+    // );
+
     public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
         // .withMomentOfInertia(
         //     KilogramSquareMeters.of(
@@ -78,12 +89,8 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5), new Sprocket(15.0 / 22.0)))
         // 15:22
         // Feedback Constants (PID Constants)
-        // .withClosedLoopController(50, 0.0, 0.0, DegreesPerSecond.of(260), DegreesPerSecondPerSecond.of(800))
-        // .withSimClosedLoopController(13, 0.0, 0.0, DegreesPerSecond.of(7000), DegreesPerSecondPerSecond.of(1000))
-
-        // MAXMotion sucks so don't use constraints
-        .withClosedLoopController(2.0, 0.0, 0.0)
-        .withSimClosedLoopController(2.0, 0.0, 0.0)
+        .withClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(800))
+        .withSimClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(800))
         // Feedforward Constants
         // See https://docs.revrobotics.com/revlib/spark/closed-loop/feed-forward-control#manually-finding-kcos-and-ks-for-an-arm
         // V1 = 0.76

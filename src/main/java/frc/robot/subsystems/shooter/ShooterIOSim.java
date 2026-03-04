@@ -72,7 +72,7 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
     @Override
     public void setTargetShootMotorVelocity(AngularVelocity velocity) {
-        super.shootMotorWrapped.setSetpointVelocity(velocity);
+        super.shootMotorWrapped.setCustomSetpointVelocity(velocity);
         isClosedLoopControllerEnabled = true;
     }
 

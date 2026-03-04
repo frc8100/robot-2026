@@ -33,6 +33,8 @@ public class IntakeIOYAMS implements IntakeIO {
 
     // protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
 
+    protected final boolean isUsingClosedLoopControl = true;
+
     public final TunableValue.SparkPIDTunable tuning = TunableValue.SparkPIDTunable.fromWrapped(
         "Intake/Deploy",
         deployMotorWrapped
@@ -44,6 +46,7 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void setDeploySetpoint(Angle setpoint) {
+        isUsingClosedLoopControl = true;
         deployMotorWrapped.setPosition(setpoint);
     }
 
@@ -54,11 +57,13 @@ public class IntakeIOYAMS implements IntakeIO {
 
     @Override
     public void runDeployVoltage(Voltage output) {
+        isUsingClosedLoopControl = false;
         deployMotorWrapped.setVoltage(output);
     }
 
     @Override
     public void runDeployDutyCycle(double output) {
+        isUsingClosedLoopControl = false;
         deployMotorWrapped.setDutyCycle(output);
     }
 
@@ -82,5 +87,9 @@ public class IntakeIOYAMS implements IntakeIO {
     public void updateInputs(IntakeIOInputs inputs) {
         inputs.rollerMotorConnected = rollerMotorWrapped.updateData(inputs.rollerMotorData);
         inputs.deployMotorConnected = deployMotorWrapped.updateData(inputs.deployMotorData);
+
+        if (isUsingClosedLoopControl) {
+            deployMotorWrapped.iterateClosedLoopController();
+        }
     }
 }
