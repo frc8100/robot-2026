@@ -30,6 +30,7 @@ import frc.util.VelocityNoiseGenerator;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,9 +38,12 @@ import java.util.function.Supplier;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Ray;
+import org.dyn4j.world.DetectFilter;
 import org.dyn4j.world.World;
 import org.dyn4j.world.result.RaycastResult;
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
+import org.ironmaple.simulation.gamepieces.GamePieceOnFieldSimulation;
 import org.ironmaple.utils.mathutils.GeometryConvertor;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
@@ -50,6 +54,12 @@ import org.photonvision.simulation.VisionTargetSim;
  * Currently only supports object detection.
  */
 public class VisionIOPhotonSim extends VisionIOPhotonVision {
+
+    // public static final DetectFilter<Body, BodyFixture> SIM_DETECT_FILTER = new DetectFilter<>(
+    //     false,
+    //     false,
+
+    // );
 
     private final PhotonCameraSim cameraSim;
 
@@ -210,17 +220,49 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
                         .getTranslation();
 
                     // Perform raycast from camera to target and check if it hits any obstacles
-                    RaycastResult<Body, BodyFixture> raycastResults = physicsWorld.raycastClosest(
+                    Iterator<RaycastResult<Body, BodyFixture>> raycastResults = physicsWorld.raycastIterator(
                         new Ray(
                             GeometryConvertor.toDyn4jVector2(cameraPose.getTranslation().toTranslation2d()),
                             GeometryConvertor.toDyn4jVector2(cameraToTarget)
                         ),
                         cameraToTarget.getNorm(),
-                        // No filter
+                        // No filter, manually filter out sim robot
                         null
                     );
-                    // TODO: determine if any results
 
+                    boolean obstructed = false;
+
+                    int numberOfGamePiecesInPath = 0;
+
+                    while (raycastResults.hasNext()) {
+                        RaycastResult<Body, BodyFixture> result = raycastResults.next();
+
+                        Body body = result.getBody();
+
+                        // Check if hit body is sim robot, if so ignore
+                        if (body instanceof AbstractDriveTrainSimulation) {
+                            continue;
+                        }
+
+                        // Note: because of use of custom game piece simulation other than maple sim, this will not trigger
+                        // if (body instanceof GamePieceOnFieldSimulation) {
+                        //     numberOfGamePiecesInPath++;
+
+                        //     // Allow up to 2 game pieces in path before considering it an obstruction, to allow for some error in target pose and robot pose
+                        //     if (numberOfGamePiecesInPath <= 2) {
+                        //         // TODO: refactor to reduce nesting
+                        //         continue;
+                        //     }
+                        // }
+
+                        // Otherwise, consider it an obstruction
+                        obstructed = true;
+                        break;
+                    }
+
+                    if (obstructed) {
+                        continue;
+                    }
                 } else {
                     // If not using custom arena, print warning and continue without obstruction checking
                     System.out.println(

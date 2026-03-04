@@ -78,8 +78,12 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5), new Sprocket(15.0 / 22.0)))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(50, 0.0, 0.0, DegreesPerSecond.of(260), DegreesPerSecondPerSecond.of(800))
-        .withSimClosedLoopController(13, 0.0, 0.0, DegreesPerSecond.of(7000), DegreesPerSecondPerSecond.of(1000))
+        // .withClosedLoopController(50, 0.0, 0.0, DegreesPerSecond.of(260), DegreesPerSecondPerSecond.of(800))
+        // .withSimClosedLoopController(13, 0.0, 0.0, DegreesPerSecond.of(7000), DegreesPerSecondPerSecond.of(1000))
+
+        // MAXMotion sucks so don't use constraints
+        .withClosedLoopController(2.0, 0.0, 0.0)
+        .withSimClosedLoopController(2.0, 0.0, 0.0)
         // Feedforward Constants
         // See https://docs.revrobotics.com/revlib/spark/closed-loop/feed-forward-control#manually-finding-kcos-and-ks-for-an-arm
         // V1 = 0.76
@@ -87,7 +91,7 @@ public final class IntakeConstants {
         // .withFeedforward(new ArmFeedforward(0.08, 0.68, 0.0, 0.0))
         .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
         // .withSimFeedforward(new ArmFeedforward(0.048643, 0.80614, 0.72715, 0.023721))
-        // .withSimFeedforward(new ArmFeedforward(0.048643, 0.0, 0.0, 0.0))
+        .withSimFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
         .withStatorCurrentLimit(Amps.of(37))
