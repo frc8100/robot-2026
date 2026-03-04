@@ -6,7 +6,11 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.RobotController;
@@ -28,6 +32,7 @@ public class WrappedSpark extends SparkWrapper {
     protected final SparkClosedLoopController controller;
 
     // TODO: Workaround for using trapezoid profile
+    // protected final Optional<ProfiledPIDController> customMotionProfileController = Optional.empty();
 
     public WrappedSpark(SparkMax motor, SmartMotorControllerConfig config) {
         // motor = new SparkMax(canId, MotorType.kBrushless);
@@ -58,8 +63,24 @@ public class WrappedSpark extends SparkWrapper {
         SimulatedBattery.addElectricalAppliances(this::getCustomSupplyCurrent);
     }
 
+    public void setSetpointPositionCustomMotionProfile(Angle setpointPosition) {
+        // public void setSetpointPositionCustomMotionProfile(TrapezoidProfile.State setpointState) {
+        // super.setpointPosition = Optional.ofNullable(setpointPosition);
+
+        // if (setpointState == null || customMotionProfileController.isEmpty()) {
+        //     return;
+        // }
+
+        // customMotionProfileController.ifPresent(controller -> {
+        //     controller.setGoal(setpointState);
+        // });
+
+        super.setpointVelocity = Optional.empty();
+        super.setpointPosition = Optional.ofNullable(setpointPosition);
+    }
+
     // TODO: this is a bit of a hack, but it allows us to use the existing SparkWrapper closed loop control methods while also allowing us to set the setpoint velocity in simulation (since YAMS does not simulate closed loop control of velocity)
-    public void setSetpointVelocity(AngularVelocity velocity) {
+    public void setCustomSetpointVelocity(AngularVelocity velocity) {
         super.setpointVelocity = Optional.ofNullable(velocity);
     }
 
