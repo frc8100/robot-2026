@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.RelativeEncoder;
@@ -18,10 +20,13 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.AngularAccelerationUnit;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
@@ -70,17 +75,21 @@ public class WrappedSpark extends SparkWrapper {
     // TODO: Workaround for using trapezoid profile
     // protected final Optional<ProfiledPIDController> customMotionProfileController = Optional.empty();
 
-    public WrappedSpark(SparkMax motor, SmartMotorControllerConfig config) {
+    public WrappedSpark(SparkMax motor, DCMotor model, SmartMotorControllerConfig config) {
         // motor = new SparkMax(canId, MotorType.kBrushless);
         // encoder = motor.getEncoder();
         // controller = motor.getClosedLoopController();
 
         // motorWrapped = new SparkWrapper(motor, DCMotor.getNEO(1), config);
 
-        super(motor, DCMotor.getNEO(1), config);
+        super(motor, model, config);
         this.motor = motor;
         this.encoder = motor.getEncoder();
         this.controller = motor.getClosedLoopController();
+    }
+
+    public WrappedSpark(SparkMax motor, SmartMotorControllerConfig config) {
+        this(motor, DCMotor.getNEO(1), config);
     }
 
     /**
@@ -170,15 +179,39 @@ public class WrappedSpark extends SparkWrapper {
         currentState = new TrapezoidProfile.State(position.in(Rotations), velocity.in(RotationsPerSecond));
     }
 
+    public void overrideCurrentState(AngularVelocity velocity, AngularAcceleration acceleration) {
+        currentState = new TrapezoidProfile.State(
+            velocity.in(RotationsPerSecond),
+            acceleration.in(RotationsPerSecondPerSecond)
+        );
+    }
+
     public void iterateCustomMotionProfile() {
         if (super.m_trapezoidProfile.isEmpty()) {
             return;
         }
 
-        TrapezoidProfile.State setpointState = new TrapezoidProfile.State(
-            super.setpointPosition.orElse(Radians.zero()).in(Rotations),
-            super.setpointVelocity.orElse(RadiansPerSecond.zero()).in(RotationsPerSecond)
-        );
+        TrapezoidProfile.State setpointState = currentState;
+        ControlType controlType = ControlType.kPosition;
+
+        if (super.setpointPosition.isPresent()) {
+            // Position control
+            setpointState = new TrapezoidProfile.State(
+                super.setpointPosition.orElse(Rotations.zero()).in(Rotations),
+                0.0
+            );
+            controlType = ControlType.kPosition;
+        } else if (super.setpointVelocity.isPresent()) {
+            // Velocity control
+            setpointState = new TrapezoidProfile.State(
+                super.setpointVelocity.orElse(RotationsPerSecond.zero()).in(RotationsPerSecond),
+                0.0
+            );
+            controlType = ControlType.kVelocity;
+        } else {
+            // No setpoint, do nothing
+            return;
+        }
 
         TrapezoidProfile profile = super.m_trapezoidProfile.get();
 

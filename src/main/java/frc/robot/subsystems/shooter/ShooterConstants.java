@@ -6,6 +6,9 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Gs;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
@@ -33,6 +36,7 @@ import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.Constants;
 import frc.util.InvertibleInterpolatingDoubleTreeMap;
 import java.util.function.Function;
@@ -81,6 +85,8 @@ public final class ShooterConstants {
      */
     public static final double INDEXER_OUTPUT = 0.5;
 
+    public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(50);
+
     // Sysid config
     public static final Voltage SHOOTER_SYSID_MAX_VOLTAGE = Volts.of(10.0);
     public static final Velocity<VoltageUnit> SHOOTER_SYSID_RAMP_RATE = Volts.of(1.0).per(Second);
@@ -90,8 +96,20 @@ public final class ShooterConstants {
     public static final SmartMotorControllerConfig shootMotorConfig = new SmartMotorControllerConfig()
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(0.1, 0.0, 0.0, RadiansPerSecond.of(90), RadiansPerSecondPerSecond.of(45))
-        .withSimClosedLoopController(2, 0.0, 0.0, RadiansPerSecond.of(300), RadiansPerSecondPerSecond.of(600))
+        .withClosedLoopController(
+            0.1,
+            0.0,
+            0.0,
+            RadiansPerSecondPerSecond.of(600),
+            RadiansPerSecondPerSecond.per(Second).of(1000)
+        )
+        .withSimClosedLoopController(
+            0.1,
+            0.0,
+            0.0,
+            RadiansPerSecondPerSecond.of(600),
+            RadiansPerSecondPerSecond.per(Second).of(1000)
+        )
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
         .withSimFeedforward(new SimpleMotorFeedforward(0.022028, 0.019888 * 2 * Math.PI, 0.0070252 * 2 * Math.PI))
@@ -104,12 +122,35 @@ public final class ShooterConstants {
         .withOpenLoopRampRate(Seconds.of(0.2));
 
     public static final SmartMotorControllerConfig indexerMotorConfig = new SmartMotorControllerConfig()
-        .withControlMode(ControlMode.OPEN_LOOP)
+        .withControlMode(ControlMode.CLOSED_LOOP)
+        // Feedback Constants (PID Constants)
+        .withClosedLoopController(
+            0.1,
+            0.0,
+            0.0,
+            RadiansPerSecondPerSecond.of(200),
+            RadiansPerSecondPerSecond.per(Second).of(400)
+        )
+        .withSimClosedLoopController(
+            0.1,
+            0.0,
+            0.0,
+            RadiansPerSecondPerSecond.of(200),
+            RadiansPerSecondPerSecond.per(Second).of(400)
+        )
+        // Feedforward Constants
+        .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+        .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.0, 0.0))
         .withGearing(3)
         .withMotorInverted(false)
-        .withIdleMode(MotorMode.BRAKE)
+        .withIdleMode(MotorMode.COAST)
         .withStatorCurrentLimit(Amps.of(30))
-        .withOpenLoopRampRate(Seconds.of(0.2));
+        .withOpenLoopRampRate(Seconds.of(0.2))
+        .withMomentOfInertia(
+            KilogramSquareMeters.of(
+                SingleJointedArmSim.estimateMOI(Inches.of(4).in(Meters), Pounds.of(2).in(Kilograms))
+            )
+        );
 
     public static final Function<SmartMotorController, FlyWheelConfig> shooterConfig =
         (SmartMotorController shootMotor) ->
@@ -119,7 +160,7 @@ public final class ShooterConstants {
                 // Mass of the flywheel.
                 .withMass(Pounds.of(1))
                 // Maximum speed of the shooter.
-                .withUpperSoftLimit(RPM.of(1000));
+                .withUpperSoftLimit(RPM.of(5000));
 
     // Simulation constants
     // public static final Transform3d transformFromRobotCenter = new Transform3d(

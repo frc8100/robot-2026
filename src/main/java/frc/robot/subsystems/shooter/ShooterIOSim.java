@@ -181,7 +181,8 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
     @Override
     public void simIterate() {
-        super.shootMotorWrapped.simIterate();
+        // super.shootMotorWrapped.simIterate();
+        super.flywheel.simIterate();
         super.indexerMotorWrapped.simIterate();
     }
 }
