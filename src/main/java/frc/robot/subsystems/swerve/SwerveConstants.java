@@ -211,8 +211,8 @@ public class SwerveConstants {
         // 0.8849
 
         0.0,
-        0.16366,
-        0.052619,
+        0.16362,
+        0.053922,
         0.0
     );
 
@@ -224,8 +224,8 @@ public class SwerveConstants {
     );
     public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(
         0.0,
-        0.42442,
-        0.010259
+        0.42463,
+        0.011319
     );
 
     // Swerve path constraints
