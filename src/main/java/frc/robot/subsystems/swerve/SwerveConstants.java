@@ -393,7 +393,8 @@ public class SwerveConstants {
             .primaryEncoderVelocityPeriodMs(20)
             .appliedOutputPeriodMs(20)
             .busVoltagePeriodMs(20)
-            .outputCurrentPeriodMs(20);
+            .outputCurrentPeriodMs(20)
+            .motorTemperaturePeriodMs(100);
 
         return angleConfig;
     }
@@ -434,7 +435,8 @@ public class SwerveConstants {
             .primaryEncoderVelocityPeriodMs(20)
             .appliedOutputPeriodMs(20)
             .busVoltagePeriodMs(20)
-            .outputCurrentPeriodMs(20);
+            .outputCurrentPeriodMs(20)
+            .motorTemperaturePeriodMs(100);
 
         return driveConfig;
     }
