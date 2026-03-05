@@ -38,6 +38,13 @@ public interface IntakeIO {
     public default void runDeployDutyCycle(double output) {}
 
     /**
+     * Stops the deploy motor by running {@link #runDeployDutyCycle} with an output of 0.0.
+     */
+    public default void stopDeploy() {
+        runDeployDutyCycle(0.0);
+    }
+
+    /**
      * Runs the deploy motor at the given voltage output. See {@link Intake.IntakeDeployDirection} for direction conventions.
      * @param output - The voltage output.
      */

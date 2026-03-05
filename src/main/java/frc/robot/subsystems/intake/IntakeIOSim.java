@@ -85,8 +85,7 @@ public class IntakeIOSim extends IntakeIOYAMS {
     }
 
     public boolean isAbleToIntake() {
-        return // Intake is not already full
-        (
+        return ( // Intake is not already full
             fuelInIntake < IntakeConstants.MAX_CAPACITY &&
             // Intake is deployed
             super.deployMotorWrapped
@@ -171,9 +170,9 @@ public class IntakeIOSim extends IntakeIOYAMS {
 
     @Override
     public void simIterate() {
-        super.deployMotorWrapped.simIterate();
+        // super.deployMotorWrapped.simIterate();
         super.rollerMotorWrapped.simIterate();
-        // super.deployArm.simIterate();
+        super.deployArm.simIterate();
 
         updateFuelPositions();
         Logger.recordOutput("Intake/FuelInIntake", getFuelPositions());

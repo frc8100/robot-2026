@@ -208,10 +208,13 @@ public class ButtonBindings {
             .onTrue(
                 Commands.runOnce(() -> {
                     // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
-                    if (intakeSubsystem.stateMachine.is(IntakeState.RETRACTED)) {
-                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.DEPLOYED);
+                    if (
+                        intakeSubsystem.stateMachine.is(IntakeState.RETRACTED_RESTING) ||
+                        intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
+                    ) {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
                     } else {
-                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.RETRACTED);
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
                     }
                 })
             );
@@ -240,7 +243,8 @@ public class ButtonBindings {
                 ).ignoringDisable(true)
             )
             .onFalse(
-                Commands.runOnce(() -> intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.RETRACTED)
+                Commands.runOnce(() ->
+                    intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.RETRACTED_RESTING)
                 ).ignoringDisable(true)
             );
 
