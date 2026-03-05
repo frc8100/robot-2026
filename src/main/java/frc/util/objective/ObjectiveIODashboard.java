@@ -8,29 +8,11 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class ObjectiveIODashboard implements ObjectiveIO {
-
-    private enum SwitchSettingAllianceActive {
-        ALL_ACTIVE,
-        INITIAL_ACTIVE,
-        OPPOSITE_ACTIVE,
-    }
-
-    public record SwitchSetting(double runsUntilTimeSeconds, SwitchSettingAllianceActive active) {}
-
-    private static final SwitchSetting[] switches = new SwitchSetting[] {
-        // Transition shift
-        new SwitchSetting(10.0, SwitchSettingAllianceActive.ALL_ACTIVE),
-        // Alliance shifts every 25s
-        new SwitchSetting(35.0, SwitchSettingAllianceActive.INITIAL_ACTIVE),
-        new SwitchSetting(60.0, SwitchSettingAllianceActive.OPPOSITE_ACTIVE),
-        new SwitchSetting(85.0, SwitchSettingAllianceActive.INITIAL_ACTIVE),
-        new SwitchSetting(110.0, SwitchSettingAllianceActive.OPPOSITE_ACTIVE),
-        // Endgame
-        new SwitchSetting(140.0, SwitchSettingAllianceActive.ALL_ACTIVE),
-    };
 
     private String currentGameData = "";
     private ObjectiveIO.ActiveHub initialAlliance = ObjectiveIO.ActiveHub.ALL;
@@ -42,6 +24,11 @@ public class ObjectiveIODashboard implements ObjectiveIO {
     public static final String OBJECTIVE_DASHBOARD_KEY = "/ObjectiveTracker";
     public static final String DASHBOARD_PUBLISH_OBJECTIVE_KEY = "PublishObjective";
 
+    // TODO: this doesnt have to be Logged because this is in an IO implementation
+    private final LoggedDashboardChooser<ActiveHub> activeOverrideChoose = new LoggedDashboardChooser<>(
+        "InitialActiveHubOverride"
+    );
+
     private final NetworkTable objectiveTable;
 
     // Subscribers/publishers
@@ -52,6 +39,11 @@ public class ObjectiveIODashboard implements ObjectiveIO {
         objectiveTable = NetworkTableInstance.getDefault().getTable(OBJECTIVE_DASHBOARD_KEY);
 
         publishObjectiveSubscriber = objectiveTable.getStringTopic(DASHBOARD_PUBLISH_OBJECTIVE_KEY).subscribe("");
+
+        // Initialize shift mode chooser with default values
+        for (ActiveHub mode : ActiveHub.values()) {
+            activeOverrideChoose.getSendableChooser().addOption(mode.name(), mode.toString());
+        }
     }
 
     // TODO: call these methods
@@ -101,18 +93,18 @@ public class ObjectiveIODashboard implements ObjectiveIO {
         // Determine active hub based on initial alliance and time since teleop
         double timeSinceTeleopSeconds = matchTimer.get();
 
-        SwitchSetting activeSwitchSetting = switches[switches.length - 1];
+        ShiftMode activeSwitchSetting = switches[switches.length - 1];
 
-        for (SwitchSetting setting : switches) {
+        for (ShiftMode setting : switches) {
             // Find the first setting where the time since teleop is less than the runs until time
-            if (timeSinceTeleopSeconds < setting.runsUntilTimeSeconds) {
+            if (timeSinceTeleopSeconds < setting.runsUntilTimeSeconds()) {
                 activeSwitchSetting = setting;
                 break;
             }
         }
 
         // Set active hub based on switch setting
-        switch (activeSwitchSetting.active) {
+        switch (activeSwitchSetting.active()) {
             case INITIAL_ACTIVE:
                 inputs.activeHub = initialAlliance;
                 break;
@@ -125,6 +117,9 @@ public class ObjectiveIODashboard implements ObjectiveIO {
                 break;
         }
 
-        inputs.timeUntilSwitch.mut_replace(activeSwitchSetting.runsUntilTimeSeconds - timeSinceTeleopSeconds, Seconds);
+        inputs.timeUntilSwitch.mut_replace(
+            activeSwitchSetting.runsUntilTimeSeconds() - timeSinceTeleopSeconds,
+            Seconds
+        );
     }
 }

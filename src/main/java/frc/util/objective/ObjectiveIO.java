@@ -15,21 +15,23 @@ public interface ObjectiveIO {
         /**
          * All hubs are active, during auto and endgame.
          */
-        ALL(Color.kFloralWhite),
+        ALL("FMS Determination", Color.kFloralWhite),
 
         /**
          * The red alliance hub is active.
          */
-        RED(Color.kRed),
+        RED("Red", Color.kRed),
 
         /**
          * The blue alliance hub is active.
          */
-        BLUE(Color.kBlue);
+        BLUE("Blue", Color.kBlue);
 
+        public final String displayNameWhenOverriding;
         public final Color color;
 
-        private ActiveHub(Color color) {
+        private ActiveHub(String displayNameWhenOverriding, Color color) {
+            this.displayNameWhenOverriding = displayNameWhenOverriding;
             this.color = color;
         }
 
@@ -92,7 +94,49 @@ public interface ObjectiveIO {
         public boolean isActive(DriverStation.Alliance alliance) {
             return isActive(this, alliance);
         }
+
+        @Override
+        public String toString() {
+            return displayNameWhenOverriding;
+        }
     }
+
+    /**
+     * Represents which alliance's hub is active during a shift mode.
+     */
+    public enum ShiftModeAllianceActive {
+        ALL_ACTIVE,
+        INITIAL_ACTIVE,
+        OPPOSITE_ACTIVE,
+    }
+
+    /**
+     * Represents a shift mode, which determines which alliance's hub is active and when the next shift will occur.
+     * @param name - The name of the shift mode, for logging purposes.
+     * @param runsUntilTimeSeconds - The time in seconds until the next shift occurs,
+     * @param active - Which alliance's hub is active during this shift mode.
+     */
+    public record ShiftMode(String name, double runsUntilTimeSeconds, ShiftModeAllianceActive active) {
+        @Override
+        public final String toString() {
+            return name;
+        }
+    }
+
+    /**
+     * The shift modes for teleop, in order.
+     */
+    public static final ShiftMode[] switches = new ShiftMode[] {
+        // Transition shift
+        new ShiftMode("Transition Shift", 10.0, ShiftModeAllianceActive.ALL_ACTIVE),
+        // Alliance shifts every 25s
+        new ShiftMode("Shift 1", 35.0, ShiftModeAllianceActive.INITIAL_ACTIVE),
+        new ShiftMode("Shift 2", 60.0, ShiftModeAllianceActive.OPPOSITE_ACTIVE),
+        new ShiftMode("Shift 3", 85.0, ShiftModeAllianceActive.INITIAL_ACTIVE),
+        new ShiftMode("Shift 4", 110.0, ShiftModeAllianceActive.OPPOSITE_ACTIVE),
+        // Endgame
+        new ShiftMode("Endgame", 140.0, ShiftModeAllianceActive.ALL_ACTIVE),
+    };
 
     @AutoLog
     public static class ObjectiveIOInputs {
@@ -101,6 +145,12 @@ public interface ObjectiveIO {
          * The hub that is currently active.
          */
         public ActiveHub activeHub = ActiveHub.ALL;
+
+        /**
+         * The hub that is initially active at the start of teleop, if overridden by the operator.
+         * If this is {@link ActiveHub#ALL}, the initial active hub will be determined by the winner of auto broadcasted by the FMS.
+         */
+        public ActiveHub overrideInitialActiveHub = ActiveHub.ALL;
 
         /**
          * The time remaining in the current period.
