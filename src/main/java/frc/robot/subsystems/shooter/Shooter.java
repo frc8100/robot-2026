@@ -101,7 +101,14 @@ public class Shooter extends SubsystemBase {
                 ShooterConstants.SHOOTER_SYSID_TEST_DURATION,
                 state -> Logger.recordOutput("Shooter/SysIdState", state.toString())
             ),
-            new SysIdRoutine.Mechanism(io::runShooterDutyCycle, null, this)
+            new SysIdRoutine.Mechanism(
+                voltage -> {
+                    io.runShooterDutyCycle(voltage);
+                    io.runIndexerDutyCycle(voltage);
+                },
+                null,
+                this
+            )
         );
     }
 
@@ -120,7 +127,8 @@ public class Shooter extends SubsystemBase {
         setTargetExitVelocity(swerveSubsystem.autoAim.latestCalculationResult.getDistanceToTarget());
 
         // TODO: add check to only run indexer if shooter is up to speed
-        io.runIndexer();
+        // io.runIndexer();
+        io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
     }
 
     /**
@@ -274,11 +282,11 @@ public class Shooter extends SubsystemBase {
     public Command shooterSysidCommand() {
         return new SequentialCommandGroup(
             shooterSysidRoutine.quasistatic(SysIdRoutine.Direction.kForward),
-            Commands.waitSeconds(1),
+            Commands.waitSeconds(4),
             shooterSysidRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
-            Commands.waitSeconds(1),
+            Commands.waitSeconds(4),
             shooterSysidRoutine.dynamic(SysIdRoutine.Direction.kForward),
-            Commands.waitSeconds(1),
+            Commands.waitSeconds(4),
             shooterSysidRoutine.dynamic(SysIdRoutine.Direction.kReverse)
         );
     }

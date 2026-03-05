@@ -44,22 +44,14 @@ public interface ShooterIO {
      */
     public default void runShooterDutyCycle(Voltage dutyCycleOutput) {}
 
-    /**
-     * Runs the indexer.
-     */
-    public default void runIndexer() {}
+    public default void runIndexerDutyCycle(Voltage dutyCycleOutput) {}
 
-    /**
-     * Stops the indexer.
-     */
     public default void stopIndexer() {}
 
-    public default void simIterate() {}
+    public default void setIndexerVelocitySetpoint(AngularVelocity velocity) {}
+
     /**
-     * @return A command that runs the shooter sysid routine.
+     * Called periodically during simulation to update the simulated mechanism's state.
      */
-    // ! breaks IO model but fine because this should not be run in a competition/replay
-    // public default Command shooterSysidCommand() {
-    //     return Commands.none();
-    // }
+    public default void simIterate() {}
 }
