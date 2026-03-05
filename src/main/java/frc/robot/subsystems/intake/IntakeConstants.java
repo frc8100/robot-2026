@@ -31,6 +31,7 @@ import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.util.WrappedSpark;
 import java.util.function.Function;
 import org.ironmaple.simulation.IntakeSimulation;
 import yams.gearing.GearBox;
@@ -62,8 +63,8 @@ public final class IntakeConstants {
         .withOpenLoopRampRate(Seconds.of(0.35));
 
     // sim
-    public static final Distance SIM_INTAKE_LENGTH = Inches.of(7);
-    public static final Mass SIM_INTAKE_MASS = Pounds.of(8);
+    public static final Distance SIM_INTAKE_LENGTH = Inches.of(5);
+    public static final Mass SIM_INTAKE_MASS = Pounds.of(15);
 
     // Intake positions
     public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(85);
@@ -89,24 +90,30 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5), new Sprocket(15.0 / 22.0)))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(800))
-        .withSimClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(800))
+        .withClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(175), DegreesPerSecondPerSecond.of(300))
+        .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(350), DegreesPerSecondPerSecond.of(375))
+        // .withClosedLoopController(new WrappedSpark.CustomLoggedPIDController(2.0, 0.0, 0.0))
+        // .withSimClosedLoopController(new WrappedSpark.CustomLoggedPIDController(1.0, 0.0, 0.0))
+        // .withTrapezoidalProfile(DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(800))
         // Feedforward Constants
         // See https://docs.revrobotics.com/revlib/spark/closed-loop/feed-forward-control#manually-finding-kcos-and-ks-for-an-arm
         // V1 = 0.76
         // V2 = 0.6
         // .withFeedforward(new ArmFeedforward(0.08, 0.68, 0.0, 0.0))
         .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
-        // .withSimFeedforward(new ArmFeedforward(0.048643, 0.80614, 0.72715, 0.023721))
-        .withSimFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
+        .withSimFeedforward(new ArmFeedforward(0.078431, 0.46875, 0.68997 * 2 * Math.PI, 0.025313 * 2 * Math.PI))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
         .withStatorCurrentLimit(Amps.of(37))
         .withClosedLoopRampRate(Seconds.of(0.1))
-        .withOpenLoopRampRate(Seconds.of(0.2))
-        .withStartingPosition(INTAKE_RETRACTED_ANGLE);
+        .withOpenLoopRampRate(Seconds.of(0.1));
+    // .withStartingPosition(INTAKE_RETRACTED_ANGLE);
 
-    public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(10);
+    public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(6.7);
+    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(1.5);
+    public static final Angle INTAKE_SLIGHTLY_ABOVE_DEPLOYED_ANGLE = INTAKE_DEPLOYED_ANGLE.minus(
+        DEPLOY_TARGET_TOLERANCE
+    ).plus(Degrees.of(0.05));
 
     public static final Function<SmartMotorController, ArmConfig> deployArmConfigFunction =
         (SmartMotorController deployMotor) ->
@@ -115,11 +122,11 @@ public final class IntakeConstants {
                 .withMass(SIM_INTAKE_MASS)
                 .withHardLimit(INTAKE_RETRACTED_ANGLE, INTAKE_DEPLOYED_ANGLE)
                 // TODO: limits
-                // .withSoftLimits(
-                //     INTAKE_RETRACTED_ANGLE.minus(Degrees.of(10)),
-                //     INTAKE_DEPLOYED_ANGLE.plus(Degrees.of(10))
-                // )
-                .withStartingPosition(INTAKE_RETRACTED_ANGLE.plus(Degrees.of(10)));
+                .withSoftLimits(
+                    INTAKE_RETRACTED_ANGLE.minus(Degrees.of(10)),
+                    INTAKE_DEPLOYED_ANGLE.plus(Degrees.of(10))
+                )
+                .withStartingPosition(INTAKE_RETRACTED_ANGLE.plus(Degrees.of(2)));
 
     // Sysid constants
     public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(2.0);
