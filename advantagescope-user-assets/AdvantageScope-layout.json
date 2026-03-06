@@ -1,10 +1,10 @@
 {
   "hubs": [
     {
-      "x": 209,
-      "y": 103,
-      "width": 1451,
-      "height": 852,
+      "x": -8,
+      "y": -8,
+      "width": 1936,
+      "height": 1048,
       "state": {
         "sidebar": {
           "width": 406,
@@ -33,7 +33,6 @@
             "/AdvantageKit/RealOutputs/SysId/FFCharacterization",
             "/RealOutputs/SysId",
             "/RealOutputs/SysId/FFCharacterization",
-            "/AdvantageKit",
             "/AdvantageKit/RealOutputs/Swerve/States/Measured/0",
             "/AdvantageKit/QuestNav/UnreadPoseFrames",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/LatestPoses/0",
@@ -53,7 +52,6 @@
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0/estimatedPose/rotation",
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Coral/TrackedTargets/0/estimatedPose/translation",
             "/AdvantageKit/RealOutputs/Simulation/Claw",
-            "/AdvantageKit/Drive/Module0/DriveMotorData",
             "/AdvantageKit/RealOutputs/Vision/Summary/TagIds",
             "/AdvantageKit/RealOutputs/ObjectiveIO",
             "/AdvantageKit/RealOutputs/ObjectiveIO/SwitchSetting",
@@ -66,11 +64,9 @@
             "/SmartDashboard/MapleSim/MatchData",
             "/SmartDashboard/MapleSim/MatchData/Breakdown/Red Alliance",
             "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds",
-            "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Accelerations",
             "/AdvantageKit/RealOutputs/AP",
             "/RealOutputs/Odometry/Robot",
             "/RealOutputs/Odometry/Robot/rotation",
-            "/AdvantageKit/Drive/Module0/TurnMotorData",
             "/DriverStation",
             "/NetworkInputs",
             "/NetworkInputs/SmartDashboard",
@@ -86,7 +82,6 @@
             "/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/TrackedTargets/0/latestPose",
             "/AdvantageKit/Vision/Camera0",
             "/AdvantageKit/Vision/Camera0/GamePieceObservationsByType",
-            "/AdvantageKit/RealOutputs/StateMachines/Global",
             "/AdvantageKit/RealOutputs/StateMachines/Intake",
             "/AdvantageKit/RealOutputs/StateMachines/Shooter",
             "/AdvantageKit/RealOutputs/StateMachines/Swerve",
@@ -95,15 +90,43 @@
             "/SmartDashboard/BatterySim",
             "/AdvantageKit/NetworkInputs/Tuning",
             "/AdvantageKit/NetworkInputs/Tuning/Drive",
-            "/AdvantageKit/DriverStation/Joystick0",
-            "/AdvantageKit/RealOutputs",
             "/AdvantageKit/RealOutputs/Shooter/Current",
             "/AdvantageKit/RealOutputs/Shooter/CurrentTrajectory",
-            "/AdvantageKit/RealOutputs/Shooter/TargetTrajectory"
+            "/AdvantageKit/RealOutputs/Shooter/TargetTrajectory",
+            "/AdvantageKit/RealOutputs/Swerve/States/FeedforwardTorqueCurrent",
+            "/AdvantageKit/Drive/Module0",
+            "/AdvantageKit/Drive/Module0/DriveMotorData",
+            "/AdvantageKit/RealOutputs/Climb/RobotPose",
+            "/AdvantageKit/RealOutputs/Climb/RobotPose/rotation",
+            "/AdvantageKit/Climb/LeftClimbMotorData",
+            "/AdvantageKit/Climb/RightClimbMotorData",
+            "/AdvantageKit/RealOutputs/Intake",
+            "/AdvantageKit/RealOutputs/Intake/VisualizationPose/translation",
+            "/AdvantageKit/RealOutputs/Intake/VisualizationPose/rotation/q",
+            "/SmartDashboard/Arm",
+            "/Tuning/Intake",
+            "/Tuning/Intake/Deploy",
+            "/AdvantageKit/Drive/Module0/TurnMotorData",
+            "/Drive",
+            "/Drive/Module0",
+            "/Drive/Module0/DriveMotorData",
+            "/AdvantageKit",
+            "/AdvantageKit/DriverStation/Joystick0/POVs",
+            "/AdvantageKit/DriverStation/Joystick1",
+            "/AdvantageKit/RealOutputs",
+            "/AdvantageKit/RealOutputs/StateMachines",
+            "/AdvantageKit/Shooter",
+            "/Shooter",
+            "/Shooter/IndexerMotorData",
+            "/Shooter/ShootMotorData",
+            "/AdvantageKit/Shooter/ShootMotorData",
+            "/AdvantageKit/Intake",
+            "/SmartDashboard",
+            "/SmartDashboard/FlyWheel"
           ]
         },
         "tabs": {
-          "selected": 1,
+          "selected": 3,
           "tabs": [
             {
               "type": 0,
@@ -115,7 +138,7 @@
             },
             {
               "type": 2,
-              "title": "2D Field",
+              "title": "Odometry",
               "controller": {
                 "sources": [
                   {
@@ -291,7 +314,7 @@
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
-                      "model": "2026 KitBot"
+                      "model": "Robot Rebuilt"
                     }
                   },
                   {
@@ -325,6 +348,13 @@
                     }
                   },
                   {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Intake/VisualizationPose",
+                    "logType": "Transform3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
                     "type": "trajectory",
                     "logKey": "NT:/PathPlanner/activePath",
                     "logType": "Pose2d[]",
@@ -356,7 +386,7 @@
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
-                      "model": "2026 KitBot",
+                      "model": "Robot Rebuilt",
                       "color": "#00ff00"
                     }
                   },
@@ -366,7 +396,7 @@
                     "logType": "Pose2d",
                     "visible": false,
                     "options": {
-                      "model": "2026 KitBot",
+                      "model": "Robot Rebuilt",
                       "color": "#ff00ff"
                     }
                   },
@@ -385,7 +415,7 @@
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
-                      "model": "2026 KitBot",
+                      "model": "Robot Rebuilt",
                       "color": "#ffff00"
                     }
                   },
@@ -426,6 +456,25 @@
                       "color": "#ff0000",
                       "size": "normal"
                     }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Climb/RobotPose",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {
+                      "model": "Robot Rebuilt",
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Intake/FuelInIntake",
+                    "logType": "Translation3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Fuel"
+                    }
                   }
                 ],
                 "game": "FRC:2026 Field"
@@ -435,21 +484,237 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  7.254778456642707,
-                  2.8279877891735214,
-                  -2.859045093982952
+                  1.4695761589768238e-15,
+                  5.999999999999999,
+                  -12
                 ],
                 "cameraTarget": [
-                  3.843608840699403,
-                  0.9754281162961078,
-                  -0.39044308174657416
+                  0,
+                  0.5,
+                  0
                 ]
               },
               "controlsHeight": 200
             },
             {
+              "type": 10,
+              "title": "Intake Mechanism",
+              "controller": [
+                {
+                  "type": "mechanism",
+                  "logKey": "NT:/SmartDashboard/Arm/mechanism",
+                  "logType": "Mechanism2d",
+                  "visible": true,
+                  "options": {}
+                }
+              ],
+              "controllerUUID": "tp9uwpj3jo9otusq3vrp7ozqlvkwlozi",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 10,
+              "title": "Shooter Mechanism",
+              "controller": [
+                {
+                  "type": "mechanism",
+                  "logKey": "NT:/SmartDashboard/FlyWheel/mechanism",
+                  "logType": "Mechanism2d",
+                  "visible": true,
+                  "options": {}
+                }
+              ],
+              "controllerUUID": "kmzs9agsmi2wq6xjni47e7ck8u14nv24",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
               "type": 1,
-              "title": "Swerve",
+              "title": "Shooter",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Shooter/ShootMotorData/velocityRadPerSec",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Shooter/ShootSetpointProfiled",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Shooter/ShootSetpoint",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Shooter/ShootSetpointAcceleration",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": "radians/second",
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "knlrndk6fpzfe32n7yowfc5kpczkj8tu",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Intake",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/velocityRadPerSec",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/positionAngleRad",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/setpointAngleRad",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/velocityRadPerSec",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 1
+              },
+              "controllerUUID": "4snpwu60j9kcdv48eaq0bppqidfi56oz",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Battery",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/SystemStats/BatteryVoltage",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/SystemStats/BatteryCurrent",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": [
+                  5,
+                  13.5
+                ],
+                "rightLockedRange": [
+                  0,
+                  200
+                ],
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "78tlcatqf58icy4rsbg061s1vbjz7v0b",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "SwerveSOTM",
               "controller": {
                 "leftSources": [
                   {
@@ -476,7 +741,7 @@
                     "type": "stepped",
                     "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/RotationErrorRad",
                     "logType": "Number",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "color": "#af2437",
                       "size": "normal"
@@ -521,14 +786,35 @@
                     "type": "stepped",
                     "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/TargetFuelExitVelocity",
                     "logType": "Number",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "color": "#e5b31b",
                       "size": "normal"
                     }
                   }
                 ],
-                "rightSources": [],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/ShooterSupplyCurrent",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Shooter/ShootMotorData/torqueCurrentAmps",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
+                      "size": "normal"
+                    }
+                  }
+                ],
                 "discreteSources": [],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
@@ -556,7 +842,7 @@
                     "type": "stepped",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Measured/0/speed",
                     "logType": "Number",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "color": "#af2437",
                       "size": "normal"
@@ -566,7 +852,7 @@
                     "type": "stepped",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Setpoints/0/speed",
                     "logType": "Number",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "color": "#2b66a2",
                       "size": "normal"
@@ -581,6 +867,16 @@
                     "visible": true,
                     "options": {
                       "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/FeedforwardTorqueCurrent/0",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
                       "size": "normal"
                     }
                   }
@@ -632,7 +928,7 @@
             },
             {
               "type": 8,
-              "title": "Joysticks",
+              "title": "Controllers",
               "controller": [
                 "Xbox Controller (White)",
                 "None",
