@@ -2,15 +2,13 @@ package frc.util.objective;
 
 import static edu.wpi.first.units.Units.Seconds;
 
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import java.util.Optional;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ObjectiveIODashboard implements ObjectiveIO {
 
@@ -24,10 +22,7 @@ public class ObjectiveIODashboard implements ObjectiveIO {
     public static final String OBJECTIVE_DASHBOARD_KEY = "/ObjectiveTracker";
     public static final String DASHBOARD_PUBLISH_OBJECTIVE_KEY = "PublishObjective";
 
-    // TODO: this doesnt have to be Logged because this is in an IO implementation
-    private final LoggedDashboardChooser<ActiveHub> activeOverrideChoose = new LoggedDashboardChooser<>(
-        "InitialActiveHubOverride"
-    );
+    private final SendableChooser<ActiveHub> activeOverrideChooser = new SendableChooser<>();
 
     private final NetworkTable objectiveTable;
 
@@ -42,8 +37,10 @@ public class ObjectiveIODashboard implements ObjectiveIO {
 
         // Initialize shift mode chooser with default values
         for (ActiveHub mode : ActiveHub.values()) {
-            activeOverrideChoose.getSendableChooser().addOption(mode.name(), mode.toString());
+            activeOverrideChooser.addOption(mode.toString(), mode);
         }
+
+        SmartDashboard.putData("InitialActiveHubOverride", activeOverrideChooser);
     }
 
     // TODO: call these methods
@@ -64,6 +61,16 @@ public class ObjectiveIODashboard implements ObjectiveIO {
         //     inputs.sentObjective = publishObjectiveSubscriber.get();
         // }
 
+        boolean isBeingOverrided = false;
+        ActiveHub overrideSelection = activeOverrideChooser.getSelected();
+        if (overrideSelection != null && overrideSelection != ActiveHub.ALL) {
+            inputs.overrideInitialActiveHub = overrideSelection;
+            initialAlliance = overrideSelection;
+            oppositeAlliance = overrideSelection == ActiveHub.RED ? ActiveHub.BLUE : ActiveHub.RED;
+            isBeingOverrided = true;
+            return;
+        }
+
         // Only update if timer has started
         if (!matchTimer.isRunning()) {
             return;
@@ -75,7 +82,7 @@ public class ObjectiveIODashboard implements ObjectiveIO {
         }
 
         // Set game data if we don't have it yet
-        if (currentGameData.isEmpty()) {
+        if (!isBeingOverrided && currentGameData.isEmpty()) {
             currentGameData = DriverStation.getGameSpecificMessage();
 
             // Set initial alliance if we don't have it yet

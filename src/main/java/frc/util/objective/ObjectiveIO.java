@@ -159,9 +159,16 @@ public interface ObjectiveIO {
         public MutTime timeUntilSwitch = Seconds.mutable(0.0);
     }
 
+    /** Updates the set of loggable inputs */
     public default void updateInputs(ObjectiveIOInputs inputs) {}
 
+    /**
+     * Called at the start of auto {@link frc.robot.Robot#autonomousInit} to reset any necessary state.
+     */
     public default void resetForAuto() {}
 
+    /**
+     * Called at the start of teleop {@link frc.robot.Robot#teleopInit} to reset any necessary state.
+     */
     public default void resetForTeleop() {}
 }

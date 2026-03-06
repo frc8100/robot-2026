@@ -1,5 +1,6 @@
 package frc.util.objective;
 
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -15,6 +16,9 @@ import frc.robot.RobotActions.ScoreCoralPayload;
 import frc.robot.subsystems.swerve.Swerve.SwerveState;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachine.StateWithPayload;
+
+import static edu.wpi.first.units.Units.Seconds;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -25,6 +29,19 @@ import org.littletonrobotics.junction.Logger;
  * Tracks objectives and their completion status.
  */
 public class ObjectiveTracker extends SubsystemBase {
+
+    // Inspired by https://www.chiefdelphi.com/t/frc-6328-mechanical-advantage-2026-build-thread/509595/567
+
+    /**
+     * The time that fuel takes after it has entered the hub to be counted by the sensors.
+     */
+    public static final Time timeForHubToProcessAfterScore = Seconds.of(1.5);
+
+    /**
+     * The time after a shift ends where fuel can still score.
+     * Specified by game manual.
+     */
+    public static final Time timeAfterShiftEndsWhereHubStillCounts = Seconds.of(3.0);
 
     @FunctionalInterface
     public interface ObjectiveCommandSupplier {
@@ -237,6 +254,15 @@ public class ObjectiveTracker extends SubsystemBase {
         // );
 
         SmartDashboard.putData("ScheduleNextObjective", Commands.runOnce(this::scheduleNextObjective));
+    }
+
+    public boolean isAbleToShootAndScore(Time timeOfFlight) {
+        // Always able to shoot during auto
+        if (DriverStation.isAutonomous()) {
+            return true;
+        }
+
+        // Case where we can shoot before the active shift starts 
     }
 
     /**
