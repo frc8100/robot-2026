@@ -40,14 +40,6 @@ public class ShooterIOSim extends ShooterIOYAMS {
     private final Runnable onShoot;
     private final BooleanSupplier isAbleToShoot;
 
-    private final ProfiledPIDController shootMotorVelocityController;
-    private final SimpleMotorFeedforward shootMotorFeedforward = super.shootMotorWrapped
-        .getConfig()
-        .getSimpleFeedforward()
-        .orElseThrow();
-    private boolean isClosedLoopControllerEnabled = false;
-    private double previousVelocitySetpointRPS = 0.0;
-
     public ShooterIOSim(Swerve swerveSubsystem, Runnable onShoot, BooleanSupplier isAbleToShoot) {
         super();
         this.swerveSubsystem = swerveSubsystem;
@@ -60,34 +52,6 @@ public class ShooterIOSim extends ShooterIOYAMS {
         super.shootMotorWrapped.stopClosedLoopController();
 
         SmartMotorControllerConfig config = super.shootMotorWrapped.getConfig();
-        PIDController configSimPIDController = config.getPID().orElseThrow();
-
-        shootMotorVelocityController = new ProfiledPIDController(
-            configSimPIDController.getP(),
-            configSimPIDController.getI(),
-            configSimPIDController.getD(),
-            config.getTrapezoidProfile().orElseThrow()
-        );
-    }
-
-    @Override
-    public void setTargetShootMotorVelocity(AngularVelocity velocity) {
-        super.shootMotorWrapped.setCustomSetpointVelocity(velocity);
-        isClosedLoopControllerEnabled = true;
-    }
-
-    @Override
-    public void stopShooter() {
-        super.stopShooter();
-        isClosedLoopControllerEnabled = false;
-        previousVelocitySetpointRPS = 0.0;
-    }
-
-    @Override
-    public void runShooterDutyCycle(Voltage dutyCycleOutput) {
-        super.runShooterDutyCycle(dutyCycleOutput);
-        isClosedLoopControllerEnabled = false;
-        previousVelocitySetpointRPS = 0.0;
     }
 
     /**
@@ -140,25 +104,6 @@ public class ShooterIOSim extends ShooterIOYAMS {
     public void updateInputs(ShooterIOInputs inputs) {
         super.updateInputs(inputs);
 
-        // test
-        Logger.recordOutput("Shooter/ShooterSupplyCurrent", super.shootMotorWrapped.getCustomSupplyCurrent());
-
-        // Iterate the shoot motor velocity controller to get the motor output
-        if (isClosedLoopControllerEnabled) {
-            double currentShooterVelocityRPS = inputs.shootMotorData.velocity.in(RotationsPerSecond);
-            double setpointShooterVelocityRPS = super.shootMotorWrapped
-                .getMechanismSetpointVelocity()
-                .orElse(RotationsPerSecond.zero())
-                .in(RotationsPerSecond);
-
-            double shootMotorOutput =
-                shootMotorVelocityController.calculate(currentShooterVelocityRPS, setpointShooterVelocityRPS) +
-                shootMotorFeedforward.calculateWithVelocities(previousVelocitySetpointRPS, setpointShooterVelocityRPS);
-            super.shootMotorWrapped.setVoltage(Volts.of(shootMotorOutput));
-
-            previousVelocitySetpointRPS = setpointShooterVelocityRPS;
-        }
-
         // Shoot if time has passed based on the indexer velocity
         double timeUntilNextShot = getWaitUntilNextShot(inputs.indexerMotorData.velocity);
         Logger.recordOutput("Shooter/TimeUntilNextShot", timeUntilNextShot);
@@ -181,7 +126,6 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
     @Override
     public void simIterate() {
-        // super.shootMotorWrapped.simIterate();
         super.flywheel.simIterate();
         super.indexerMotorWrapped.simIterate();
     }

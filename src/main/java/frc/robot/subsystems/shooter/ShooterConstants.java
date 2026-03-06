@@ -104,7 +104,7 @@ public final class ShooterConstants {
             RadiansPerSecondPerSecond.per(Second).of(1000)
         )
         .withSimClosedLoopController(
-            0.1,
+            0.05,
             0.0,
             0.0,
             RadiansPerSecondPerSecond.of(600),
@@ -112,7 +112,7 @@ public final class ShooterConstants {
         )
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-        .withSimFeedforward(new SimpleMotorFeedforward(0.022028, 0.019888 * 2 * Math.PI, 0.0070252 * 2 * Math.PI))
+        .withSimFeedforward(new SimpleMotorFeedforward(0.086627, 0.020285 * 2 * Math.PI, 0.003377 * 2 * Math.PI))
         .withGearing(1)
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
@@ -140,7 +140,7 @@ public final class ShooterConstants {
         )
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-        .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.0, 0.0))
+        .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.059281 * 2 * Math.PI, 0.0046219 * 2 * Math.PI))
         .withGearing(3)
         .withMotorInverted(false)
         .withIdleMode(MotorMode.COAST)
@@ -158,7 +158,7 @@ public final class ShooterConstants {
                 // Diameter of the flywheel.
                 .withDiameter(Inches.of(4))
                 // Mass of the flywheel.
-                .withMass(Pounds.of(1))
+                .withMass(Pounds.of(2))
                 // Maximum speed of the shooter.
                 .withUpperSoftLimit(RPM.of(5000));
 
@@ -181,7 +181,7 @@ public final class ShooterConstants {
         transformFromRobotCenter.getRotation().toRotation2d()
     );
 
-    public static final AngularVelocity SIMULATION_INDEXER_VELOCITY_AT_MAX_OUTPUT = RadiansPerSecond.of(110);
+    public static final AngularVelocity SIMULATION_INDEXER_VELOCITY_AT_MAX_OUTPUT = INDEXER_SPEED;
     public static final double SIMULATION_MAX_FUEL_PER_SECOND = 5.5;
 
     // Characterization constants
