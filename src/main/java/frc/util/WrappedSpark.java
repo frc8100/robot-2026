@@ -192,7 +192,7 @@ public class WrappedSpark extends SparkWrapper {
         }
 
         TrapezoidProfile.State setpointState = currentState;
-        ControlType controlType = ControlType.kPosition;
+        final ControlType controlType;
 
         if (super.setpointPosition.isPresent()) {
             // Position control
@@ -223,6 +223,17 @@ public class WrappedSpark extends SparkWrapper {
             .getSimpleFeedforward()
             .ifPresent(ff -> {
                 ff.setKs(0.0);
+
+                if (controlType == ControlType.kVelocity) {
+                    ff.setKv(0.0);
+                    lastFeedforward.mut_replace(
+                        // When in velocity control mode, the "velocity" of the state is actually the acceleration (since "position" is now velocity setpoint)
+                        ff.getKa() * nextState.velocity,
+                        Volts
+                    );
+                    return;
+                }
+
                 lastFeedforward.mut_replace(
                     ff.calculateWithVelocities(currentState.velocity, nextState.velocity),
                     Volts
@@ -251,7 +262,7 @@ public class WrappedSpark extends SparkWrapper {
 
         controller.setSetpoint(
             currentState.position,
-            ControlType.kPosition,
+            controlType,
             ClosedLoopSlot.kSlot0,
             lastFeedforward.in(Volts),
             ArbFFUnits.kVoltage
