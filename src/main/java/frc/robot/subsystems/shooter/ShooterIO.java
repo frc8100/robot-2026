@@ -2,8 +2,10 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.MutAngularAcceleration;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutLinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
@@ -20,8 +22,15 @@ public interface ShooterIO {
         public SparkMotorControllerData shootMotorData = new SparkMotorControllerData();
         public boolean shootMotorConnected = true;
 
+        public MutAngularVelocity shootSetpoint = RadiansPerSecond.mutable(0.0);
+        public MutAngularVelocity shootSetpointProfiled = RadiansPerSecond.mutable(0.0);
+        public MutAngularAcceleration shootSetpointAcceleration = RadiansPerSecondPerSecond.mutable(0.0);
+
         public SparkMotorControllerData indexerMotorData = new SparkMotorControllerData();
         public boolean indexerMotorConnected = true;
+
+        public MutAngularVelocity indexerSetpointProfiled = RadiansPerSecond.mutable(0.0);
+        public MutAngularAcceleration indexerSetpointAcceleration = RadiansPerSecondPerSecond.mutable(0.0);
     }
 
     /** Updates the set of loggable inputs. */

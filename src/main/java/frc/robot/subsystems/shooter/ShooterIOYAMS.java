@@ -1,7 +1,10 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -100,6 +103,12 @@ public class ShooterIOYAMS implements ShooterIO {
     }
 
     @Override
+    public void stopIndexer() {
+        disableClosedLoopControlIndexer();
+        indexerMotorWrapped.setDutyCycle(0.0);
+    }
+
+    @Override
     public void setIndexerVelocitySetpoint(AngularVelocity velocity) {
         enableClosedLoopControlIndexer();
         indexerMotorWrapped.setVelocity(velocity);
@@ -109,6 +118,22 @@ public class ShooterIOYAMS implements ShooterIO {
     public void updateInputs(ShooterIOInputs inputs) {
         inputs.shootMotorConnected = shootMotorWrapped.updateData(inputs.shootMotorData);
         inputs.indexerMotorConnected = indexerMotorWrapped.updateData(inputs.indexerMotorData);
+
+        // Update the setpoints for shooter and indexer
+        inputs.shootSetpoint.mut_replace(
+            shootMotorWrapped.getMechanismSetpointVelocity().orElse(RadiansPerSecond.zero())
+        );
+        inputs.shootSetpointProfiled.mut_replace(shootMotorWrapped.currentState.position, RotationsPerSecond);
+        inputs.shootSetpointAcceleration.mut_replace(
+            shootMotorWrapped.currentState.velocity,
+            RotationsPerSecondPerSecond
+        );
+
+        inputs.indexerSetpointProfiled.mut_replace(indexerMotorWrapped.currentState.position, RotationsPerSecond);
+        inputs.indexerSetpointAcceleration.mut_replace(
+            indexerMotorWrapped.currentState.velocity,
+            RotationsPerSecondPerSecond
+        );
 
         if (isUsingClosedLoopControlForShoot) {
             shootMotorWrapped.iterateCustomMotionProfile();

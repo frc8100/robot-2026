@@ -21,10 +21,12 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.VisionConstants.GamePieceObservationType;
 import frc.robot.subsystems.vision.VisionSim.NeuralDetectorSimPipeline;
 import frc.util.CustomSimulationArena;
+import frc.util.EmptySimulationArena;
 import frc.util.PoseUtil;
 import frc.util.VelocityNoiseGenerator;
 import java.lang.reflect.Field;
@@ -175,6 +177,10 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
         }
     }
 
+    // test
+    private final List<Translation2d> obstructedTargets = new ArrayList<>();
+    private final List<Translation2d> visibleTargets = new ArrayList<>();
+
     /**
      * Updates the inputs with the simulated object detection data.
      */
@@ -263,10 +269,13 @@ public class VisionIOPhotonSim extends VisionIOPhotonVision {
                     if (obstructed) {
                         continue;
                     }
+                } else if (SimulatedArena.getInstance() instanceof EmptySimulationArena) {
+                    // If using empty simulation arena, skip obstruction checking
                 } else {
                     // If not using custom arena, print warning and continue without obstruction checking
-                    System.out.println(
-                        "Warning: VisionIOPhotonSim is not using CustomSimulationArena, so target obstruction is not being checked."
+                    DriverStation.reportWarning(
+                        "VisionIOPhotonSim is not using CustomSimulationArena, so target obstruction is not being checked.",
+                        false
                     );
                 }
 
