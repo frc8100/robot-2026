@@ -60,7 +60,6 @@
             "/AdvantageKit/Intake/IntakeMotorData",
             "/AdvantageKit/RealOutputs/Odometry/Robot/translation",
             "/AdvantageKit/RealOutputs/Simulation/Field",
-            "/SmartDashboard/MapleSim",
             "/SmartDashboard/MapleSim/MatchData",
             "/SmartDashboard/MapleSim/MatchData/Breakdown/Red Alliance",
             "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds",
@@ -87,7 +86,6 @@
             "/AdvantageKit/RealOutputs/StateMachines/Swerve",
             "/AdvantageKit/Vision/Camera0/TagIds",
             "/AdvantageKit/RealOutputs/Vision/Summary",
-            "/SmartDashboard/BatterySim",
             "/AdvantageKit/NetworkInputs/Tuning",
             "/AdvantageKit/NetworkInputs/Tuning/Drive",
             "/AdvantageKit/RealOutputs/Shooter/Current",
@@ -100,10 +98,8 @@
             "/AdvantageKit/RealOutputs/Climb/RobotPose/rotation",
             "/AdvantageKit/Climb/LeftClimbMotorData",
             "/AdvantageKit/Climb/RightClimbMotorData",
-            "/AdvantageKit/RealOutputs/Intake",
             "/AdvantageKit/RealOutputs/Intake/VisualizationPose/translation",
             "/AdvantageKit/RealOutputs/Intake/VisualizationPose/rotation/q",
-            "/SmartDashboard/Arm",
             "/Tuning/Intake",
             "/Tuning/Intake/Deploy",
             "/AdvantageKit/Drive/Module0/TurnMotorData",
@@ -114,15 +110,15 @@
             "/AdvantageKit/DriverStation/Joystick0/POVs",
             "/AdvantageKit/DriverStation/Joystick1",
             "/AdvantageKit/RealOutputs",
-            "/AdvantageKit/RealOutputs/StateMachines",
-            "/AdvantageKit/Shooter",
             "/Shooter",
             "/Shooter/IndexerMotorData",
             "/Shooter/ShootMotorData",
             "/AdvantageKit/Shooter/ShootMotorData",
-            "/AdvantageKit/Intake",
-            "/SmartDashboard",
-            "/SmartDashboard/FlyWheel"
+            "/AdvantageKit/RealOutputs/ObjectiveTracker",
+            "/AdvantageKit/Objective",
+            "/AdvantageKit/Objective/CurrentShiftMode",
+            "/SmartDashboard/InitialActiveHubOverride",
+            "/AdvantageKit/Objective/NextShiftMode"
           ]
         },
         "tabs": {
@@ -494,6 +490,95 @@
                   0
                 ]
               },
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Shifts",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Objective/TimeElapsedFromLastSwitch",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Objective/TimeUntilSwitch",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/TimeRemainingCanShoot",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [
+                  {
+                    "type": "stripes",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/CurrentFuelShiftMode",
+                    "logType": "String",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/NextFuelShiftMode",
+                    "logType": "String",
+                    "visible": true,
+                    "options": {
+                      "color": "#e48b32"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/CurrentShift",
+                    "logType": "String",
+                    "visible": false,
+                    "options": {
+                      "color": "#c0b487"
+                    }
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": {
+                    "type": "time",
+                    "factor": 1,
+                    "from": "seconds",
+                    "to": "seconds"
+                  }
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "ocqcly4uipp826vdw37h2ux313f2lg0v",
+              "renderer": null,
               "controlsHeight": 200
             },
             {

@@ -73,8 +73,8 @@
             "title": "Match Time",
             "x": 0.0,
             "y": 0.0,
-            "width": 896.0,
-            "height": 512.0,
+            "width": 512.0,
+            "height": 256.0,
             "type": "Match Time",
             "properties": {
               "topic": "/AdvantageKit/DriverStation/MatchTime",
@@ -100,7 +100,7 @@
           },
           {
             "title": "TimeUntilSwitch",
-            "x": 896.0,
+            "x": 640.0,
             "y": 0.0,
             "width": 256.0,
             "height": 256.0,
@@ -110,7 +110,7 @@
               "period": 0.06,
               "data_type": "double",
               "time_display_mode": "Minutes and Seconds",
-              "red_start_time": 2,
+              "red_start_time": 3,
               "yellow_start_time": 5
             }
           },
@@ -123,6 +123,56 @@
             "type": "Single Color View",
             "properties": {
               "topic": "/AdvantageKit/RealOutputs/ObjectiveTracker/ActiveAllianceColor",
+              "period": 0.06,
+              "data_type": "string"
+            }
+          },
+          {
+            "title": "InitialActiveHubOverride",
+            "x": 512.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "Split Button Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/InitialActiveHubOverride",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "CANAlerts",
+            "x": 1536.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 384.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/CANAlerts",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "CurrentShift",
+            "x": 896.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/ObjectiveTracker/CurrentShift",
+              "period": 0.06,
+              "data_type": "string"
+            }
+          },
+          {
+            "title": "TimeRemainingCanShoot",
+            "x": 896.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 256.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/ObjectiveTracker/TimeRemainingCanShoot",
               "period": 0.06,
               "data_type": "string"
             }
@@ -174,13 +224,102 @@
                 }
               }
             ]
+          },
+          {
+            "title": "Shooter Characterization",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 512.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "SuccessfulShotInput",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Toggle Switch",
+                "properties": {
+                  "topic": "ShooterCharacterization/SuccessfulShotInput",
+                  "period": 0.06,
+                  "data_type": "boolean"
+                }
+              },
+              {
+                "title": "DistanceOverrideInches",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "ShooterCharacterization/DistanceOverrideInches",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": true
+                }
+              },
+              {
+                "title": "VelocityAtTarget",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Boolean Box",
+                "properties": {
+                  "topic": "/AdvantageKit/RealOutputs/ShooterCharacterization/VelocityAtTarget",
+                  "period": 0.06,
+                  "data_type": "boolean",
+                  "true_color": 4283215696,
+                  "false_color": 4294198070,
+                  "true_icon": "None",
+                  "false_icon": "None"
+                }
+              },
+              {
+                "title": "CurrentDistanceInches",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/AdvantageKit/RealOutputs/ShooterCharacterization/CurrentDistanceInches",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "CurrentAngularVelocityRPM",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Number Bar",
+                "properties": {
+                  "topic": "/AdvantageKit/RealOutputs/ShooterCharacterization/CurrentAngularVelocityRPM",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "min_value": 0.0,
+                  "max_value": 8000.0,
+                  "divisions": 5,
+                  "inverted": false,
+                  "orientation": "horizontal"
+                }
+              }
+            ]
           }
         ],
         "containers": [
           {
             "title": "RefreshTunableConfig",
-            "x": 640.0,
-            "y": 128.0,
+            "x": 384.0,
+            "y": 0.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Command",
