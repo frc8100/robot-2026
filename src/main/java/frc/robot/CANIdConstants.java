@@ -12,17 +12,14 @@ public class CANIdConstants {
     public static final int DEPLOY_MOTOR_ID = 14;
     public static final int ROLLER_MOTOR_ID = 15;
 
-    // public static final int PCM_ID = 0;
-    // public static final int DEPLOY_SOLENOID_LEFT_CHANNEL = 1;
-    // public static final int DEPLOY_SOLENOID_RIGHT_CHANNEL = 2;
-
     // Shooter
-    public static final int SHOOTER_MOTOR_ID = 16;
-    public static final int INDEXER_MOTOR_ID = 17;
+    public static final int LEFT_SHOOTER_MOTOR_ID = 16;
+    public static final int RIGHT_SHOOTER_MOTOR_ID = 17;
+    public static final int INDEXER_MOTOR_ID = 18;
 
     // Climb
-    public static final int LEFT_CLIMB_MOTOR_ID = 18;
-    public static final int RIGHT_CLIMB_MOTOR_ID = 19;
+    public static final int LEFT_CLIMB_MOTOR_ID = 19;
+    public static final int RIGHT_CLIMB_MOTOR_ID = 20;
 
     public static final int PIGEON_ID = 13;
 

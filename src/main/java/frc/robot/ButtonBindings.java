@@ -235,18 +235,23 @@ public class ButtonBindings {
                 ).ignoringDisable(true)
             );
 
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kY)
+        //     .onTrue(
+        //         Commands.runOnce(() ->
+        //             intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.CALIBRATE_RETRACT)
+        //         ).ignoringDisable(true)
+        //     )
+        //     .onFalse(
+        //         Commands.runOnce(() ->
+        //             intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.RETRACTED_RESTING)
+        //         ).ignoringDisable(true)
+        //     );
+
         operatorController
             .getButtonTrigger(XboxController.Button.kY)
-            .onTrue(
-                Commands.runOnce(() ->
-                    intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.CALIBRATE_RETRACT)
-                ).ignoringDisable(true)
-            )
-            .onFalse(
-                Commands.runOnce(() ->
-                    intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.RETRACTED_RESTING)
-                ).ignoringDisable(true)
-            );
+            .whileTrue(shooterSubsystem.runShooterDutyCycle(Volts.of(3)))
+            .onFalse(shooterSubsystem.runShooterDutyCycle(Volts.zero()));
 
         final Voltage incrementVoltage = Volts.of(0.1);
         final Voltage fineIncrementVoltage = Volts.of(0.01);
