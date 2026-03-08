@@ -40,10 +40,11 @@ public class ObjectiveIODashboard implements ObjectiveIO {
             activeOverrideChooser.addOption(mode.toString(), mode);
         }
 
+        activeOverrideChooser.setDefaultOption(ActiveHub.ALL.toString(), ActiveHub.ALL);
+
         SmartDashboard.putData("InitialActiveHubOverride", activeOverrideChooser);
     }
 
-    // TODO: call these methods
     @Override
     public void resetForAuto() {
         matchTimer.reset();
@@ -53,6 +54,12 @@ public class ObjectiveIODashboard implements ObjectiveIO {
     @Override
     public void resetForTeleop() {
         resetForAuto();
+    }
+
+    @Override
+    public void resetForDisabled() {
+        matchTimer.reset();
+        matchTimer.stop();
     }
 
     @Override
@@ -66,9 +73,10 @@ public class ObjectiveIODashboard implements ObjectiveIO {
         if (overrideSelection != null && overrideSelection != ActiveHub.ALL) {
             inputs.overrideInitialActiveHub = overrideSelection;
             initialAlliance = overrideSelection;
+            inputs.initialActiveHub = overrideSelection;
+
             oppositeAlliance = overrideSelection == ActiveHub.RED ? ActiveHub.BLUE : ActiveHub.RED;
             isBeingOverrided = true;
-            return;
         }
 
         // Only update if timer has started
@@ -78,6 +86,14 @@ public class ObjectiveIODashboard implements ObjectiveIO {
 
         if (DriverStation.isAutonomous()) {
             inputs.activeHub = ObjectiveIO.ActiveHub.ALL;
+            inputs.currentShiftMode = ObjectiveIO.switches[0];
+            inputs.nextShiftMode = ObjectiveIO.switches[1];
+
+            inputs.timeUntilSwitch.mut_replace(
+                Math.abs(ObjectiveIO.switches[0].startTimeSeconds) - matchTimer.get(),
+                Seconds
+            );
+            inputs.timeElapsedFromLastSwitch.mut_replace(matchTimer.get(), Seconds);
             return;
         }
 
@@ -94,6 +110,8 @@ public class ObjectiveIODashboard implements ObjectiveIO {
                 oppositeAlliance = currentGameData.charAt(0) == 'R'
                     ? ObjectiveIO.ActiveHub.BLUE
                     : ObjectiveIO.ActiveHub.RED;
+
+                inputs.initialActiveHub = initialAlliance;
             }
         }
 
@@ -101,31 +119,34 @@ public class ObjectiveIODashboard implements ObjectiveIO {
         double timeSinceTeleopSeconds = matchTimer.get();
 
         ShiftMode activeSwitchSetting = switches[switches.length - 1];
+        ShiftMode nextSwitchSetting = switches[switches.length - 1];
 
-        for (ShiftMode setting : switches) {
+        for (int i = 0; i < switches.length; i++) {
+            ShiftMode setting = switches[i];
+
             // Find the first setting where the time since teleop is less than the runs until time
-            if (timeSinceTeleopSeconds < setting.runsUntilTimeSeconds()) {
+            if (timeSinceTeleopSeconds < setting.endTimeSeconds) {
                 activeSwitchSetting = setting;
+
+                // Determine the next switch setting
+                if (i + 1 < switches.length) {
+                    nextSwitchSetting = switches[i + 1];
+                } else {
+                    nextSwitchSetting = switches[switches.length - 1];
+                }
                 break;
             }
         }
 
         // Set active hub based on switch setting
-        switch (activeSwitchSetting.active()) {
-            case INITIAL_ACTIVE:
-                inputs.activeHub = initialAlliance;
-                break;
-            case OPPOSITE_ACTIVE:
-                inputs.activeHub = oppositeAlliance;
-                break;
-            case ALL_ACTIVE:
-            default:
-                inputs.activeHub = ObjectiveIO.ActiveHub.ALL;
-                break;
-        }
+        inputs.activeHub = activeSwitchSetting.active.toActiveHub(inputs.initialActiveHub);
 
-        inputs.timeUntilSwitch.mut_replace(
-            activeSwitchSetting.runsUntilTimeSeconds() - timeSinceTeleopSeconds,
+        inputs.currentShiftMode = activeSwitchSetting;
+        inputs.nextShiftMode = nextSwitchSetting;
+
+        inputs.timeUntilSwitch.mut_replace(activeSwitchSetting.endTimeSeconds - timeSinceTeleopSeconds, Seconds);
+        inputs.timeElapsedFromLastSwitch.mut_replace(
+            timeSinceTeleopSeconds - activeSwitchSetting.startTimeSeconds,
             Seconds
         );
     }
