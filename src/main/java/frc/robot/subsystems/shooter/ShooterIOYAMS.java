@@ -1,6 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -8,26 +7,31 @@ import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.CANIdConstants;
 import frc.util.WrappedSpark;
-import org.littletonrobotics.junction.Logger;
 import yams.mechanisms.velocity.FlyWheel;
 
 public class ShooterIOYAMS implements ShooterIO {
 
     // Shoot motor
-    protected final SparkMax shootMotor = new SparkMax(CANIdConstants.SHOOTER_MOTOR_ID, MotorType.kBrushless);
-    protected final WrappedSpark shootMotorWrapped = new WrappedSpark(
-        shootMotor,
+    protected final SparkMax rightShootMotor = new SparkMax(
+        CANIdConstants.RIGHT_SHOOTER_MOTOR_ID,
+        MotorType.kBrushless
+    );
+
+    protected final SparkMax leftShootMotor = new SparkMax(CANIdConstants.LEFT_SHOOTER_MOTOR_ID, MotorType.kBrushless);
+    protected final WrappedSpark leftShootMotorWrapped = new WrappedSpark(
+        leftShootMotor,
         // TODO: not a good way to do this
         DCMotor.getNEO(2),
-        ShooterConstants.shootMotorConfig.withSubsystem(new Subsystem() {})
+        ShooterConstants.shootMotorConfig
+            .withSubsystem(new Subsystem() {})
+            .withFollowers(new Pair<>(rightShootMotor, false))
     );
 
     // Indexer motor
@@ -38,7 +42,7 @@ public class ShooterIOYAMS implements ShooterIO {
     );
 
     // Shooter Mechanism
-    protected final FlyWheel flywheel = new FlyWheel(ShooterConstants.shooterConfig.apply(shootMotorWrapped));
+    protected final FlyWheel flywheel = new FlyWheel(ShooterConstants.shooterConfig.apply(leftShootMotorWrapped));
 
     protected boolean isUsingClosedLoopControlForShoot = true;
     protected boolean isUsingClosedLoopControlForIndexer = true;
@@ -52,11 +56,9 @@ public class ShooterIOYAMS implements ShooterIO {
             return;
         }
         isUsingClosedLoopControlForShoot = true;
-        // shootMotorWrapped.forceSetupClosedLoopController();
-        // shootMotorWrapped.startClosedLoopController();
 
-        shootMotorWrapped.overrideCurrentState(
-            shootMotorWrapped.getMechanismVelocity(),
+        leftShootMotorWrapped.overrideCurrentState(
+            leftShootMotorWrapped.getMechanismVelocity(),
             // Assumes that the shooter is at rest when we enable closed loop control
             RadiansPerSecondPerSecond.zero()
         );
@@ -81,19 +83,19 @@ public class ShooterIOYAMS implements ShooterIO {
     @Override
     public void setTargetShootMotorVelocity(AngularVelocity velocity) {
         enableClosedLoopControlShoot();
-        shootMotorWrapped.setVelocity(velocity);
+        leftShootMotorWrapped.setVelocity(velocity);
     }
 
     @Override
     public void stopShooter() {
         disableClosedLoopControlShoot();
-        shootMotorWrapped.setDutyCycle(0.0);
+        leftShootMotorWrapped.setDutyCycle(0.0);
     }
 
     @Override
     public void runShooterDutyCycle(Voltage dutyCycleOutput) {
         disableClosedLoopControlShoot();
-        shootMotorWrapped.setVoltage(dutyCycleOutput);
+        leftShootMotorWrapped.setVoltage(dutyCycleOutput);
     }
 
     @Override
@@ -116,16 +118,16 @@ public class ShooterIOYAMS implements ShooterIO {
 
     @Override
     public void updateInputs(ShooterIOInputs inputs) {
-        inputs.shootMotorConnected = shootMotorWrapped.updateData(inputs.shootMotorData);
+        inputs.shootMotorConnected = leftShootMotorWrapped.updateData(inputs.shootMotorData);
         inputs.indexerMotorConnected = indexerMotorWrapped.updateData(inputs.indexerMotorData);
 
         // Update the setpoints for shooter and indexer
         inputs.shootSetpoint.mut_replace(
-            shootMotorWrapped.getMechanismSetpointVelocity().orElse(RadiansPerSecond.zero())
+            leftShootMotorWrapped.getMechanismSetpointVelocity().orElse(RadiansPerSecond.zero())
         );
-        inputs.shootSetpointProfiled.mut_replace(shootMotorWrapped.currentState.position, RotationsPerSecond);
+        inputs.shootSetpointProfiled.mut_replace(leftShootMotorWrapped.currentState.position, RotationsPerSecond);
         inputs.shootSetpointAcceleration.mut_replace(
-            shootMotorWrapped.currentState.velocity,
+            leftShootMotorWrapped.currentState.velocity,
             RotationsPerSecondPerSecond
         );
 
@@ -136,7 +138,7 @@ public class ShooterIOYAMS implements ShooterIO {
         );
 
         if (isUsingClosedLoopControlForShoot) {
-            shootMotorWrapped.iterateCustomMotionProfile();
+            leftShootMotorWrapped.iterateCustomMotionProfile();
         }
 
         if (isUsingClosedLoopControlForIndexer) {

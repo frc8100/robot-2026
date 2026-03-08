@@ -46,12 +46,12 @@ public class ShooterIOSim extends ShooterIOYAMS {
         this.onShoot = onShoot;
         this.isAbleToShoot = isAbleToShoot;
 
-        super.shootMotorWrapped.setupCustomSimulation();
+        super.leftShootMotorWrapped.setupCustomSimulation();
         super.indexerMotorWrapped.setupCustomSimulation();
 
-        super.shootMotorWrapped.stopClosedLoopController();
+        super.leftShootMotorWrapped.stopClosedLoopController();
 
-        SmartMotorControllerConfig config = super.shootMotorWrapped.getConfig();
+        SmartMotorControllerConfig config = super.leftShootMotorWrapped.getConfig();
     }
 
     /**
