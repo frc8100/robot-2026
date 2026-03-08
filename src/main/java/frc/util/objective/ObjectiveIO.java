@@ -15,7 +15,7 @@ public interface ObjectiveIO {
         /**
          * All hubs are active, during auto and endgame.
          */
-        ALL("FMS Determination", Color.kFloralWhite),
+        ALL("FMS Determination", Color.kLimeGreen),
 
         /**
          * The red alliance hub is active.
@@ -107,44 +107,127 @@ public interface ObjectiveIO {
     public enum ShiftModeAllianceActive {
         ALL_ACTIVE,
         INITIAL_ACTIVE,
-        OPPOSITE_ACTIVE,
+        OPPOSITE_ACTIVE;
+
+        public ActiveHub toActiveHub(ActiveHub initialActiveHub) {
+            switch (this) {
+                case ALL_ACTIVE:
+                    return ActiveHub.ALL;
+                case INITIAL_ACTIVE:
+                    return initialActiveHub;
+                case OPPOSITE_ACTIVE:
+                    return initialActiveHub == ActiveHub.RED ? ActiveHub.BLUE : ActiveHub.RED;
+                default:
+                    return ActiveHub.ALL;
+            }
+        }
     }
 
     /**
      * Represents a shift mode, which determines which alliance's hub is active and when the next shift will occur.
-     * @param name - The name of the shift mode, for logging purposes.
-     * @param runsUntilTimeSeconds - The time in seconds until the next shift occurs,
-     * @param active - Which alliance's hub is active during this shift mode.
      */
-    public record ShiftMode(String name, double runsUntilTimeSeconds, ShiftModeAllianceActive active) {
+    public enum ShiftMode {
+        AUTO("Auto", -20.0, 0.0, ShiftModeAllianceActive.ALL_ACTIVE),
+        TRANSITION_SHIFT("Transition Shift", 0.0, 10.0, ShiftModeAllianceActive.ALL_ACTIVE),
+        SHIFT_1("Shift 1", 10.0, 35.0, ShiftModeAllianceActive.INITIAL_ACTIVE),
+        SHIFT_2("Shift 2", 35.0, 60.0, ShiftModeAllianceActive.OPPOSITE_ACTIVE),
+        SHIFT_3("Shift 3", 60.0, 85.0, ShiftModeAllianceActive.INITIAL_ACTIVE),
+        SHIFT_4("Shift 4", 85.0, 110.0, ShiftModeAllianceActive.OPPOSITE_ACTIVE),
+        ENDGAME("Endgame", 110.0, 140.0, ShiftModeAllianceActive.ALL_ACTIVE);
+
+        /**
+         * The display name of the shift mode.
+         */
+        public final String displayName;
+
+        /**
+         * The start time of the shift mode in seconds.
+         */
+        public final double startTimeSeconds;
+
+        /**
+         * The end time of the shift mode in seconds.
+         */
+        public final double endTimeSeconds;
+
+        /**
+         * The alliance that is active during this shift mode.
+         */
+        public final ShiftModeAllianceActive active;
+
+        private ShiftMode(
+            String displayName,
+            double startTimeSeconds,
+            double endTimeSeconds,
+            ShiftModeAllianceActive active
+        ) {
+            this.displayName = displayName;
+            this.startTimeSeconds = startTimeSeconds;
+            this.endTimeSeconds = endTimeSeconds;
+            this.active = active;
+        }
+
         @Override
-        public final String toString() {
-            return name;
+        public String toString() {
+            return displayName;
         }
     }
 
     /**
      * The shift modes for teleop, in order.
      */
-    public static final ShiftMode[] switches = new ShiftMode[] {
-        // Transition shift
-        new ShiftMode("Transition Shift", 10.0, ShiftModeAllianceActive.ALL_ACTIVE),
-        // Alliance shifts every 25s
-        new ShiftMode("Shift 1", 35.0, ShiftModeAllianceActive.INITIAL_ACTIVE),
-        new ShiftMode("Shift 2", 60.0, ShiftModeAllianceActive.OPPOSITE_ACTIVE),
-        new ShiftMode("Shift 3", 85.0, ShiftModeAllianceActive.INITIAL_ACTIVE),
-        new ShiftMode("Shift 4", 110.0, ShiftModeAllianceActive.OPPOSITE_ACTIVE),
-        // Endgame
-        new ShiftMode("Endgame", 140.0, ShiftModeAllianceActive.ALL_ACTIVE),
-    };
+    // public static final List<ShiftMode> switches = new LinkedList<>(List.of(ShiftMode.values()));
+    // public static final ListIterator<ShiftMode> switchIterator = switches.listIterator();
+    public static final ShiftMode[] switches = ShiftMode.values();
+
+    public static ShiftMode getShiftMode(double timeSeconds) {
+        for (ShiftMode shiftMode : switches) {
+            if (timeSeconds >= shiftMode.startTimeSeconds && timeSeconds < shiftMode.endTimeSeconds) {
+                return shiftMode;
+            }
+        }
+
+        // Return the last shift mode if time is beyond all defined shifts
+        return switches[switches.length - 1];
+    }
+
+    public static ShiftMode getShiftModeFromTimeOfCount(double timeOfFuelCount) {
+        for (ShiftMode shiftMode : switches) {
+            if (
+                timeOfFuelCount >= shiftMode.startTimeSeconds &&
+                timeOfFuelCount <
+                (shiftMode.endTimeSeconds + ObjectiveTracker.TIME_AFTER_SHIFT_ENDS_WHERE_HUB_STILL_COUNTS.in(Seconds))
+            ) {
+                return shiftMode;
+            }
+        }
+
+        // Return the last shift mode if time is beyond all defined shifts
+        return switches[switches.length - 1];
+    }
 
     @AutoLog
     public static class ObjectiveIOInputs {
 
         /**
+         * The current shift mode.
+         */
+        public ShiftMode currentShiftMode = switches[0];
+
+        /**
+         * The next shift mode.
+         */
+        public ShiftMode nextShiftMode = switches[1];
+
+        /**
          * The hub that is currently active.
          */
         public ActiveHub activeHub = ActiveHub.ALL;
+
+        /**
+         * The hub that is initially active in shift 1.
+         */
+        public ActiveHub initialActiveHub = ActiveHub.ALL;
 
         /**
          * The hub that is initially active at the start of teleop, if overridden by the operator.
@@ -156,7 +239,14 @@ public interface ObjectiveIO {
          * The time remaining in the current period.
          * Counts down to zero. Should always be non-negative.
          */
-        public MutTime timeUntilSwitch = Seconds.mutable(0.0);
+        // Start at 20 for auto in case match timer doesn't work
+        public MutTime timeUntilSwitch = Seconds.mutable(20.0);
+
+        /**
+         * The time elapsed since the last shift occurred.
+         * Counts up from zero. Should always be non-negative.
+         */
+        public MutTime timeElapsedFromLastSwitch = Seconds.mutable(0.0);
     }
 
     /** Updates the set of loggable inputs */
@@ -171,4 +261,9 @@ public interface ObjectiveIO {
      * Called at the start of teleop {@link frc.robot.Robot#teleopInit} to reset any necessary state.
      */
     public default void resetForTeleop() {}
+
+    /**
+     * Called at the start of disabled {@link frc.robot.Robot#disabledInit} to reset any necessary state.
+     */
+    public default void resetForDisabled() {}
 }

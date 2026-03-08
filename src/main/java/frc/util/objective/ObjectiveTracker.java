@@ -1,5 +1,7 @@
 package frc.util.objective;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -7,18 +9,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotActions;
-import frc.robot.RobotActions.FieldLocations;
-import frc.robot.RobotActions.GlobalState;
-import frc.robot.RobotActions.ScoreCoralPayload;
-import frc.robot.subsystems.swerve.Swerve.SwerveState;
+import frc.util.objective.ObjectiveIO.ShiftMode;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachine.StateWithPayload;
-
-import static edu.wpi.first.units.Units.Seconds;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -35,13 +30,14 @@ public class ObjectiveTracker extends SubsystemBase {
     /**
      * The time that fuel takes after it has entered the hub to be counted by the sensors.
      */
-    public static final Time timeForHubToProcessAfterScore = Seconds.of(1.5);
+    public static final Time TIME_FOR_HUB_TO_PROCESS_AFTER_SCORE_MIN = Seconds.of(1.0);
+    public static final Time TIME_FOR_HUB_TO_PROCESS_AFTER_SCORE_MAX = Seconds.of(2.0);
 
     /**
      * The time after a shift ends where fuel can still score.
      * Specified by game manual.
      */
-    public static final Time timeAfterShiftEndsWhereHubStillCounts = Seconds.of(3.0);
+    public static final Time TIME_AFTER_SHIFT_ENDS_WHERE_HUB_STILL_COUNTS = Seconds.of(3.0);
 
     @FunctionalInterface
     public interface ObjectiveCommandSupplier {
@@ -202,7 +198,7 @@ public class ObjectiveTracker extends SubsystemBase {
     /**
      * The list of objectives being tracked.
      */
-    private final LinkedList<Objective> listOfObjectives = new LinkedList<>();
+    private final List<Objective> listOfObjectives = new LinkedList<>();
 
     private final RobotActions robotActions;
 
@@ -214,6 +210,7 @@ public class ObjectiveTracker extends SubsystemBase {
     /**
      * Constructs an ObjectiveTracker given the robot actions.
      * @param robotActions - The robot actions instance.
+     * @param objectiveIO - The objective IO instance.
      */
     public ObjectiveTracker(RobotActions robotActions, ObjectiveIO objectiveIO) {
         this.robotActions = robotActions;
@@ -256,13 +253,112 @@ public class ObjectiveTracker extends SubsystemBase {
         SmartDashboard.putData("ScheduleNextObjective", Commands.runOnce(this::scheduleNextObjective));
     }
 
-    public boolean isAbleToShootAndScore(Time timeOfFlight) {
+    /**
+     * Determines if the robot is able to shoot and score based on the time of flight.
+     * @param timeOfFlight - The time it takes for the projectile to reach the target.
+     * @return The time remaining where the robot can shoot and score
+     * If this is positive, the robot can shoot and score, and it will count down for the time that the robot can score.
+     * If this is negative, the robot cannot shoot and score, and it will count up until the robot can score again.
+     */
+    public double isAbleToShootAndScore(Time timeOfFlight) {
         // Always able to shoot during auto
         if (DriverStation.isAutonomous()) {
-            return true;
+            return inputs.timeUntilSwitch.in(Seconds);
         }
 
-        // Case where we can shoot before the active shift starts 
+        // Determine if the current shift is active
+        boolean isCurrentShiftActive = false;
+        // boolean isNextShiftActive = false;
+        var currentAlliance = DriverStation.getAlliance();
+
+        // If the alliance is not determined, allow shooting
+        if (currentAlliance.isEmpty()) {
+            return inputs.timeUntilSwitch.in(Seconds);
+        }
+
+        // double flight = timeOfFlight.in(Seconds);
+        // double process = TIME_FOR_HUB_TO_PROCESS_AFTER_SCORE.in(Seconds);
+        // double countExtension = TIME_AFTER_SHIFT_ENDS_WHERE_HUB_STILL_COUNTS.in(Seconds);
+
+        // double launchDelay = flight + process;
+
+        double baseTimeWhenFuelScores =
+            // Current time
+            (inputs.currentShiftMode.startTimeSeconds + inputs.timeElapsedFromLastSwitch.in(Seconds)) +
+            // (inputs.timeElapsedFromLastSwitch.in(Seconds)) +
+            // Time for fuel to go in
+            (timeOfFlight.in(Seconds));
+        double timeWhenFuelScores = baseTimeWhenFuelScores;
+
+        // Determine the shift that the fuel lands on
+        // for (ShiftMode shiftMode : ObjectiveIO.switches) {
+        for (int i = 1; i < ObjectiveIO.switches.length; i++) {
+            ShiftMode shiftMode = ObjectiveIO.switches[i];
+
+            boolean isActive = shiftMode.active.toActiveHub(inputs.initialActiveHub).isActive(currentAlliance.get());
+
+            timeWhenFuelScores =
+                baseTimeWhenFuelScores +
+                (isActive
+                        ? ObjectiveTracker.TIME_FOR_HUB_TO_PROCESS_AFTER_SCORE_MAX.in(Seconds)
+                        : ObjectiveTracker.TIME_FOR_HUB_TO_PROCESS_AFTER_SCORE_MIN.in(Seconds));
+
+            if (
+                timeWhenFuelScores >= shiftMode.startTimeSeconds &&
+                (timeWhenFuelScores <
+                    (isActive
+                            ? shiftMode.endTimeSeconds +
+                            ObjectiveTracker.TIME_AFTER_SHIFT_ENDS_WHERE_HUB_STILL_COUNTS.in(Seconds)
+                            : shiftMode.endTimeSeconds))
+            ) {
+                ShiftMode nextShiftMode = shiftMode;
+                boolean isNextShiftActive = true;
+
+                if (i + 1 < ObjectiveIO.switches.length) {
+                    nextShiftMode = ObjectiveIO.switches[i + 1];
+                    isNextShiftActive = nextShiftMode.active
+                        .toActiveHub(inputs.initialActiveHub)
+                        .isActive(currentAlliance.get());
+                }
+
+                // test
+                Logger.recordOutput("ObjectiveTracker/TimeWhenFuelScores", timeWhenFuelScores);
+                Logger.recordOutput("ObjectiveTracker/CurrentFuelShiftMode", shiftMode.toString());
+                Logger.recordOutput("ObjectiveTracker/NextFuelShiftMode", nextShiftMode.toString());
+
+                if (isActive) {
+                    if (isNextShiftActive) {
+                        if (nextShiftMode == ObjectiveIO.ShiftMode.ENDGAME) {
+                            return (
+                                nextShiftMode.endTimeSeconds -
+                                // Current time
+                                (inputs.currentShiftMode.startTimeSeconds +
+                                    inputs.timeElapsedFromLastSwitch.in(Seconds))
+                            );
+                        }
+
+                        // Both current and next shifts are active
+                        return (
+                            nextShiftMode.endTimeSeconds +
+                            ObjectiveTracker.TIME_AFTER_SHIFT_ENDS_WHERE_HUB_STILL_COUNTS.in(Seconds) -
+                            timeWhenFuelScores
+                        );
+                    }
+
+                    // Current is active, next inactive
+                    return (
+                        shiftMode.endTimeSeconds +
+                        ObjectiveTracker.TIME_AFTER_SHIFT_ENDS_WHERE_HUB_STILL_COUNTS.in(Seconds) -
+                        timeWhenFuelScores
+                    );
+                }
+
+                // Current is inactive, next active; return negative which "counts up" to 0
+                return -(nextShiftMode.startTimeSeconds - timeWhenFuelScores);
+            }
+        }
+
+        return inputs.timeUntilSwitch.in(Seconds);
     }
 
     /**
@@ -377,6 +473,12 @@ public class ObjectiveTracker extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Objective", inputs);
 
+        double canShootRemaining = isAbleToShootAndScore(Seconds.one());
+        boolean canShoot = canShootRemaining > 0;
+
+        Logger.recordOutput("ObjectiveTracker/TimeRemainingCanShoot", String.format("%.1f", canShootRemaining));
+
+        Logger.recordOutput("ObjectiveTracker/CurrentShift", inputs.currentShiftMode.toString());
         Logger.recordOutput("ObjectiveTracker/ActiveAllianceColor", inputs.activeHub.color);
 
         // Only run if enabled

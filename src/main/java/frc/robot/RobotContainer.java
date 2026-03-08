@@ -451,4 +451,12 @@ public class RobotContainer {
         // Reset objective
         objectiveIO.resetForTeleop();
     }
+
+    /**
+     * Runs initialization code for disabled mode.
+     */
+    public void disabledInit() {
+        // Reset objective
+        objectiveIO.resetForDisabled();
+    }
 }
