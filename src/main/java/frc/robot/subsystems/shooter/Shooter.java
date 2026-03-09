@@ -6,6 +6,11 @@ import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -13,24 +18,18 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
-import java.util.ArrayList;
-import java.util.List;
-import org.littletonrobotics.junction.Logger;
 
 /**
  * Shooter subsystem.
@@ -80,10 +79,31 @@ public class Shooter extends SubsystemBase {
     private final Swerve swerveSubsystem;
 
     // Caches
-    private final List<Translation3d> trajectoryPoints = new ArrayList<>(30);
     private final MutAngularVelocity cachedTargetExitAngularVelocity = RadiansPerSecond.mutable(0.0);
 
     private final SysIdRoutine shooterSysidRoutine;
+
+    /**
+     * Stores the result of a fuel trajectory prediction, including the trajectory points, the final point, and whether it would hit the target.
+     */
+    public static class CachedPredictedTrajectoryResult {
+
+        public final List<Translation3d> trajectoryPoints = new ArrayList<>(30);
+        public Translation3d finalPoint = Translation3d.kZero;
+        public boolean hitTarget = false;
+
+        protected CachedPredictedTrajectoryResult() {}
+
+        protected void log(String prefix) {
+            Logger.recordOutput(prefix + "/Trajectory", trajectoryPoints.toArray(new Translation3d[0]));
+            Logger.recordOutput(prefix + "/FinalPoint", finalPoint);
+            Logger.recordOutput(prefix + "/HitTarget", hitTarget);
+        }
+    }
+
+    public final CachedPredictedTrajectoryResult cachedTargetTrajectoryResult = new CachedPredictedTrajectoryResult();
+    public final CachedPredictedTrajectoryResult cachedCurrentTrajectoryResult = new CachedPredictedTrajectoryResult();
+    public final CachedPredictedTrajectoryResult cachedFutureTrajectoryResult = new CachedPredictedTrajectoryResult();
 
     public Shooter(ShooterIO io, Swerve swerveSubsystem) {
         this.io = io;
@@ -131,32 +151,20 @@ public class Shooter extends SubsystemBase {
     private void handleShootState() {
         setTargetExitVelocity(swerveSubsystem.autoAim.latestCalculationResult.getDistanceToTarget());
 
-        // TODO: add check to only run indexer if shooter is up to speed
-        // io.runIndexer();
-        io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
-    }
+        boolean shooterUpToSpeed = cachedCurrentTrajectoryResult.hitTarget;
 
-    /**
-     * Stores the result of a fuel trajectory prediction, including the trajectory points, the final point, and whether it would hit the target.
-     */
-    public record PredictedTrajectoryResult(
-        Translation3d[] trajectoryPoints,
-        Translation3d finalPoint,
-        boolean hitTarget
-    ) {
-        public void log(String prefix) {
-            Logger.recordOutput(prefix + "/Trajectory", trajectoryPoints);
-            Logger.recordOutput(prefix + "/FinalPoint", finalPoint);
-            Logger.recordOutput(prefix + "/HitTarget", hitTarget);
+        // TODO: add override
+        boolean isBeingOverrided = false;
+
+        if (shooterUpToSpeed || isBeingOverrided) {
+            io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
         }
     }
 
     /**
      * Predicts the trajectory of a fuel based on the current shooter exit velocity, angle, and robot velocity. Also predicts whether the fuel would score in the hub.
      */
-    public PredictedTrajectoryResult predictFuelTrajectory(double exitVelocityMPS) {
-        trajectoryPoints.clear();
-
+    private void updatePredictedFuelTrajectory(CachedPredictedTrajectoryResult result, double exitVelocityMPS, boolean shouldLogExtraData) {
         // Precompute constants
         final Rotation2d shooterAngle = swerveSubsystem
             .getPose()
@@ -201,9 +209,13 @@ public class Shooter extends SubsystemBase {
             FuelSim.Hub.BLUE_HUB.didFuelScoreAtAll(predictedFuel) ||
             FuelSim.Hub.RED_HUB.didFuelScoreAtAll(predictedFuel);
 
+        result.finalPoint = finalPosition;
+        result.hitTarget = hitTarget;
+
         // If we don't need to log additional data, skip calculating the full trajectory for performance reasons
-        if (!Constants.shouldLogAdditionalData()) {
-            return new PredictedTrajectoryResult(new Translation3d[0], finalPosition, hitTarget);
+        if (!shouldLogExtraData) {
+            result.finalPoint = finalPosition;
+            result.hitTarget = hitTarget;
         }
 
         for (int i = 0; i < 30; i++) {
@@ -211,7 +223,8 @@ public class Shooter extends SubsystemBase {
 
             // If we've reached the final time, add the final position and break
             if (t > finalT) {
-                trajectoryPoints.add(finalPosition);
+                result.trajectoryPoints.add(finalPosition);
+
                 break;
             }
 
@@ -221,7 +234,7 @@ public class Shooter extends SubsystemBase {
 
             // If below ground level, stop the trajectory
             if (z < 0) {
-                trajectoryPoints.add(
+                result.trajectoryPoints.add(
                     new Translation3d(position.getX() + velocity.getX() * t, position.getY() + velocity.getY() * t, 0)
                 );
                 break;
@@ -231,10 +244,8 @@ public class Shooter extends SubsystemBase {
             double y = position.getY() + velocity.getY() * t;
 
             // Update position for the next iteration
-            trajectoryPoints.add(new Translation3d(x, y, z));
+            result.trajectoryPoints.add(new Translation3d(x, y, z));
         }
-
-        return new PredictedTrajectoryResult(trajectoryPoints.toArray(new Translation3d[0]), finalPosition, hitTarget);
     }
 
     /**
@@ -265,15 +276,19 @@ public class Shooter extends SubsystemBase {
         Logger.processInputs("Shooter", inputs);
 
         // Log trajectory points for visualization
-        PredictedTrajectoryResult targetTrajectory = predictFuelTrajectory(
-            swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond)
+        updatePredictedFuelTrajectory(
+            cachedTargetTrajectoryResult,
+            swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond),
+            Constants.shouldLogAdditionalData()
         );
-        targetTrajectory.log("Shooter/TargetTrajectory");
+        cachedTargetTrajectoryResult.log("Shooter/TargetTrajectory");
 
-        PredictedTrajectoryResult currentTrajectory = predictFuelTrajectory(
+        updatePredictedFuelTrajectory(
+            cachedCurrentTrajectoryResult,
             getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity)
+            Constants.shouldLogAdditionalData()
         );
-        currentTrajectory.log("Shooter/CurrentTrajectory");
+        cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
     }
 
     @Override

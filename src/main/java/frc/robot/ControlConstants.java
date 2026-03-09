@@ -21,7 +21,6 @@ public class ControlConstants {
 
     // Intake controls
     public static final XboxController.Button toggleIntakeDeploy = XboxController.Button.kLeftBumper;
-
     public static final XboxController.Button toggleIntakeDeployReverseTest = XboxController.Button.kRightBumper;
 
     public static final XboxController.Button runIntakeButton = XboxController.Button.kB;

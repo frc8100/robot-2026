@@ -31,6 +31,9 @@ public interface ShooterIO {
 
         public MutAngularVelocity indexerSetpointProfiled = RadiansPerSecond.mutable(0.0);
         public MutAngularAcceleration indexerSetpointAcceleration = RadiansPerSecondPerSecond.mutable(0.0);
+
+        // TODO: check for this
+        public boolean isFuelDetectedAtTopOfIndexer = false;
     }
 
     /** Updates the set of loggable inputs. */
