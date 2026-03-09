@@ -6,11 +6,6 @@ import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -25,11 +20,15 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
+import java.util.ArrayList;
+import java.util.List;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * Shooter subsystem.
@@ -164,7 +163,11 @@ public class Shooter extends SubsystemBase {
     /**
      * Predicts the trajectory of a fuel based on the current shooter exit velocity, angle, and robot velocity. Also predicts whether the fuel would score in the hub.
      */
-    private void updatePredictedFuelTrajectory(CachedPredictedTrajectoryResult result, double exitVelocityMPS, boolean shouldLogExtraData) {
+    private void updatePredictedFuelTrajectory(
+        CachedPredictedTrajectoryResult result,
+        double exitVelocityMPS,
+        boolean shouldLogExtraData
+    ) {
         // Precompute constants
         final Rotation2d shooterAngle = swerveSubsystem
             .getPose()
@@ -274,21 +277,20 @@ public class Shooter extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Shooter", inputs);
-
         // Log trajectory points for visualization
-        updatePredictedFuelTrajectory(
-            cachedTargetTrajectoryResult,
-            swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond),
-            Constants.shouldLogAdditionalData()
-        );
-        cachedTargetTrajectoryResult.log("Shooter/TargetTrajectory");
+        // updatePredictedFuelTrajectory(
+        //     cachedTargetTrajectoryResult,
+        //     swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond),
+        //     Constants.shouldLogAdditionalData()
+        // );
+        // cachedTargetTrajectoryResult.log("Shooter/TargetTrajectory");
 
-        updatePredictedFuelTrajectory(
-            cachedCurrentTrajectoryResult,
-            getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity)
-            Constants.shouldLogAdditionalData()
-        );
-        cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
+        // updatePredictedFuelTrajectory(
+        //     cachedCurrentTrajectoryResult,
+        //     getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity),
+        //     Constants.shouldLogAdditionalData()
+        // );
+        // cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
     }
 
     @Override
