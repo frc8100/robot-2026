@@ -152,7 +152,9 @@ public class Robot extends LoggedRobot {
     public void autonomousInit() {
         // If in simulation, reset the simulated arena
         if (Constants.currentMode == Constants.Mode.SIM) {
-            SimulatedArena.getInstance().resetFieldForAuto();
+            // SimulatedArena.getInstance().resetFieldForAuto();
+            FuelSim.getInstance().clearFuel();
+            FuelSim.getInstance().spawnStartingFuel();
         }
 
         robotContainer.autonomousInit();
