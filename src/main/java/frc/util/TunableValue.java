@@ -86,6 +86,81 @@ public class TunableValue implements DoubleSupplier {
         }
     }
 
+    public static class SparkFeedforwardTunable {
+
+        public final TunableValue kS;
+        public final TunableValue kV;
+        public final TunableValue kA;
+
+        public final TunableValue kG;
+
+        private final WrappedSpark motorController;
+        private final String name;
+
+        public SparkFeedforwardTunable(String name, WrappedSpark motorController) {
+            this.name = name;
+            this.motorController = motorController;
+
+            double defaultKS = 0.0;
+            double defaultKV = 0.0;
+            double defaultKA = 0.0;
+            double defaultKG = 0.0;
+
+            if (motorController.getConfig().getSimpleFeedforward().isPresent()) {
+                var feedforward = motorController.getConfig().getSimpleFeedforward().get();
+                defaultKS = feedforward.getKs();
+                defaultKV = feedforward.getKv();
+                defaultKA = feedforward.getKa();
+            }
+
+            if (motorController.getConfig().getArmFeedforward().isPresent()) {
+                var feedforward = motorController.getConfig().getArmFeedforward().get();
+                defaultKS = feedforward.getKs();
+                defaultKV = feedforward.getKv();
+                defaultKA = feedforward.getKa();
+                defaultKG = feedforward.getKg();
+            }
+
+            if (motorController.getConfig().getElevatorFeedforward().isPresent()) {
+                var feedforward = motorController.getConfig().getElevatorFeedforward().get();
+                defaultKS = feedforward.getKs();
+                defaultKV = feedforward.getKv();
+                defaultKA = feedforward.getKa();
+                defaultKG = feedforward.getKg();
+            }
+
+            kS = new TunableValue(name + "/kS", defaultKS);
+            kV = new TunableValue(name + "/kV", defaultKV);
+            kA = new TunableValue(name + "/kA", defaultKA);
+
+            kG = new TunableValue(name + "/kG", defaultKG);
+
+            TunableValue.addRefreshConfigConsumer(this::onRefresh);
+        }
+
+        private void onRefresh() {
+            if (!hasAnyChanged(kS, kV, kA, kG)) {
+                return;
+            }
+
+            // Update feedforward values in the motor controller configuration
+            motorController.setFeedforward(kS.get(), kV.get(), kA.get(), kG.get());
+
+            System.out.println(
+                "Updated Spark Feedforward for " +
+                name +
+                ": kS=" +
+                kS.get() +
+                ", kV=" +
+                kV.get() +
+                ", kA=" +
+                kA.get() +
+                ", kG=" +
+                kG.get()
+            );
+        }
+    }
+
     /**
      * A functional interface for a consumer that refreshes its config.
      * This is used to update the tunable numbers when the config is changed.

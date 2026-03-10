@@ -1,8 +1,5 @@
 package frc.robot.subsystems.intake;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.revrobotics.PersistMode;
@@ -10,17 +7,12 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.Solenoid;
 import frc.robot.CANIdConstants;
 import frc.util.TunableValue;
 import frc.util.WrappedSpark;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import yams.mechanisms.positional.Arm;
 
 public class IntakeIOYAMS implements IntakeIO {
@@ -37,7 +29,11 @@ public class IntakeIOYAMS implements IntakeIO {
 
     protected boolean isUsingClosedLoopControl = true;
 
-    public final TunableValue.SparkPIDTunable tuning = TunableValue.SparkPIDTunable.fromWrapped(
+    public final TunableValue.SparkPIDTunable deployTunablePID = TunableValue.SparkPIDTunable.fromWrapped(
+        "Intake/Deploy",
+        deployMotorWrapped
+    );
+    public final TunableValue.SparkFeedforwardTunable deployTunableFF = new TunableValue.SparkFeedforwardTunable(
         "Intake/Deploy",
         deployMotorWrapped
     );

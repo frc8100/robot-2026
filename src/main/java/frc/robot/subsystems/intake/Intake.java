@@ -29,6 +29,7 @@ import frc.robot.subsystems.DeviceAlert;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
  * Intake subsystem.
@@ -116,6 +117,8 @@ public class Intake extends SubsystemBase {
          * Automatically transitions to {@link #RETRACTED} when deploy has hit the hard stop.
          */
         CALIBRATE_RETRACT,
+
+        TEST_SETPOINT_CHANGE,
     }
 
     public final StateMachine<IntakeState, Object> stateMachine = new StateMachine<IntakeState, Object>(
@@ -127,7 +130,8 @@ public class Intake extends SubsystemBase {
         .withState(new StateMachineState<>(IntakeState.TRANSITION_DEPLOYING, "TransitionDeploying"))
         .withState(new StateMachineState<>(IntakeState.TRANSITION_RETRACTING, "TransitionRetracting"))
         .withState(new StateMachineState<>(IntakeState.TEST_VOLTAGE_CONTROL, "TestVoltage"))
-        .withState(new StateMachineState<>(IntakeState.CALIBRATE_RETRACT, "CalibrateRetract"));
+        .withState(new StateMachineState<>(IntakeState.CALIBRATE_RETRACT, "CalibrateRetract"))
+        .withState(new StateMachineState<>(IntakeState.TEST_SETPOINT_CHANGE, "TestSetpointChange"));
 
     private final IntakeIO io;
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
@@ -153,6 +157,12 @@ public class Intake extends SubsystemBase {
         inputs.deployMotorData.torqueCurrent.gte(Amps.of(22))
     ).debounce(0.25);
 
+    private final LoggedNetworkNumber deploySetpointTestDegrees = new LoggedNetworkNumber(
+        "Intake/DeploySetpointTest",
+        IntakeConstants.INTAKE_RETRACTED_ANGLE.in(Degrees)
+    );
+    private final MutAngle deploySetpointTestAngle = Degrees.mutable(0.0);
+
     /**
      * Creates a new Intake subsystem.
      * @param io - The IO interface for the intake subsystem.
@@ -167,6 +177,9 @@ public class Intake extends SubsystemBase {
         stateMachine.whileState(IntakeState.TRANSITION_RETRACTING, this::handleTransitionRetracting);
         stateMachine.whileState(IntakeState.CALIBRATE_RETRACT, this::handleCalibrateRetract);
         stateMachine.whileState(IntakeState.TEST_VOLTAGE_CONTROL, () -> io.runDeployVoltage(testVoltageOutput));
+        stateMachine.whileState(IntakeState.TEST_SETPOINT_CHANGE, () ->
+            io.setDeploySetpoint(deploySetpointTestAngle.mut_replace(deploySetpointTestDegrees.get(), Degrees))
+        );
 
         stateMachine.onStateChange(IntakeState.CALIBRATE_RETRACT, this::onCalibrateDeploy);
 
