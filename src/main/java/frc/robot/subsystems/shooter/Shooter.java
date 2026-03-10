@@ -69,7 +69,8 @@ public class Shooter extends SubsystemBase {
         "Shooter"
     )
         .withDefaultState(new StateMachineState<>(ShooterState.IDLE, "Idle"))
-        .withState(new StateMachineState<>(ShooterState.SHOOTING, "Shooting"));
+        .withState(new StateMachineState<>(ShooterState.SHOOTING, "Shooting"))
+        .withReturnToDefaultStateOnDisable(true);
 
     private final ShooterIO io;
     private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
@@ -168,6 +169,8 @@ public class Shooter extends SubsystemBase {
         double exitVelocityMPS,
         boolean shouldLogExtraData
     ) {
+        result.trajectoryPoints.clear();
+
         // Precompute constants
         final Rotation2d shooterAngle = swerveSubsystem
             .getPose()
@@ -278,19 +281,25 @@ public class Shooter extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Shooter", inputs);
         // Log trajectory points for visualization
-        // updatePredictedFuelTrajectory(
-        //     cachedTargetTrajectoryResult,
-        //     swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond),
-        //     Constants.shouldLogAdditionalData()
-        // );
-        // cachedTargetTrajectoryResult.log("Shooter/TargetTrajectory");
+        updatePredictedFuelTrajectory(
+            cachedTargetTrajectoryResult,
+            swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond),
+            Constants.shouldLogAdditionalData()
+        );
+        cachedTargetTrajectoryResult.log("Shooter/TargetTrajectory");
 
-        // updatePredictedFuelTrajectory(
-        //     cachedCurrentTrajectoryResult,
-        //     getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity),
-        //     Constants.shouldLogAdditionalData()
-        // );
-        // cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
+        updatePredictedFuelTrajectory(
+            cachedCurrentTrajectoryResult,
+            getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity),
+            Constants.shouldLogAdditionalData()
+        );
+        cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
+
+        updatePredictedFuelTrajectory(
+            cachedFutureTrajectoryResult,
+            getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity) + 0.2,
+            Constants.shouldLogAdditionalData()
+        );
     }
 
     @Override
