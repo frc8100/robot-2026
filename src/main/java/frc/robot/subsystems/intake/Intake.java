@@ -154,8 +154,8 @@ public class Intake extends SubsystemBase {
      * A trigger that is true when the intake deploy motor is stalled which indicates that the intake has hit the hard stop.
      */
     private final Trigger calibrationCompleteTrigger = new Trigger(() ->
-        inputs.deployMotorData.torqueCurrent.gte(Amps.of(22))
-    ).debounce(0.25);
+        inputs.deployMotorData.torqueCurrent.gte(Amps.of(26))
+    ).debounce(0.05);
 
     private final LoggedNetworkNumber deploySetpointTestDegrees = new LoggedNetworkNumber(
         "Intake/DeploySetpointTest",
@@ -333,15 +333,72 @@ public class Intake extends SubsystemBase {
             () -> getMeasuredDeployState(IntakeState.RETRACTED_RESTING) == MeasuredDeployState.RETRACTED
         ).debounce(0.2);
 
-        return new SequentialCommandGroup(
-            intakeSysid.quasistatic(SysIdRoutine.Direction.kForward).until(sysidCompleteForwardTrigger),
-            Commands.waitSeconds(0.5),
-            intakeSysid.quasistatic(SysIdRoutine.Direction.kReverse).until(sysidCompleteReverseTrigger),
-            Commands.waitSeconds(0.5),
-            intakeSysid.dynamic(SysIdRoutine.Direction.kForward).until(sysidCompleteForwardTrigger),
-            Commands.waitSeconds(0.5),
-            intakeSysid.dynamic(SysIdRoutine.Direction.kReverse).until(sysidCompleteReverseTrigger)
+        Command resetForward = Commands.runOnce(() -> io.setDeployEncoderPosition(IntakeConstants.INTAKE_DEPLOYED_ANGLE)
         );
+        Command resetReverse = Commands.runOnce(() ->
+            io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE)
+        );
+
+        return new SequentialCommandGroup(
+            intakeSysid
+                .quasistatic(SysIdRoutine.Direction.kForward)
+                .until(sysidCompleteForwardTrigger.or(calibrationCompleteTrigger)),
+            Commands.runOnce(() -> io.setDeployEncoderPosition(IntakeConstants.INTAKE_DEPLOYED_ANGLE)),
+            Commands.waitSeconds(0.5),
+            intakeSysid
+                .quasistatic(SysIdRoutine.Direction.kReverse)
+                .until(sysidCompleteReverseTrigger.or(calibrationCompleteTrigger)),
+            Commands.runOnce(() -> io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE)),
+            Commands.waitSeconds(0.5),
+            intakeSysid
+                .dynamic(SysIdRoutine.Direction.kForward)
+                .until(sysidCompleteForwardTrigger.or(calibrationCompleteTrigger)),
+            Commands.runOnce(() -> io.setDeployEncoderPosition(IntakeConstants.INTAKE_DEPLOYED_ANGLE)),
+            Commands.waitSeconds(0.5),
+            intakeSysid
+                .dynamic(SysIdRoutine.Direction.kReverse)
+                .until(sysidCompleteReverseTrigger.or(calibrationCompleteTrigger)),
+            Commands.runOnce(() -> io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE))
+        );
+        // return new SequentialCommandGroup(
+        // return intakeSysid
+        //     .quasistatic(SysIdRoutine.Direction.kForward)
+        //     .until(sysidCompleteForwardTrigger.or(calibrationCompleteTrigger))
+        //     .andThen(resetPositionForward)
+        //     .andThen(Commands.waitSeconds(0.5))
+        //     .andThen(
+        //         intakeSysid
+        //             .quasistatic(SysIdRoutine.Direction.kReverse)
+        //             .until(sysidCompleteReverseTrigger.or(calibrationCompleteTrigger))
+        //     )
+        //     .andThen(Commands.waitSeconds(0.5))
+        //     .andThen(
+        //         intakeSysid
+        //             .dynamic(SysIdRoutine.Direction.kForward)
+        //             .until(sysidCompleteReverseTrigger.or(calibrationCompleteTrigger))
+        //     )
+        //     .andThen(resetPositionReverse)
+        //     .andThen(Commands.waitSeconds(0.5))
+        //     .andThen(
+        //         intakeSysid
+        //             .dynamic(SysIdRoutine.Direction.kReverse)
+        //             .until(sysidCompleteReverseTrigger.or(calibrationCompleteTrigger))
+        //             .andThen(resetPositionForward)
+        //     );
+        // ,
+        // resetPositionReverse,
+        // Commands.waitSeconds(0.5),
+        // intakeSysid
+        //     .dynamic(SysIdRoutine.Direction.kForward)
+        //     .until(sysidCompleteForwardTrigger.or(calibrationCompleteTrigger)),
+        // resetPositionForward,
+        // Commands.waitSeconds(0.5),
+        // intakeSysid
+        //     .dynamic(SysIdRoutine.Direction.kReverse)
+        //     .until(sysidCompleteReverseTrigger.or(calibrationCompleteTrigger)),
+        // resetPositionReverse
+        // );
+        // return Commands.none();
     }
 
     /**
