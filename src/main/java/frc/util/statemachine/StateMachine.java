@@ -126,6 +126,12 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
     private StateMachineState<TStateEnum> defaultState = null;
 
     /**
+     * The key for logging to the dashboard without the "StateMachines/" prefix.
+     * Example: "Swerve"
+     */
+    public final String baseDashboardKey;
+
+    /**
      * The key used for logging to the dashboard.
      * Example: "StateMachines/Swerve"
      */
@@ -169,12 +175,23 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
     private boolean shouldReturnToDefaultStateOnDisable = false;
 
     /**
+     * The payload to return to when disabled. If this is empty, then the state machine will return to the default state without a payload.
+     */
+    private Optional<TPayload> defaultStatePayload = Optional.empty();
+
+    /**
+     * Whether the payload should be reset when the state machine is disabled.
+     */
+    private boolean resetPayloadOnDisable = false;
+
+    /**
      * Constructs a state machine with the specified initial state.
      * State is logged to the dashboard with the given key.
      * @param stateEnumClass - The class of the enum type representing the states of the state machine. Used to initialize the internal {@link EnumMap}s. Ex. {@code MyStateEnum.class}
      * @param dashboardKey - The key to use for logging to the dashboard. Added as a prefix to {@link #DEFAULT_DASHBOARD_KEY}.
      */
     public StateMachine(Class<TStateEnum> stateEnumClass, String dashboardKey) {
+        this.baseDashboardKey = dashboardKey;
         this.dashboardKey = DEFAULT_DASHBOARD_KEY + dashboardKey;
         this.stateEnumClass = stateEnumClass;
 
@@ -202,6 +219,18 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
      * Handles returning to the default state when the robot is disabled, if enabled.
      */
     private void disableHandle() {
+        if (resetPayloadOnDisable) {
+            System.out.println(
+                "[StateMachine \"" +
+                dashboardKey +
+                "\"] Resetting payload on disable: " +
+                defaultStatePayload.orElse(null)
+            );
+
+            currentPayload = defaultStatePayload.orElse(null);
+            currentPayloadOptional = Optional.ofNullable(currentPayload);
+        }
+
         // Return to default state if enabled and not already in default state
         if (
             shouldReturnToDefaultStateOnDisable &&
@@ -209,10 +238,7 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
             (currentState == null || !currentState.equals(defaultState))
         ) {
             System.out.println(
-                "[StateMachine \"" +
-                dashboardKey +
-                "\"] Returning to default state on disable: " +
-                defaultState.enumType
+                "[StateMachine \"" + dashboardKey + "\"] Returning to default state on disable: " + defaultState.name
             );
 
             setStateAndUpdate(defaultState.enumType);
@@ -497,6 +523,32 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
     }
 
     /**
+     * Sets the payload to return to when the state machine is disabled.
+     * @param payload - The payload to return to when the state machine is disabled. Set to null to clear the default payload.
+     */
+    public void setDefaultStatePayload(TPayload payload) {
+        this.defaultStatePayload = Optional.ofNullable(payload);
+    }
+
+    public StateMachine<TStateEnum, TPayload> withDefaultStatePayload(TPayload payload) {
+        setDefaultStatePayload(payload);
+        return this;
+    }
+
+    /**
+     * Sets whether the payload should be reset when the state machine is disabled.
+     * @param shouldReset - Whether the payload should be reset when the state machine is disabled.
+     */
+    public void setResetPayloadOnDisable(boolean shouldReset) {
+        this.resetPayloadOnDisable = shouldReset;
+    }
+
+    public StateMachine<TStateEnum, TPayload> withResetPayloadOnDisable(boolean shouldReset) {
+        setResetPayloadOnDisable(shouldReset);
+        return this;
+    }
+
+    /**
      * @return The current state of the state machine.
      * @throws IllegalStateException if the state machine does not have a current state defined and no default state to fall back on.
      */
@@ -721,8 +773,10 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
         Map<String, Command> namedCommands = new HashMap<>();
 
         stateMap.forEach((TStateEnum key, StateMachineState<TStateEnum> value) -> {
-            String commandName = "State." + dashboardKey + "." + value.name;
+            String commandName = "State." + baseDashboardKey + "." + value.name;
             namedCommands.put(commandName, deferredScheduleStateChangeCommand(key));
+            // test
+            System.out.println("Registered command: " + commandName);
         });
 
         return namedCommands;
