@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.Volt;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -42,6 +43,7 @@ import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
 import frc.robot.subsystems.shooter.ShooterConstants;
+import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.Module;
@@ -211,7 +213,8 @@ public class Swerve extends SubsystemBase {
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_PID, "PIDAlignment"))
         .withState(new StateMachineState<>(SwerveState.DRIVE_TO_POSE_AT_TARGET, "AtTarget"))
         .withState(new StateMachineState<>(SwerveState.FULL_AUTONOMOUS_PATH_FOLLOWING, "FollowPath"))
-        .withReturnToDefaultStateOnDisable(true);
+        .withReturnToDefaultStateOnDisable(true)
+        .withResetPayloadOnDisable(true);
 
     // TODO: In replay, this::isSimulation does not capture correctly; fix this
     private final SwerveFeedForwards swerveFeedForwards = new SwerveFeedForwards(this::isSimulation);
@@ -765,6 +768,9 @@ public class Swerve extends SubsystemBase {
 
         // Run state machine
         // TODO: better validation (this essentially just works the same as a default command)
+
+        // boolean isRunningPathPlannerCommand = getCurrentCommand() instanceof FollowPathCommand;
+
         if (getCurrentCommand() == null) {
             stateMachine.runCurrentStatePeriodicAction();
         }
@@ -811,6 +817,7 @@ public class Swerve extends SubsystemBase {
 
                 // Override the angular velocity setpoint with the auto-aim result
                 setpointSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond();
+                shouldRunSpeedsThisCycle = true;
             }
 
             autoAim.latestCalculationResult.log();

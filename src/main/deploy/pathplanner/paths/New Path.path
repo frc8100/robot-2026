@@ -8,48 +8,43 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.767012522361359,
-        "y": 5.251491393005358
+        "x": 7.4057944161035945,
+        "y": 3.7801374185420533
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.2461062895797745,
-        "y": 5.535849731663684
+        "x": 5.783526598237651,
+        "y": 5.417904427889698
       },
       "prevControl": {
-        "x": 6.373937328441967,
-        "y": 5.5198753071584745
+        "x": 6.929570703991992,
+        "y": 5.197419952049997
       },
       "nextControl": {
-        "x": 4.3505567178319815,
-        "y": 5.548534157372512
+        "x": 4.904015943429345,
+        "y": 5.587111219100584
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.3050268336314854,
-        "y": 5.535849731663684
+        "x": 3.4863139865673416,
+        "y": 5.417904427889698
       },
       "prevControl": {
-        "x": 4.232462268810294,
-        "y": 5.528851749202231
+        "x": 4.413749421746152,
+        "y": 5.410906445428245
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 1,
-      "rotationDegrees": -45.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [
     {
@@ -58,12 +53,46 @@
         "y": 4.0
       },
       "rotationOffset": 0.0,
-      "minWaypointRelativePos": 2.0,
+      "minWaypointRelativePos": 1.961904761904762,
       "maxWaypointRelativePos": 2.0,
       "name": "Point Towards Zone"
     }
   ],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "StopIntakeRoller",
+      "waypointRelativePos": 0.3285714285714285,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "StopIntakeRoller"
+        }
+      }
+    },
+    {
+      "name": "State.Intake.TransitionRetracting",
+      "waypointRelativePos": 0.3857142857142855,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "State.Intake.TransitionRetracting"
+        }
+      }
+    },
+    {
+      "name": "SwerveAimToHub",
+      "waypointRelativePos": 2.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "SwerveAimToHub"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 3.75,
     "maxAcceleration": 6.0,
@@ -74,7 +103,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -45.0
+    "rotation": -51.403050059700874
   },
   "reversed": false,
   "folder": null,
