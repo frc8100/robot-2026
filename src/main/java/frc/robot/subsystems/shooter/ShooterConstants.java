@@ -58,7 +58,7 @@ public final class ShooterConstants {
      * The rotation offset to apply to the shooter's aiming calculations.
      * Ex. if the shooter shoots fuel out the back of the robot, this would be 180 degrees.
      */
-    public static final Rotation2d AIM_ROTATION_OFFSET = Rotation2d.k180deg;
+    public static final Rotation2d AIM_ROTATION_OFFSET = Rotation2d.kZero;
 
     /**
      * When calculating the future robot pose for aim to target feedforward, how far ahead to calculate.
@@ -173,6 +173,16 @@ public final class ShooterConstants {
         new Rotation3d(AIM_ROTATION_OFFSET)
     );
 
+    public static final Transform3d leftFuelStreamTransform = new Transform3d(
+        new Translation3d(Inches.of(0), Inches.of(5), Inches.of(6)),
+        Rotation3d.kZero
+    );
+
+    public static final Transform3d rightFuelStreamTransform = new Transform3d(
+        new Translation3d(Inches.of(0), Inches.of(-5), Inches.of(6)),
+        Rotation3d.kZero
+    );
+
     public static final Translation2d positionFromRobotCenter2d = transformFromRobotCenter
         .getTranslation()
         .toTranslation2d();
@@ -182,7 +192,7 @@ public final class ShooterConstants {
     );
 
     public static final AngularVelocity SIMULATION_INDEXER_VELOCITY_AT_MAX_OUTPUT = INDEXER_SPEED;
-    public static final double SIMULATION_MAX_FUEL_PER_SECOND = 5.5;
+    public static final double SIMULATION_MAX_FUEL_PER_SECOND = 8.5 / 2.0;
 
     // Characterization constants
     /**
