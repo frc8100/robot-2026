@@ -2,38 +2,42 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Voltage;
-import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
+import frc.util.VelocityNoiseGenerator;
 import java.util.function.BooleanSupplier;
-import org.ironmaple.simulation.motorsims.SimulatedBattery;
 import org.littletonrobotics.junction.Logger;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 
 public class ShooterIOSim extends ShooterIOYAMS {
 
     // Shoot timers
-    private final Debouncer shootTimer = new Debouncer(
+    private final Debouncer leftShootTimer = new Debouncer(
         1.0 / ShooterConstants.SIMULATION_MAX_FUEL_PER_SECOND,
         DebounceType.kRising
     );
+    private final Debouncer rightShootTimer = new Debouncer(
+        1.0 / ShooterConstants.SIMULATION_MAX_FUEL_PER_SECOND,
+        DebounceType.kRising
+    );
+
+    private double leftTimeNoise = 0.0;
+    private double rightTimeNoise = 0.0;
+
     /**
      * Filter to more closely model indexer acceleration.
      */
     private final LinearFilter indexerVelocityFilter = LinearFilter.movingAverage(5);
+
+    private final VelocityNoiseGenerator shootTimeNoise = new VelocityNoiseGenerator(0.1, 0);
 
     // Subsystem references
     private final Swerve swerveSubsystem;
@@ -68,17 +72,17 @@ public class ShooterIOSim extends ShooterIOYAMS {
             double filteredIndexerVelocity = indexerVelocityFilter.calculate(indexerVelocity.in(RadiansPerSecond));
 
             return (
-                1.0 /
-                (MathUtil.clamp(
-                        MathUtil.inverseInterpolate(
+                (1.0 /
+                    (MathUtil.clamp(
+                            MathUtil.inverseInterpolate(
+                                0.0,
+                                ShooterConstants.SIMULATION_INDEXER_VELOCITY_AT_MAX_OUTPUT.in(RadiansPerSecond),
+                                filteredIndexerVelocity
+                            ),
                             0.0,
-                            ShooterConstants.SIMULATION_INDEXER_VELOCITY_AT_MAX_OUTPUT.in(RadiansPerSecond),
-                            filteredIndexerVelocity
-                        ),
-                        0.0,
-                        1.0
-                    ) *
-                    ShooterConstants.SIMULATION_MAX_FUEL_PER_SECOND)
+                            1.0
+                        ) *
+                        ShooterConstants.SIMULATION_MAX_FUEL_PER_SECOND))
             );
         }
     }
@@ -87,14 +91,14 @@ public class ShooterIOSim extends ShooterIOYAMS {
      * Launches a fuel with the given exit velocity and the shooter's configured exit angle.
      * @param exitVelocity - The velocity at which the fuel should exit the shooter in meters per second.
      */
-    private void shootFuelWithVelocity(LinearVelocity exitVelocity) {
+    private void shootFuelWithVelocity(LinearVelocity exitVelocity, Transform3d fuelStreamTransform) {
         FuelSim.getInstance()
             .launchFuel(
                 exitVelocity,
                 ShooterConstants.exitAngle.getMeasure(),
                 swerveSubsystem.getActualPose().getRotation().plus(ShooterConstants.AIM_ROTATION_OFFSET).getMeasure(),
                 // new Rotation2d(swerveSubsystem.autoAim.latestCalculationResult.getRotationTarget()),
-                ShooterConstants.transformFromRobotCenter
+                ShooterConstants.transformFromRobotCenter.plus(fuelStreamTransform)
             );
 
         onShoot.run();
@@ -105,21 +109,41 @@ public class ShooterIOSim extends ShooterIOYAMS {
         super.updateInputs(inputs);
 
         // Shoot if time has passed based on the indexer velocity
-        double timeUntilNextShot = getWaitUntilNextShot(inputs.indexerMotorData.velocity);
-        Logger.recordOutput("Shooter/TimeUntilNextShot", timeUntilNextShot);
+        double leftTimeUntilNextShot = getWaitUntilNextShot(inputs.indexerMotorData.velocity);
+        Logger.recordOutput("Shooter/TimeUntilNextShot", leftTimeUntilNextShot);
 
         // If the time until the next shot is infinity, reset the shoot timer so that it will not shoot immediately once the indexer starts moving
-        if (timeUntilNextShot == Double.POSITIVE_INFINITY) {
-            shootTimer.calculate(false);
+        if (leftTimeUntilNextShot == Double.POSITIVE_INFINITY) {
+            leftShootTimer.calculate(false);
         }
-        shootTimer.setDebounceTime(timeUntilNextShot);
+        leftShootTimer.setDebounceTime(leftTimeUntilNextShot + leftTimeNoise);
 
-        if (isAbleToShoot.getAsBoolean() && shootTimer.calculate(true)) {
+        if (isAbleToShoot.getAsBoolean() && leftShootTimer.calculate(true)) {
             // Reset timer
-            shootTimer.calculate(false);
+            leftShootTimer.calculate(false);
+            leftTimeNoise = shootTimeNoise.generateNoise(0.0);
 
             shootFuelWithVelocity(
-                MetersPerSecond.of(Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity))
+                MetersPerSecond.of(
+                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity)
+                ),
+                ShooterConstants.leftFuelStreamTransform
+            );
+        }
+
+        double rightTimeUntilNextShot = getWaitUntilNextShot(inputs.indexerMotorData.velocity);
+        rightShootTimer.setDebounceTime(rightTimeUntilNextShot + rightTimeNoise);
+
+        if (isAbleToShoot.getAsBoolean() && rightShootTimer.calculate(true)) {
+            // Reset timer
+            rightShootTimer.calculate(false);
+            rightTimeNoise = shootTimeNoise.generateNoise(0.0);
+
+            shootFuelWithVelocity(
+                MetersPerSecond.of(
+                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity)
+                ),
+                ShooterConstants.rightFuelStreamTransform
             );
         }
     }
