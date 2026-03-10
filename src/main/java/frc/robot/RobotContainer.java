@@ -53,6 +53,7 @@ import frc.util.FuelSim;
 import frc.util.TunableValue;
 import frc.util.objective.ObjectiveIO;
 import frc.util.objective.ObjectiveIODashboard;
+import frc.util.statemachine.StateMachine.StateWithPayload;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
@@ -252,9 +253,6 @@ public class RobotContainer {
                 objectiveIO = new ObjectiveIO() {};
                 break;
         }
-
-        Swerve.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
-
         // Set up auto routines
         robotActions = new RobotActions(
             swerveSubsystem,
@@ -267,10 +265,23 @@ public class RobotContainer {
 
         // Register PathPlanner named commands
         NamedCommands.registerCommands(swerveSubsystem.stateMachine.getNamedCommands());
+        NamedCommands.registerCommand(
+            "SwerveAimToHub",
+            Commands.runOnce(() -> {
+                swerveSubsystem.stop();
+                swerveSubsystem.stateMachine.scheduleStateChange(
+                    new StateWithPayload<>(Swerve.SwerveState.AUTO_AIM, RobotActions.POINT_TO_HUB_PAYLOAD)
+                );
+            })
+        );
         NamedCommands.registerCommands(visionSubsystem.stateMachine.getNamedCommands());
         NamedCommands.registerCommands(intakeSubsystem.stateMachine.getNamedCommands());
+        NamedCommands.registerCommand("RunIntakeRoller", intakeSubsystem.runRollerCommand());
+        NamedCommands.registerCommand("StopIntakeRoller", intakeSubsystem.stopRollerCommand());
         NamedCommands.registerCommands(shooterSubsystem.stateMachine.getNamedCommands());
         NamedCommands.registerCommands(climbSubsystem.stateMachine.getNamedCommands());
+
+        Swerve.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 

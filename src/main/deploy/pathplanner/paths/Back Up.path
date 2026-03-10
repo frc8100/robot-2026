@@ -90,9 +90,9 @@
     {
       "name": "Back Up",
       "minWaypointRelativePos": 0.9904761904761902,
-      "maxWaypointRelativePos": 1.1,
+      "maxWaypointRelativePos": 1.104761904761905,
       "constraints": {
-        "maxVelocity": 0.35,
+        "maxVelocity": 0.8,
         "maxAcceleration": 7.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -118,7 +118,7 @@
       "minWaypointRelativePos": 2.7523809523809515,
       "maxWaypointRelativePos": 4.0,
       "constraints": {
-        "maxVelocity": 2.0,
+        "maxVelocity": 2.5,
         "maxAcceleration": 7.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -139,7 +139,30 @@
       "name": "Point Towards Zone"
     }
   ],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "IntakeDeploy",
+      "waypointRelativePos": 1.628571428571425,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "State.Intake.TransitionDeploying"
+        }
+      }
+    },
+    {
+      "name": "Intake",
+      "waypointRelativePos": 3.1999999999999975,
+      "endWaypointRelativePos": 4.0,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "RunIntakeRoller"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 3.75,
     "maxAcceleration": 6.0,
@@ -149,7 +172,7 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 2.0,
     "rotation": -90.0
   },
   "reversed": false,
