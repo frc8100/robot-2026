@@ -44,44 +44,11 @@ import yams.motorcontrollers.simulation.DCMotorSimSupplier;
 // TODO: rename
 public class WrappedSpark extends SparkWrapper {
 
-    public static class CustomLoggedPIDController extends PIDController {
-
-        // TODO: make thread safe
-        // public final MutVoltage lastOutput = Volts.mutable(0.0);
-        // public volatile MutVoltage lastOutput = Volts.mutable(0.0);
-        public volatile double lastOutput = 0.0;
-        public volatile double lastSetpoint = 0.0;
-
-        public CustomLoggedPIDController(double kP, double kI, double kD) {
-            super(kP, kI, kD);
-        }
-
-        @Override
-        public double calculate(double measurement, double setpoint) {
-            double output = super.calculate(measurement, setpoint);
-
-            // lastOutput.mut_replace(output, Volts);
-            lastOutput = output;
-            lastSetpoint = setpoint;
-
-            return output;
-        }
-    }
-
     protected final SparkMax motor;
     protected final RelativeEncoder encoder;
     protected final SparkClosedLoopController controller;
 
-    // TODO: Workaround for using trapezoid profile
-    // protected final Optional<ProfiledPIDController> customMotionProfileController = Optional.empty();
-
     public WrappedSpark(SparkMax motor, DCMotor model, SmartMotorControllerConfig config) {
-        // motor = new SparkMax(canId, MotorType.kBrushless);
-        // encoder = motor.getEncoder();
-        // controller = motor.getClosedLoopController();
-
-        // motorWrapped = new SparkWrapper(motor, DCMotor.getNEO(1), config);
-
         super(motor, model, config);
         this.motor = motor;
         this.encoder = motor.getEncoder();
@@ -108,64 +75,20 @@ public class WrappedSpark extends SparkWrapper {
         SimulatedBattery.addElectricalAppliances(this::getCustomSupplyCurrent);
     }
 
-    // Hacky methods
-
-    public double getLastPIDOutput() {
-        if (super.m_pid.isEmpty()) {
-            DriverStation.reportWarning(
-                "PID controller is not present for motor " + motor.getDeviceId() + ", cannot get last PID output",
-                false
-            );
-            return 0.0;
-        }
-        if (!(super.m_pid.get() instanceof CustomLoggedPIDController)) {
-            DriverStation.reportWarning(
-                "PID controller is not a CustomLoggedPIDController for motor " +
-                motor.getDeviceId() +
-                ", cannot get last PID output",
-                false
-            );
-            return 0.0;
-        }
-
-        return ((CustomLoggedPIDController) super.m_pid.get()).lastOutput;
-    }
-
-    public double getLastPIDSetpoint() {
-        if (super.m_pid.isEmpty()) {
-            DriverStation.reportWarning(
-                "PID controller is not present for motor " + motor.getDeviceId() + ", cannot get last PID setpoint",
-                false
-            );
-            return 0.0;
-        }
-        if (!(super.m_pid.get() instanceof CustomLoggedPIDController)) {
-            DriverStation.reportWarning(
-                "PID controller is not a CustomLoggedPIDController for motor " +
-                motor.getDeviceId() +
-                ", cannot get last PID setpoint",
-                false
-            );
-            return 0.0;
-        }
-
-        return ((CustomLoggedPIDController) super.m_pid.get()).lastSetpoint;
-    }
-
     /**
      * Normally YAMS only uses a closed loop controller thread (for sparks) when in LQR or exponential mode. This force sets up the closed loop controller thread for this motor.
      */
-    public void forceSetupClosedLoopController() {
-        if (m_closedLoopControllerThread != null) {
-            DriverStation.reportWarning(
-                "Closed loop controller thread already running for motor " + motor.getDeviceId(),
-                false
-            );
-            return;
-        }
+    // public void forceSetupClosedLoopController() {
+    //     if (m_closedLoopControllerThread != null) {
+    //         DriverStation.reportWarning(
+    //             "Closed loop controller thread already running for motor " + motor.getDeviceId(),
+    //             false
+    //         );
+    //         return;
+    //     }
 
-        m_closedLoopControllerThread = new Notifier(super::iterateClosedLoopController);
-    }
+    //     m_closedLoopControllerThread = new Notifier(super::iterateClosedLoopController);
+    // }
 
     public TrapezoidProfile.State currentState = new TrapezoidProfile.State(0.0, 0.0);
     public final MutVoltage lastFeedforward = Volts.mutable(0.0);
