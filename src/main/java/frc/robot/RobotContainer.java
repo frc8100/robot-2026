@@ -122,8 +122,8 @@ public class RobotContainer {
                 );
 
                 // TODO: replace with real IO implementation when ready
-                // intakeSubsystem = new Intake(new IntakeIOYAMS());
-                intakeSubsystem = new Intake(new IntakeIO() {});
+                intakeSubsystem = new Intake(new IntakeIOYAMS());
+                // intakeSubsystem = new Intake(new IntakeIO() {});
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
 

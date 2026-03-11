@@ -50,12 +50,12 @@ public class ShooterIOSim extends ShooterIOYAMS {
         this.onShoot = onShoot;
         this.isAbleToShoot = isAbleToShoot;
 
-        super.leftShootMotorWrapped.setupCustomSimulation();
+        super.leaderShootMotorWrapped.setupCustomSimulation();
         super.indexerMotorWrapped.setupCustomSimulation();
 
-        super.leftShootMotorWrapped.stopClosedLoopController();
+        super.leaderShootMotorWrapped.stopClosedLoopController();
 
-        SmartMotorControllerConfig config = super.leftShootMotorWrapped.getConfig();
+        SmartMotorControllerConfig config = super.leaderShootMotorWrapped.getConfig();
     }
 
     /**
@@ -125,7 +125,7 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
             shootFuelWithVelocity(
                 MetersPerSecond.of(
-                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity)
+                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity)
                 ),
                 ShooterConstants.leftFuelStreamTransform
             );
@@ -141,7 +141,7 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
             shootFuelWithVelocity(
                 MetersPerSecond.of(
-                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity)
+                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity)
                 ),
                 ShooterConstants.rightFuelStreamTransform
             );

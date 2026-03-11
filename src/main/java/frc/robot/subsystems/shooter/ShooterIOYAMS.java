@@ -5,34 +5,44 @@ import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.CANIdConstants;
+import frc.util.SubsystemIOUtil;
 import frc.util.WrappedSpark;
 import yams.mechanisms.velocity.FlyWheel;
 
 public class ShooterIOYAMS implements ShooterIO {
 
     // Shoot motor
-    protected final SparkMax rightShootMotor = new SparkMax(
+
+    protected final SparkMax leaderShootMotor = new SparkMax(
+        CANIdConstants.LEFT_SHOOTER_MOTOR_ID,
+        MotorType.kBrushless
+    );
+    protected final WrappedSpark leaderShootMotorWrapped = new WrappedSpark(
+        leaderShootMotor,
+        // TODO: not a good way to do this
+        DCMotor.getNEO(2),
+        ShooterConstants.shootMotorConfig.withSubsystem(new Subsystem() {})
+        // .withFollowers(new Pair<>(rightShootMotor, true))
+    );
+
+    protected final SparkMax followerShootMotor = new SparkMax(
         CANIdConstants.RIGHT_SHOOTER_MOTOR_ID,
         MotorType.kBrushless
     );
-
-    protected final SparkMax leftShootMotor = new SparkMax(CANIdConstants.LEFT_SHOOTER_MOTOR_ID, MotorType.kBrushless);
-    protected final WrappedSpark leftShootMotorWrapped = new WrappedSpark(
-        leftShootMotor,
-        // TODO: not a good way to do this
-        DCMotor.getNEO(2),
-        ShooterConstants.shootMotorConfig
-            .withSubsystem(new Subsystem() {})
-            .withFollowers(new Pair<>(rightShootMotor, false))
-    );
+    protected final RelativeEncoder followerEncoder = followerShootMotor.getEncoder();
 
     // Indexer motor
     protected final SparkMax indexerMotor = new SparkMax(CANIdConstants.INDEXER_MOTOR_ID, MotorType.kBrushless);
@@ -42,12 +52,17 @@ public class ShooterIOYAMS implements ShooterIO {
     );
 
     // Shooter Mechanism
-    protected final FlyWheel flywheel = new FlyWheel(ShooterConstants.shooterConfig.apply(leftShootMotorWrapped));
+    protected final FlyWheel flywheel = new FlyWheel(ShooterConstants.shooterConfig.apply(leaderShootMotorWrapped));
 
     protected boolean isUsingClosedLoopControlForShoot = true;
     protected boolean isUsingClosedLoopControlForIndexer = true;
 
     public ShooterIOYAMS() {
+        // Configure follower
+        SparkBaseConfig followerConfig = new SparkMaxConfig().apply(leaderShootMotorWrapped.getSparkConfig());
+        followerConfig.follow(leaderShootMotor, true);
+        followerShootMotor.configure(followerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+
         enableClosedLoopControlShoot();
     }
 
@@ -57,8 +72,8 @@ public class ShooterIOYAMS implements ShooterIO {
         }
         isUsingClosedLoopControlForShoot = true;
 
-        leftShootMotorWrapped.overrideCurrentState(
-            leftShootMotorWrapped.getMechanismVelocity(),
+        leaderShootMotorWrapped.overrideCurrentState(
+            leaderShootMotorWrapped.getMechanismVelocity(),
             // Assumes that the shooter is at rest when we enable closed loop control
             RadiansPerSecondPerSecond.zero()
         );
@@ -83,19 +98,19 @@ public class ShooterIOYAMS implements ShooterIO {
     @Override
     public void setTargetShootMotorVelocity(AngularVelocity velocity) {
         enableClosedLoopControlShoot();
-        leftShootMotorWrapped.setVelocity(velocity);
+        leaderShootMotorWrapped.setVelocity(velocity);
     }
 
     @Override
     public void stopShooter() {
         disableClosedLoopControlShoot();
-        leftShootMotorWrapped.setDutyCycle(0.0);
+        leaderShootMotorWrapped.setDutyCycle(0.0);
     }
 
     @Override
     public void runShooterDutyCycle(Voltage dutyCycleOutput) {
         disableClosedLoopControlShoot();
-        leftShootMotorWrapped.setVoltage(dutyCycleOutput);
+        leaderShootMotorWrapped.setVoltage(dutyCycleOutput);
     }
 
     @Override
@@ -118,16 +133,22 @@ public class ShooterIOYAMS implements ShooterIO {
 
     @Override
     public void updateInputs(ShooterIOInputs inputs) {
-        inputs.shootMotorConnected = leftShootMotorWrapped.updateData(inputs.shootMotorData);
+        inputs.leaderShootMotorConnected = leaderShootMotorWrapped.updateData(inputs.leaderShootMotorData);
         inputs.indexerMotorConnected = indexerMotorWrapped.updateData(inputs.indexerMotorData);
+
+        inputs.followerShootMotorConnected = SubsystemIOUtil.updateDataFromSpark(
+            inputs.followerShootMotorData,
+            followerShootMotor,
+            followerEncoder
+        );
 
         // Update the setpoints for shooter and indexer
         inputs.shootSetpoint.mut_replace(
-            leftShootMotorWrapped.getMechanismSetpointVelocity().orElse(RadiansPerSecond.zero())
+            leaderShootMotorWrapped.getMechanismSetpointVelocity().orElse(RadiansPerSecond.zero())
         );
-        inputs.shootSetpointProfiled.mut_replace(leftShootMotorWrapped.currentState.position, RotationsPerSecond);
+        inputs.shootSetpointProfiled.mut_replace(leaderShootMotorWrapped.currentState.position, RotationsPerSecond);
         inputs.shootSetpointAcceleration.mut_replace(
-            leftShootMotorWrapped.currentState.velocity,
+            leaderShootMotorWrapped.currentState.velocity,
             RotationsPerSecondPerSecond
         );
 
@@ -138,7 +159,7 @@ public class ShooterIOYAMS implements ShooterIO {
         );
 
         if (isUsingClosedLoopControlForShoot) {
-            leftShootMotorWrapped.iterateCustomMotionProfile();
+            leaderShootMotorWrapped.iterateCustomMotionProfile();
         }
 
         if (isUsingClosedLoopControlForIndexer) {

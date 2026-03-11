@@ -15,6 +15,8 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -31,6 +33,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.util.SubsystemIOUtil.SparkMotorControllerData;
 import java.util.Optional;
 import org.ironmaple.simulation.motorsims.SimulatedBattery;
@@ -43,6 +46,22 @@ import yams.motorcontrollers.simulation.DCMotorSimSupplier;
  */
 // TODO: rename
 public class WrappedSpark extends SparkWrapper {
+
+    public static SmartMotorControllerConfig createCustomSparkMaxConfig() {
+        SparkMaxConfig sparkConfig = new SparkMaxConfig();
+        sparkConfig.signals
+            .primaryEncoderPositionAlwaysOn(true)
+            .primaryEncoderPositionPeriodMs(20)
+            .primaryEncoderVelocityAlwaysOn(true)
+            .primaryEncoderVelocityPeriodMs(20)
+            .appliedOutputPeriodMs(20)
+            .busVoltagePeriodMs(20)
+            .outputCurrentPeriodMs(20)
+            // actually this is useless because its on the same status frame and the 20 ms overrides it
+            .motorTemperaturePeriodMs(100);
+
+        return new SmartMotorControllerConfig().withVendorConfig(sparkConfig);
+    }
 
     protected final SparkMax motor;
     protected final RelativeEncoder encoder;
@@ -57,6 +76,10 @@ public class WrappedSpark extends SparkWrapper {
 
     public WrappedSpark(SparkMax motor, SmartMotorControllerConfig config) {
         this(motor, DCMotor.getNEO(1), config);
+    }
+
+    public SparkBaseConfig getSparkConfig() {
+        return (SparkBaseConfig) super.getMotorControllerConfig();
     }
 
     /**

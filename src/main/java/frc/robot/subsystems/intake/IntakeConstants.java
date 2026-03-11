@@ -50,15 +50,16 @@ public final class IntakeConstants {
 
     private IntakeConstants() {}
 
-    public static final double INTAKE_RUN_SPEED = 0.7;
+    public static final double INTAKE_RUN_SPEED = 0.8;
 
-    public static final SmartMotorControllerConfig intakeMotorConfig = new SmartMotorControllerConfig()
+    public static final SmartMotorControllerConfig rollerMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
         .withControlMode(ControlMode.OPEN_LOOP)
         .withGearing(3)
         // Motor properties to prevent over currenting.
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(32))
+        .withStatorCurrentLimit(Amps.of(33))
+        .withVoltageCompensation(Volts.of(11.5))
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.35));
 
@@ -67,8 +68,9 @@ public final class IntakeConstants {
     public static final Mass SIM_INTAKE_MASS = Pounds.of(15);
 
     // Intake positions
-    public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(85);
-    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(195);
+    public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(70);
+    public static final Angle INTAKE_RETRACTED_ANGLE_SETPOINT = INTAKE_RETRACTED_ANGLE.minus(Degrees.of(15));
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(180);
 
     // public static final TrapezoidProfile.State retractGoalState = new TrapezoidProfile.State(
     //     INTAKE_RETRACTED_ANGLE.in(Rotations),
@@ -79,38 +81,30 @@ public final class IntakeConstants {
     //     0
     // );
 
-    public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
-        // .withMomentOfInertia(
-        //     KilogramSquareMeters.of(
-        //         SingleJointedArmSim.estimateMOI(SIM_INTAKE_LENGTH.in(Meters), SIM_INTAKE_MASS.in(Kilograms))
-        //     ).times(0.1)
-        // )
+    public static final SmartMotorControllerConfig deployMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
         .withSubsystem(new Subsystem() {})
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 5), new Sprocket(15.0 / 22.0)))
+        .withGearing(new MechanismGearing((5 * 5 * 22.0) / 15.0))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(2.0, 0.0, 0.0, DegreesPerSecond.of(175), DegreesPerSecondPerSecond.of(300))
-        .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(350), DegreesPerSecondPerSecond.of(375))
-        // .withClosedLoopController(new WrappedSpark.CustomLoggedPIDController(2.0, 0.0, 0.0))
-        // .withSimClosedLoopController(new WrappedSpark.CustomLoggedPIDController(1.0, 0.0, 0.0))
-        // .withTrapezoidalProfile(DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(800))
+        .withClosedLoopController(9.5, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(440))
+        .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(350), DegreesPerSecondPerSecond.of(425))
+        .withClosedLoopTolerance(Degrees.of(1))
         // Feedforward Constants
         // See https://docs.revrobotics.com/revlib/spark/closed-loop/feed-forward-control#manually-finding-kcos-and-ks-for-an-arm
         // V1 = 0.76
         // V2 = 0.6
         // .withFeedforward(new ArmFeedforward(0.08, 0.68, 0.0, 0.0))
-        .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0, 0.0))
+        .withFeedforward(new ArmFeedforward(0.08, 0.68, 1.2022 * 2 * Math.PI, 0.38596 * 2 * Math.PI))
         .withSimFeedforward(new ArmFeedforward(0.078431, 0.46875, 0.68997 * 2 * Math.PI, 0.025313 * 2 * Math.PI))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
         .withStatorCurrentLimit(Amps.of(37))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.1));
-    // .withStartingPosition(INTAKE_RETRACTED_ANGLE);
 
     public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(6.7);
-    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(1.5);
+    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(10);
     public static final Angle INTAKE_SLIGHTLY_ABOVE_DEPLOYED_ANGLE = INTAKE_DEPLOYED_ANGLE.minus(
         DEPLOY_TARGET_TOLERANCE
     ).plus(Degrees.of(0.05));
@@ -123,13 +117,13 @@ public final class IntakeConstants {
                 .withHardLimit(INTAKE_RETRACTED_ANGLE, INTAKE_DEPLOYED_ANGLE)
                 // TODO: limits
                 .withSoftLimits(
-                    INTAKE_RETRACTED_ANGLE.minus(Degrees.of(10)),
-                    INTAKE_DEPLOYED_ANGLE.plus(Degrees.of(10))
+                    INTAKE_RETRACTED_ANGLE.minus(Degrees.of(60)),
+                    INTAKE_DEPLOYED_ANGLE.plus(Degrees.of(60))
                 )
-                .withStartingPosition(INTAKE_RETRACTED_ANGLE.plus(Degrees.of(2)));
+                .withStartingPosition(INTAKE_RETRACTED_ANGLE);
 
     // Sysid constants
-    public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(2.0);
+    public static final Voltage SYSID_MAX_VOLTAGE = Volts.of(2.5);
     public static final Velocity<VoltageUnit> SYSID_RAMP_RATE = Volts.of(0.25).per(Seconds);
     public static final Time SYSID_TEST_DURATION = Seconds.of(10.0);
 

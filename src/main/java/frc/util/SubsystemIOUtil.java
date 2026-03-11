@@ -271,6 +271,41 @@ public final class SubsystemIOUtil {
         }
     }
 
+    public static boolean updateDataFromSpark(
+        SparkMotorControllerData dataToUpdate,
+        SparkBase motorController,
+        RelativeEncoder relativeEncoder
+    ) {
+        // Reset spark sticky fault
+        SparkUtil.clearStickyFault();
+
+        dataToUpdate.positionAngle.mut_replace(
+            SparkUtil.ifOkOtherwiseZero(motorController, relativeEncoder::getPosition),
+            Radians
+        );
+        dataToUpdate.velocity.mut_replace(
+            SparkUtil.ifOkOtherwiseZero(motorController, relativeEncoder::getVelocity),
+            RadiansPerSecond
+        );
+        dataToUpdate.appliedVolts.mut_replace(
+            SparkUtil.ifOkOtherwiseZero(
+                motorController,
+                () -> motorController.getAppliedOutput() * motorController.getBusVoltage()
+            ),
+            Volts
+        );
+        dataToUpdate.torqueCurrent.mut_replace(
+            SparkUtil.ifOkOtherwiseZero(motorController, motorController::getOutputCurrent),
+            Amps
+        );
+        dataToUpdate.temperature.mut_replace(
+            SparkUtil.ifOkOtherwiseZero(motorController, motorController::getMotorTemperature),
+            Celsius
+        );
+
+        return !SparkUtil.hasStickyFault();
+    }
+
     /**
      * Updates the data from a Spark motor controller and its relative encoder.
      * @param dataToUpdate - The data to update.
