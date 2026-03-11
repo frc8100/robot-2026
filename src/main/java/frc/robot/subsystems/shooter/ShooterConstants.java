@@ -88,9 +88,9 @@ public final class ShooterConstants {
     public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(50);
 
     // Sysid config
-    public static final Voltage SHOOTER_SYSID_MAX_VOLTAGE = Volts.of(10.0);
+    public static final Voltage SHOOTER_SYSID_MAX_VOLTAGE = Volts.of(11.0);
     public static final Velocity<VoltageUnit> SHOOTER_SYSID_RAMP_RATE = Volts.of(1.0).per(Second);
-    public static final Time SHOOTER_SYSID_TEST_DURATION = Seconds.of(10.0);
+    public static final Time SHOOTER_SYSID_TEST_DURATION = Seconds.of(11.0);
 
     // Motor configs
     public static final SmartMotorControllerConfig shootMotorConfig = new SmartMotorControllerConfig()
@@ -117,7 +117,7 @@ public final class ShooterConstants {
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(50))
+        .withStatorCurrentLimit(Amps.of(45))
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
