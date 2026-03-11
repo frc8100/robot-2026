@@ -32,13 +32,15 @@ public class ShooterCharacterization extends Command {
     public static final String DASHBOARD_PREFIX = "ShooterCharacterization";
 
     // TODO: tune this
-    public static final AngularVelocity STARTING_ANGULAR_VELOCITY = RPM.of(1200);
-    public static final AngularVelocity ENDING_ANGULAR_VELOCITY = RPM.of(9000);
-    public static final AngularVelocity VELOCITY_STEP = RPM.of(300);
+    public static final AngularVelocity STARTING_ANGULAR_VELOCITY = RadiansPerSecond.of(120);
+    public static final AngularVelocity ENDING_ANGULAR_VELOCITY = RadiansPerSecond.of(900);
+    public static final AngularVelocity VELOCITY_STEP = RadiansPerSecond.of(30);
 
-    public static final AngularVelocity ANGULAR_VELOCITY_TOLERANCE = RadiansPerSecond.of(2.0);
+    public static final AngularVelocity VELOCITY_STEP_WHEN_NEW_DISTANCE = RadiansPerSecond.of(-120);
 
-    public static final int NUMBER_OF_SHOTS_PER_VELOCITY = 3;
+    public static final AngularVelocity ANGULAR_VELOCITY_TOLERANCE = RadiansPerSecond.of(3.0);
+
+    public static final int NUMBER_OF_SHOTS_PER_VELOCITY = 2;
 
     public static final Distance STARTING_DISTANCE = Inches.of(12);
     public static final Distance DISTANCE_STEP = Inches.of(6);
@@ -76,6 +78,10 @@ public class ShooterCharacterization extends Command {
         DASHBOARD_PREFIX + "/SuccessfulShotInput",
         false
     );
+    public final LoggedNetworkNumber speedOverride = new LoggedNetworkNumber(
+        DASHBOARD_PREFIX + "/SpeedOverrideRadPerSec",
+        STARTING_ANGULAR_VELOCITY.in(RadiansPerSecond)
+    );
 
     // Current state
     public final MutAngularVelocity currentAngularVelocityTarget = STARTING_ANGULAR_VELOCITY.mutableCopy();
@@ -95,7 +101,11 @@ public class ShooterCharacterization extends Command {
 
     private void incrementDistanceAndResetVelocity() {
         currentDistance.mut_plus(DISTANCE_STEP);
-        currentAngularVelocityTarget.mut_replace(STARTING_ANGULAR_VELOCITY);
+
+        // currentAngularVelocityTarget.mut_replace(STARTING_ANGULAR_VELOCITY);
+        // Decrease angular velocity a bit (for faster)
+        currentAngularVelocityTarget.mut_plus(VELOCITY_STEP_WHEN_NEW_DISTANCE);
+
         hasHitTargetAtCurrentDistance = false;
 
         System.out.println(
@@ -147,9 +157,25 @@ public class ShooterCharacterization extends Command {
             currentDistance.mut_replace(distanceOverride.get(), Inches);
         }
 
+        // Read velocity override from the dashboard, if it is set
+        if (
+            !currentAngularVelocityTarget.isNear(RadiansPerSecond.of(speedOverride.get()), ANGULAR_VELOCITY_TOLERANCE)
+        ) {
+            currentAngularVelocityTarget.mut_replace(speedOverride.get(), RadiansPerSecond);
+
+            if (shotsTakenAtCurrentVelocity > 0) {
+                System.out.println(
+                    "Velocity override detected. Resetting shots taken at current velocity. New velocity: " +
+                    currentAngularVelocityTarget.in(RPM) +
+                    " RPM."
+                );
+                shotsTakenAtCurrentVelocity = 0;
+            }
+        }
         // If we have taken the required number of shots at the current velocity, increase the velocity
-        if (shotsTakenAtCurrentVelocity >= NUMBER_OF_SHOTS_PER_VELOCITY) {
+        else if (shotsTakenAtCurrentVelocity >= NUMBER_OF_SHOTS_PER_VELOCITY) {
             currentAngularVelocityTarget.mut_plus(VELOCITY_STEP);
+            speedOverride.set(currentAngularVelocityTarget.in(RadiansPerSecond));
             shotsTakenAtCurrentVelocity = 0;
         }
 
