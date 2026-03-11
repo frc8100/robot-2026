@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -14,14 +15,18 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.commands.AimToTarget;
+import frc.robot.subsystems.DeviceAlert;
+import frc.robot.subsystems.intake.Intake.IntakeState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
 import frc.util.statemachine.StateMachine;
@@ -62,6 +67,11 @@ public class Shooter extends SubsystemBase {
          * The shooter is spinning to the target velocity and the indexer is running to move fuel to the shooter.
          */
         SHOOTING,
+
+        /**
+         * The intake deploy is running duty cycle based on the voltage controlled by the human operator.
+         */
+        TEST_VOLTAGE_CONTROL,
     }
 
     public final StateMachine<ShooterState, Object> stateMachine = new StateMachine<ShooterState, Object>(
@@ -70,6 +80,7 @@ public class Shooter extends SubsystemBase {
     )
         .withDefaultState(new StateMachineState<>(ShooterState.IDLE, "Idle"))
         .withState(new StateMachineState<>(ShooterState.SHOOTING, "Shooting"))
+        .withState(new StateMachineState<>(ShooterState.TEST_VOLTAGE_CONTROL, "TestVoltage"))
         .withReturnToDefaultStateOnDisable(true);
 
     private final ShooterIO io;
@@ -81,7 +92,23 @@ public class Shooter extends SubsystemBase {
     // Caches
     private final MutAngularVelocity cachedTargetExitAngularVelocity = RadiansPerSecond.mutable(0.0);
 
+    private final MutVoltage testVoltageOutputShooter = Volts.mutable(0.0);
+    private final MutVoltage testVoltageOutputIndexer = Volts.mutable(0.0);
     private final SysIdRoutine shooterSysidRoutine;
+
+    // Alerts for disconnected motors
+    private final DeviceAlert indexerDisconnectedAlert = new DeviceAlert(
+        CANIdConstants.INDEXER_MOTOR_ID,
+        "IndexShootMotor"
+    );
+    private final DeviceAlert leaderDisconnectedAlert = new DeviceAlert(
+        CANIdConstants.LEFT_SHOOTER_MOTOR_ID,
+        "LeftShootMotor"
+    );
+    private final DeviceAlert followerDisconnectedAlert = new DeviceAlert(
+        CANIdConstants.RIGHT_SHOOTER_MOTOR_ID,
+        "RightShootMotor"
+    );
 
     /**
      * Stores the result of a fuel trajectory prediction, including the trajectory points, the final point, and whether it would hit the target.
@@ -112,6 +139,10 @@ public class Shooter extends SubsystemBase {
         // State machine bindings
         stateMachine.whileState(ShooterState.IDLE, this::handleIdleState);
         stateMachine.whileState(ShooterState.SHOOTING, this::handleShootState);
+        stateMachine.whileState(ShooterState.TEST_VOLTAGE_CONTROL, () -> {
+            io.runShooterDutyCycle(testVoltageOutputShooter);
+            io.runIndexerDutyCycle(testVoltageOutputIndexer);
+        });
 
         setDefaultCommand(stateMachine.getRunnableCommand(this));
 
@@ -131,6 +162,22 @@ public class Shooter extends SubsystemBase {
                 this
             )
         );
+    }
+
+    public void changeTestOutVoltageShooter(Voltage change) {
+        testVoltageOutputShooter.mut_plus(change);
+    }
+
+    public void setTestOutVoltageShooter(Voltage set) {
+        testVoltageOutputShooter.mut_replace(set);
+    }
+
+    public void changeTestOutVoltageIndexer(Voltage change) {
+        testVoltageOutputIndexer.mut_plus(change);
+    }
+
+    public void setTestOutVoltageIndexer(Voltage set) {
+        testVoltageOutputIndexer.mut_replace(set);
     }
 
     public Command runShooterDutyCycle(Voltage dutyCycleOutput) {
@@ -280,6 +327,12 @@ public class Shooter extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Shooter", inputs);
+
+        // Update alerts
+        indexerDisconnectedAlert.updateConnectionStatus(inputs.indexerMotorConnected);
+        leaderDisconnectedAlert.updateConnectionStatus(inputs.leaderShootMotorConnected);
+        followerDisconnectedAlert.updateConnectionStatus(inputs.followerShootMotorConnected);
+
         // Log trajectory points for visualization
         updatePredictedFuelTrajectory(
             cachedTargetTrajectoryResult,
@@ -290,14 +343,14 @@ public class Shooter extends SubsystemBase {
 
         updatePredictedFuelTrajectory(
             cachedCurrentTrajectoryResult,
-            getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity),
+            getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity),
             Constants.shouldLogAdditionalData()
         );
         cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
 
         updatePredictedFuelTrajectory(
             cachedFutureTrajectoryResult,
-            getCurrentPredictedFuelExitVelocityFromMotor(inputs.shootMotorData.velocity) + 0.2,
+            getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity) + 0.2,
             Constants.shouldLogAdditionalData()
         );
     }
@@ -324,6 +377,6 @@ public class Shooter extends SubsystemBase {
 
     // Getters
     public AngularVelocity getCurrentMotorAngularVelocity() {
-        return inputs.shootMotorData.velocity;
+        return inputs.leaderShootMotorData.velocity;
     }
 }

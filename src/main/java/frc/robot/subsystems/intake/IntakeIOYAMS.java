@@ -19,7 +19,7 @@ public class IntakeIOYAMS implements IntakeIO {
 
     // Intake motor
     protected final SparkMax rollerMotor = new SparkMax(CANIdConstants.ROLLER_MOTOR_ID, MotorType.kBrushless);
-    protected final WrappedSpark rollerMotorWrapped = new WrappedSpark(rollerMotor, IntakeConstants.intakeMotorConfig);
+    protected final WrappedSpark rollerMotorWrapped = new WrappedSpark(rollerMotor, IntakeConstants.rollerMotorConfig);
 
     // Deploy motor
     protected final SparkMax deployMotor = new SparkMax(CANIdConstants.DEPLOY_MOTOR_ID, MotorType.kBrushless);
@@ -27,7 +27,8 @@ public class IntakeIOYAMS implements IntakeIO {
 
     protected final Arm deployArm = new Arm(IntakeConstants.deployArmConfigFunction.apply(deployMotorWrapped));
 
-    protected boolean isUsingClosedLoopControl = true;
+    protected boolean isUsingDeployClosedLoopControl = true;
+    protected boolean isUsingRollerClosedLoopControl = false;
 
     public final TunableValue.SparkPIDTunable deployTunablePID = TunableValue.SparkPIDTunable.fromWrapped(
         "Intake/Deploy",
@@ -47,16 +48,16 @@ public class IntakeIOYAMS implements IntakeIO {
     }
 
     private void disableClosedLoopControl() {
-        isUsingClosedLoopControl = false;
+        isUsingDeployClosedLoopControl = false;
         // deployMotorWrapped.stopClosedLoopController();
     }
 
     private void enableClosedLoopControl() {
-        if (isUsingClosedLoopControl) {
+        if (isUsingDeployClosedLoopControl) {
             return;
         }
 
-        isUsingClosedLoopControl = true;
+        isUsingDeployClosedLoopControl = true;
         deployMotorWrapped.overrideCurrentState(
             deployMotorWrapped.getMechanismPosition(),
             deployMotorWrapped.getMechanismVelocity()
@@ -113,7 +114,7 @@ public class IntakeIOYAMS implements IntakeIO {
         // test
         Logger.recordOutput("Intake/DeploySetpointState", deployMotorWrapped.currentState);
 
-        if (isUsingClosedLoopControl) {
+        if (isUsingDeployClosedLoopControl) {
             deployMotorWrapped.iterateCustomMotionProfile();
         }
     }

@@ -220,20 +220,28 @@ public class ButtonBindings {
             );
 
         // Debug
-        operatorController
-            .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
-            // higher to overcome gravity
-            .whileTrue(intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.RETRACTING, 0.2))
-            .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
+        // operatorController
+        //     .getButtonTrigger(ControlConstants.toggleIntakeDeployReverseTest)
+        //     // higher to overcome gravity
+        //     .whileTrue(intakeSubsystem.runDeployDutyCycleCommand(Intake.IntakeDeployDirection.RETRACTING, 0.2))
+        //     .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
 
         // TODO: temporary voltage control
         operatorController
             .getButtonTrigger(XboxController.Button.kB)
             .onTrue(
                 Commands.runOnce(() ->
-                    intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_VOLTAGE_CONTROL)
+                    // intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_SETPOINT_CHANGE)
+                    shooterSubsystem.stateMachine.scheduleStateChange(Shooter.ShooterState.TEST_VOLTAGE_CONTROL)
                 ).ignoringDisable(true)
             );
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kX)
+        //     .onTrue(
+        //         Commands.runOnce(() ->
+        //             intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_VOLTAGE_CONTROL)
+        //         ).ignoringDisable(true)
+        //     );
 
         // operatorController
         //     .getButtonTrigger(XboxController.Button.kY)
@@ -261,30 +269,43 @@ public class ButtonBindings {
         operatorController
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
             .onTrue(
-                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(incrementVoltage)).ignoringDisable(true)
+                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageShooter(incrementVoltage)).ignoringDisable(
+                    true
+                )
             );
 
         operatorController
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
             .onTrue(
-                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(decrementVoltage)).ignoringDisable(true)
+                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageShooter(decrementVoltage)).ignoringDisable(
+                    true
+                )
             );
 
         operatorController
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
             .onTrue(
-                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(fineIncrementVoltage)).ignoringDisable(true)
+                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageIndexer(incrementVoltage)).ignoringDisable(
+                    true
+                )
             );
 
         operatorController
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.LEFT)
             .onTrue(
-                Commands.runOnce(() -> intakeSubsystem.changeTestOutVoltage(fineDecrementVoltage)).ignoringDisable(true)
+                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageIndexer(decrementVoltage)).ignoringDisable(
+                    true
+                )
             );
 
         operatorController
             .getButtonTrigger(XboxController.Button.kA)
-            .onTrue(Commands.runOnce(() -> intakeSubsystem.setTestOutVoltage(Volts.zero())).ignoringDisable(true));
+            .onTrue(
+                Commands.runOnce(() -> {
+                    shooterSubsystem.setTestOutVoltageShooter(Volts.zero());
+                    shooterSubsystem.setTestOutVoltageIndexer(Volts.zero());
+                }).ignoringDisable(true)
+            );
         // TODO: Climb deploy/retract toggle
         // StateCycle<Climb.ClimbState, Object> toggleClimbDeploy =
         //     climbSubsystem.stateMachine.createStateCycleWithPayload(

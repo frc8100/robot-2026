@@ -39,6 +39,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.Constants;
 import frc.util.InvertibleInterpolatingDoubleTreeMap;
+import frc.util.WrappedSpark;
 import java.util.function.Function;
 import org.ironmaple.simulation.IntakeSimulation;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -113,7 +114,7 @@ public final class ShooterConstants {
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
         .withSimFeedforward(new SimpleMotorFeedforward(0.086627, 0.020285 * 2 * Math.PI, 0.003377 * 2 * Math.PI))
-        .withGearing(1)
+        .withGearing(0.5)
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
         .withIdleMode(MotorMode.COAST)
@@ -121,7 +122,7 @@ public final class ShooterConstants {
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
-    public static final SmartMotorControllerConfig indexerMotorConfig = new SmartMotorControllerConfig()
+    public static final SmartMotorControllerConfig indexerMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
@@ -141,10 +142,10 @@ public final class ShooterConstants {
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
         .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.059281 * 2 * Math.PI, 0.0046219 * 2 * Math.PI))
-        .withGearing(3)
+        .withGearing(1)
         .withMotorInverted(false)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(30))
+        .withStatorCurrentLimit(Amps.of(35))
         .withOpenLoopRampRate(Seconds.of(0.2))
         .withMomentOfInertia(
             KilogramSquareMeters.of(
@@ -160,7 +161,7 @@ public final class ShooterConstants {
                 // Mass of the flywheel.
                 .withMass(Pounds.of(2))
                 // Maximum speed of the shooter.
-                .withUpperSoftLimit(RPM.of(5000));
+                .withUpperSoftLimit(RPM.of(11000));
 
     // Simulation constants
     // public static final Transform3d transformFromRobotCenter = new Transform3d(

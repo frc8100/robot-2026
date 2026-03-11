@@ -19,8 +19,11 @@ public interface ShooterIO {
     public static class ShooterIOInputs {
 
         // Motor controller data for the intake motor
-        public SparkMotorControllerData shootMotorData = new SparkMotorControllerData();
-        public boolean shootMotorConnected = true;
+        public SparkMotorControllerData leaderShootMotorData = new SparkMotorControllerData();
+        public boolean leaderShootMotorConnected = true;
+
+        public SparkMotorControllerData followerShootMotorData = new SparkMotorControllerData();
+        public boolean followerShootMotorConnected = true;
 
         public MutAngularVelocity shootSetpoint = RadiansPerSecond.mutable(0.0);
         public MutAngularVelocity shootSetpointProfiled = RadiansPerSecond.mutable(0.0);
