@@ -8,7 +8,7 @@
         "layouts": [
           {
             "title": "Electrical",
-            "x": 1152.0,
+            "x": 256.0,
             "y": 256.0,
             "width": 384.0,
             "height": 256.0,
@@ -60,7 +60,7 @@
           {
             "title": "FMSInfo",
             "x": 1152.0,
-            "y": 128.0,
+            "y": 0.0,
             "width": 384.0,
             "height": 128.0,
             "type": "FMSInfo",
@@ -87,9 +87,9 @@
           },
           {
             "title": "Auto Choices",
-            "x": 1152.0,
-            "y": 0.0,
-            "width": 384.0,
+            "x": 1024.0,
+            "y": 256.0,
+            "width": 128.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
             "properties": {
@@ -100,7 +100,7 @@
           },
           {
             "title": "TimeUntilSwitch",
-            "x": 640.0,
+            "x": 512.0,
             "y": 0.0,
             "width": 256.0,
             "height": 256.0,
@@ -116,8 +116,8 @@
           },
           {
             "title": "ActiveAllianceColor",
-            "x": 896.0,
-            "y": 256.0,
+            "x": 640.0,
+            "y": 384.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Single Color View",
@@ -129,7 +129,7 @@
           },
           {
             "title": "InitialActiveHubOverride",
-            "x": 512.0,
+            "x": 640.0,
             "y": 256.0,
             "width": 384.0,
             "height": 128.0,
@@ -166,15 +166,27 @@
           },
           {
             "title": "TimeRemainingCanShoot",
-            "x": 896.0,
+            "x": 768.0,
             "y": 0.0,
-            "width": 256.0,
+            "width": 384.0,
             "height": 256.0,
             "type": "Large Text Display",
             "properties": {
               "topic": "/AdvantageKit/RealOutputs/ObjectiveTracker/TimeRemainingCanShoot",
               "period": 0.06,
               "data_type": "string"
+            }
+          },
+          {
+            "title": "Alerts",
+            "x": 1152.0,
+            "y": 128.0,
+            "width": 384.0,
+            "height": 384.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/CANAlerts",
+              "period": 0.06
             }
           }
         ]
@@ -186,7 +198,7 @@
         "layouts": [
           {
             "title": "Drive",
-            "x": 1024.0,
+            "x": 896.0,
             "y": 0.0,
             "width": 256.0,
             "height": 256.0,
@@ -313,6 +325,103 @@
                 }
               }
             ]
+          },
+          {
+            "title": "Deploy",
+            "x": 640.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 256.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "kA",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/Tuning/Intake/Deploy/kA",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "kD",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/Tuning/Intake/Deploy/kD",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "kG",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/Tuning/Intake/Deploy/kG",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "kP",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/Tuning/Intake/Deploy/kP",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "kS",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/Tuning/Intake/Deploy/kS",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "kV",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/Tuning/Intake/Deploy/kV",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              }
+            ]
           }
         ],
         "containers": [
@@ -328,6 +437,23 @@
               "period": 0.06,
               "show_type": true,
               "maximize_button_space": false
+            }
+          },
+          {
+            "title": "DeploySetpointTest",
+            "x": 640.0,
+            "y": 256.0,
+            "width": 640.0,
+            "height": 128.0,
+            "type": "Number Slider",
+            "properties": {
+              "topic": "Intake/DeploySetpointTest",
+              "period": 0.06,
+              "data_type": "double",
+              "min_value": 70.0,
+              "max_value": 220.0,
+              "divisions": 5,
+              "update_continuously": false
             }
           }
         ]
