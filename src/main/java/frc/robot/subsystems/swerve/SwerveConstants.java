@@ -280,7 +280,7 @@ public class SwerveConstants {
      * Whether the gyro should record pitch and roll, and calculate tipping state.
      * If anti-tipping is disabled and this is enabled, information will be recorded but not used.
      */
-    public static final boolean IS_GYRO_RECORD_PITCH_ROLL_TIPPING_STATE = IS_ANTI_TIPPING_ENABLED;
+    public static final boolean IS_GYRO_RECORD_PITCH_ROLL_TIPPING_STATE = true;
 
     // m/s per degree of pitch/roll
     public static final double ANTI_TIPPING_KP = 0.04;

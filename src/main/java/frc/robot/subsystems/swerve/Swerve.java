@@ -7,11 +7,9 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volt;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -42,8 +40,9 @@ import frc.robot.ControlConstants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
+import frc.robot.subsystems.shooter.ProjectileSimulator;
 import frc.robot.subsystems.shooter.ShooterConstants;
-import frc.robot.subsystems.swerve.Swerve.SwervePayload;
+import frc.robot.subsystems.shooter.ShotCalculator;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.Module;
@@ -104,6 +103,10 @@ public class Swerve extends SubsystemBase {
      * The auto-aim command.
      */
     public final AimToTarget autoAim = new AimToTarget();
+    public final ProjectileSimulator projectileSimulator = new ProjectileSimulator(
+        ProjectileSimulator.SimParameters.DEFAULT_PARAMETERS
+    );
+    public final ShotCalculator shotCalculator = new ShotCalculator();
 
     public enum SwerveState {
         // TODO: doc

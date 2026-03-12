@@ -99,11 +99,10 @@ public class GyroIOPigeon2 implements GyroIO {
             // Update pitch and roll only if configured to do so
             inputs.pitch.mut_replace(pitch.getValueAsDouble(), Degrees);
             inputs.roll.mut_replace(roll.getValueAsDouble(), Degrees);
-
             // Update anti-tipping
-            antiTipping.calculate(inputs.pitch, inputs.roll);
-            inputs.isTipping = antiTipping.isTipping();
-            inputs.velocityAntiTipping = antiTipping.getVelocityAntiTipping();
+            // antiTipping.calculate(inputs.pitch, inputs.roll);
+            // inputs.isTipping = antiTipping.isTipping();
+            // inputs.velocityAntiTipping = antiTipping.getVelocityAntiTipping();
         }
 
         // Update odometry caches

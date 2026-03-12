@@ -1,26 +1,19 @@
 package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Gs;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -29,7 +22,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.VoltageUnit;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
@@ -41,7 +33,6 @@ import frc.robot.Constants;
 import frc.util.InvertibleInterpolatingDoubleTreeMap;
 import frc.util.WrappedSpark;
 import java.util.function.Function;
-import org.ironmaple.simulation.IntakeSimulation;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
@@ -87,6 +78,11 @@ public final class ShooterConstants {
     public static final double INDEXER_OUTPUT = 0.5;
 
     public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(50);
+
+    public static final AngularVelocity SHOOTER_MIN_SPEED = RPM.of(1000);
+    public static final AngularVelocity SHOOTER_MAX_SPEED = RPM.of(11000);
+
+    public static final Distance WHEEL_DIAMETER = Inches.of(4);
 
     // Sysid config
     public static final Voltage SHOOTER_SYSID_MAX_VOLTAGE = Volts.of(11.0);
@@ -149,7 +145,7 @@ public final class ShooterConstants {
         .withOpenLoopRampRate(Seconds.of(0.2))
         .withMomentOfInertia(
             KilogramSquareMeters.of(
-                SingleJointedArmSim.estimateMOI(Inches.of(4).in(Meters), Pounds.of(2).in(Kilograms))
+                SingleJointedArmSim.estimateMOI(WHEEL_DIAMETER.in(Meters), Pounds.of(2).in(Kilograms))
             )
         );
 
@@ -157,20 +153,16 @@ public final class ShooterConstants {
         (SmartMotorController shootMotor) ->
             new FlyWheelConfig(shootMotor)
                 // Diameter of the flywheel.
-                .withDiameter(Inches.of(4))
+                .withDiameter(WHEEL_DIAMETER)
                 // Mass of the flywheel.
                 .withMass(Pounds.of(2))
                 // Maximum speed of the shooter.
-                .withUpperSoftLimit(RPM.of(11000));
+                .withUpperSoftLimit(SHOOTER_MAX_SPEED);
 
     // Simulation constants
-    // public static final Transform3d transformFromRobotCenter = new Transform3d(
-    //     new Translation3d(Inches.of(12.0), Inches.of(0.0), Inches.of(6)),
-    //     Rotation3d.kZero
-    // );
     // TODO: test with real measurements
     public static final Transform3d transformFromRobotCenter = new Transform3d(
-        new Translation3d(Inches.of(0), Inches.of(0), Inches.of(6)),
+        new Translation3d(Inches.of(-12.0), Inches.of(0.0), Meters.of(0.43)),
         new Rotation3d(AIM_ROTATION_OFFSET)
     );
 
