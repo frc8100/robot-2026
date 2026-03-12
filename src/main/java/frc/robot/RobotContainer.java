@@ -30,6 +30,7 @@ import frc.robot.subsystems.questnav.QuestNavSubsystem;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
 import frc.robot.subsystems.shooter.ShooterIOSim;
+import frc.robot.subsystems.shooter.ShooterIOYAMS;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveSim;
@@ -124,7 +125,7 @@ public class RobotContainer {
                 // TODO: replace with real IO implementation when ready
                 intakeSubsystem = new Intake(new IntakeIOYAMS());
                 // intakeSubsystem = new Intake(new IntakeIO() {});
-                shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
+                shooterSubsystem = new Shooter(new ShooterIOYAMS(), swerveSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
 
                 objectiveIO = new ObjectiveIODashboard();

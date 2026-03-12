@@ -348,6 +348,14 @@ public class Swerve extends SubsystemBase {
 
         // Start odometry thread
         OdometryThread.getInstance().start();
+
+        if (isSimulation()) {
+            var lut = projectileSimulator.generateLUT();
+
+            for (var entry : lut.entries()) {
+                System.out.println(entry);
+            }
+        }
     }
 
     /**
@@ -428,9 +436,8 @@ public class Swerve extends SubsystemBase {
 
         double[] angleMotorVelocitiesRadPerSec = new double[4];
         for (int i = 0; i < 4; i++) {
-            angleMotorVelocitiesRadPerSec[i] =
-                moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
-                previousSetpoint.moduleStates()[i].angle.getRadians();
+            angleMotorVelocitiesRadPerSec[i] = moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
+            previousSetpoint.moduleStates()[i].angle.getRadians();
             angleMotorVelocitiesRadPerSec[i] /= Constants.LOOP_PERIOD_SECONDS;
         }
 

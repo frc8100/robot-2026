@@ -65,7 +65,7 @@ public final class ShooterConstants {
     /**
      * The angle at which the shooter exits the fuel.
      */
-    public static final Rotation2d exitAngle = Rotation2d.fromDegrees(70.0);
+    public static final Rotation2d exitAngle = Rotation2d.fromDegrees(53.0);
 
     /**
      * The acceleration due to gravity to use in fuel trajectory calculations.
@@ -160,9 +160,8 @@ public final class ShooterConstants {
                 .withUpperSoftLimit(SHOOTER_MAX_SPEED);
 
     // Simulation constants
-    // TODO: test with real measurements
     public static final Transform3d transformFromRobotCenter = new Transform3d(
-        new Translation3d(Inches.of(-12.0), Inches.of(0.0), Meters.of(0.43)),
+        new Translation3d(Inches.of(-6.5), Inches.of(0.0), Inches.of(28.0)),
         new Rotation3d(AIM_ROTATION_OFFSET)
     );
 
