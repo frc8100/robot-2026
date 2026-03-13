@@ -267,7 +267,7 @@ public class SwerveConstants {
         .withBeelineRadius(beelineRadius);
 
     // Auto aim config
-    public static final AngularVelocity MAX_AUTO_AIM_ROBOT_ANGULAR_VELOCITY = RadiansPerSecond.of(6.0);
+    public static final AngularVelocity MAX_AUTO_AIM_ROBOT_ANGULAR_VELOCITY = RadiansPerSecond.of(12.0);
 
     // Tipping config
     /**

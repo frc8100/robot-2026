@@ -103,10 +103,6 @@ public class Swerve extends SubsystemBase {
      * The auto-aim command.
      */
     public final AimToTarget autoAim = new AimToTarget();
-    public final ProjectileSimulator projectileSimulator = new ProjectileSimulator(
-        ProjectileSimulator.SimParameters.DEFAULT_PARAMETERS
-    );
-    public final ShotCalculator shotCalculator = new ShotCalculator();
 
     public enum SwerveState {
         // TODO: doc
@@ -349,11 +345,12 @@ public class Swerve extends SubsystemBase {
         // Start odometry thread
         OdometryThread.getInstance().start();
 
-        if (isSimulation()) {
-            var lut = projectileSimulator.generateLUT();
+        var lut = autoAim.projectileSimulator.generateLUT();
 
-            for (var entry : lut.entries()) {
+        for (var entry : lut.entries()) {
+            if (entry.reachable()) {
                 System.out.println(entry);
+                autoAim.shotCalculator.loadLUTEntry(entry.distanceM(), entry.rpm(), entry.tof());
             }
         }
     }
@@ -436,8 +433,9 @@ public class Swerve extends SubsystemBase {
 
         double[] angleMotorVelocitiesRadPerSec = new double[4];
         for (int i = 0; i < 4; i++) {
-            angleMotorVelocitiesRadPerSec[i] = moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
-            previousSetpoint.moduleStates()[i].angle.getRadians();
+            angleMotorVelocitiesRadPerSec[i] =
+                moduleStateSetpoint.moduleStates()[i].angle.getRadians() -
+                previousSetpoint.moduleStates()[i].angle.getRadians();
             angleMotorVelocitiesRadPerSec[i] /= Constants.LOOP_PERIOD_SECONDS;
         }
 

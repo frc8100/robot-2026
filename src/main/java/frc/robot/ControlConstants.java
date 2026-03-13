@@ -17,23 +17,23 @@ public class ControlConstants {
     public static final int OPERATOR_CONTROLLER_PORT = 1;
 
     // Shooter controls
-    public static final XboxController.Button toggleShoot = XboxController.Button.kA;
+    public static final XboxController.Axis toggleShoot = XboxController.Axis.kRightTrigger;
 
     // Intake controls
     public static final XboxController.Button toggleIntakeDeploy = XboxController.Button.kLeftBumper;
-    public static final XboxController.Button toggleIntakeDeployReverseTest = XboxController.Button.kRightBumper;
+    // public static final XboxController.Button toggleIntakeDeployReverseTest = XboxController.Button.kRightBumper;
 
-    public static final XboxController.Button runIntakeButton = XboxController.Button.kB;
+    public static final XboxController.Axis runIntakeRollers = XboxController.Axis.kLeftTrigger;
 
-    public static final ButtonBindings.Controller.POVButtonDirection deployClimbButton =
-        ButtonBindings.Controller.POVButtonDirection.RIGHT;
-    public static final ButtonBindings.Controller.POVButtonDirection climbButton =
-        ButtonBindings.Controller.POVButtonDirection.LEFT;
+    // public static final ButtonBindings.Controller.POVButtonDirection deployClimbButton =
+    //     ButtonBindings.Controller.POVButtonDirection.RIGHT;
+    // public static final ButtonBindings.Controller.POVButtonDirection climbButton =
+    //     ButtonBindings.Controller.POVButtonDirection.LEFT;
 
     // Drive controls
     public static final XboxController.Button toggleAutoAimToHub = XboxController.Button.kX;
-    public static final ButtonBindings.Controller.POVButtonDirection toggleAutoDriveIntake =
-        ButtonBindings.Controller.POVButtonDirection.DOWN;
+    // public static final ButtonBindings.Controller.POVButtonDirection toggleAutoDriveIntake =
+    //     ButtonBindings.Controller.POVButtonDirection.DOWN;
 
     // Operator controls
 

@@ -201,7 +201,7 @@ public class Shooter extends SubsystemBase {
         boolean shooterUpToSpeed = cachedCurrentTrajectoryResult.hitTarget;
 
         // TODO: add override
-        boolean isBeingOverrided = false;
+        boolean isBeingOverrided = true;
 
         if (shooterUpToSpeed || isBeingOverrided) {
             io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
@@ -315,12 +315,13 @@ public class Shooter extends SubsystemBase {
      */
     public void setTargetExitVelocity(Distance distanceToTarget) {
         // Look up the corresponding motor angular velocity for the given distance and update cache
-        cachedTargetExitAngularVelocity.mut_replace(
-            ShooterConstants.distanceToMotorAngularVelocityMap.get(distanceToTarget.in(Meters)),
-            RadiansPerSecond
-        );
+        // cachedTargetExitAngularVelocity.mut_replace(
+        //     // ShooterConstants.distanceToMotorAngularVelocityMap.get(distanceToTarget.in(Meters)),
+        //     swerveSubsystem.autoAim.latestCalculationResult.getTotalAngularVelocityFF()
+        //     RadiansPerSecond
+        // );
 
-        io.setTargetShootMotorVelocity(cachedTargetExitAngularVelocity);
+        io.setTargetShootMotorVelocity(swerveSubsystem.autoAim.latestCalculationResult.getShooterVelocity());
     }
 
     @Override
@@ -332,27 +333,27 @@ public class Shooter extends SubsystemBase {
         indexerDisconnectedAlert.updateConnectionStatus(inputs.indexerMotorConnected);
         leaderDisconnectedAlert.updateConnectionStatus(inputs.leaderShootMotorConnected);
         followerDisconnectedAlert.updateConnectionStatus(inputs.followerShootMotorConnected);
-
         // Log trajectory points for visualization
-        updatePredictedFuelTrajectory(
-            cachedTargetTrajectoryResult,
-            swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond),
-            Constants.shouldLogAdditionalData()
-        );
-        cachedTargetTrajectoryResult.log("Shooter/TargetTrajectory");
+        // updatePredictedFuelTrajectory(
+        //     cachedTargetTrajectoryResult,
+        //     // swerveSubsystem.autoAim.latestCalculationResult.getTargetFuelExitVelocity().in(MetersPerSecond),
+        //     // swerveSubsystem.autoAim.shotCalculator.effectiveRPM(0)
+        //     Constants.shouldLogAdditionalData()
+        // );
+        // cachedTargetTrajectoryResult.log("Shooter/TargetTrajectory");
 
-        updatePredictedFuelTrajectory(
-            cachedCurrentTrajectoryResult,
-            getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity),
-            Constants.shouldLogAdditionalData()
-        );
-        cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
+        // updatePredictedFuelTrajectory(
+        //     cachedCurrentTrajectoryResult,
+        //     getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity),
+        //     Constants.shouldLogAdditionalData()
+        // );
+        // cachedCurrentTrajectoryResult.log("Shooter/CurrentTrajectory");
 
-        updatePredictedFuelTrajectory(
-            cachedFutureTrajectoryResult,
-            getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity) + 0.2,
-            Constants.shouldLogAdditionalData()
-        );
+        // updatePredictedFuelTrajectory(
+        //     cachedFutureTrajectoryResult,
+        //     getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity) + 0.2,
+        //     Constants.shouldLogAdditionalData()
+        // );
     }
 
     @Override
