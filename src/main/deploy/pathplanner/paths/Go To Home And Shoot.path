@@ -32,12 +32,12 @@
     },
     {
       "anchor": {
-        "x": 3.4863139865673416,
-        "y": 5.417904427889698
+        "x": 2.5262075134168156,
+        "y": 5.113989266547406
       },
       "prevControl": {
-        "x": 4.413749421746152,
-        "y": 5.410906445428245
+        "x": 3.453642948595621,
+        "y": 5.106991284085953
       },
       "nextControl": null,
       "isLocked": false,
@@ -46,18 +46,7 @@
   ],
   "rotationTargets": [],
   "constraintZones": [],
-  "pointTowardsZones": [
-    {
-      "fieldPosition": {
-        "x": 4.62534,
-        "y": 4.0
-      },
-      "rotationOffset": 0.0,
-      "minWaypointRelativePos": 1.961904761904762,
-      "maxWaypointRelativePos": 2.0,
-      "name": "Point Towards Zone"
-    }
-  ],
+  "pointTowardsZones": [],
   "eventMarkers": [
     {
       "name": "StopIntakeRoller",
@@ -103,7 +92,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -51.403050059700874
+    "rotation": -26.823961847859618
   },
   "reversed": false,
   "folder": null,
