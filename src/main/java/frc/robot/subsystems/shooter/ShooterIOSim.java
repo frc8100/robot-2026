@@ -125,7 +125,10 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
             shootFuelWithVelocity(
                 MetersPerSecond.of(
-                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity)
+                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(
+                        swerveSubsystem.autoAim.shotCalculator,
+                        inputs.leaderShootMotorData.velocity
+                    )
                 ),
                 ShooterConstants.leftFuelStreamTransform
             );
@@ -141,7 +144,10 @@ public class ShooterIOSim extends ShooterIOYAMS {
 
             shootFuelWithVelocity(
                 MetersPerSecond.of(
-                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(inputs.leaderShootMotorData.velocity)
+                    Shooter.getCurrentPredictedFuelExitVelocityFromMotor(
+                        swerveSubsystem.autoAim.shotCalculator,
+                        inputs.leaderShootMotorData.velocity
+                    )
                 ),
                 ShooterConstants.rightFuelStreamTransform
             );

@@ -77,12 +77,17 @@ public final class ShooterConstants {
      */
     public static final double INDEXER_OUTPUT = 0.5;
 
-    public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(150);
+    public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(175);
 
     public static final AngularVelocity SHOOTER_MIN_SPEED = RPM.of(1000);
     public static final AngularVelocity SHOOTER_MAX_SPEED = RPM.of(11000);
 
     public static final Distance WHEEL_DIAMETER = Inches.of(4);
+
+    // SOTM constants
+    public static final Distance SOTM_MIN_DISTANCE = Inches.of(12);
+    public static final Distance SOTM_MAX_DISTANCE = Inches.of(200);
+    public static final Distance SOTM_DISTANCE_STEP = Inches.of(2);
 
     // Sysid config
     public static final Voltage SHOOTER_SYSID_MAX_VOLTAGE = Volts.of(11.0);
@@ -94,7 +99,7 @@ public final class ShooterConstants {
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
-            0.01,
+            0.003,
             0.0,
             0.0,
             RadiansPerSecondPerSecond.of(750),
@@ -108,21 +113,23 @@ public final class ShooterConstants {
             RadiansPerSecondPerSecond.per(Second).of(7500)
         )
         // Feedforward Constants
-        .withFeedforward(new SimpleMotorFeedforward(0.1155, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
+        // .withFeedforward(new SimpleMotorFeedforward(0.1155, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
+        .withFeedforward(new SimpleMotorFeedforward(0.0, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
         .withSimFeedforward(new SimpleMotorFeedforward(0.086627, 0.020285 * 2 * Math.PI, 0.003377 * 2 * Math.PI))
         .withGearing(2)
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
         .withIdleMode(MotorMode.COAST)
+        .withVoltageCompensation(Volts.of(12.0))
         .withStatorCurrentLimit(Amps.of(45))
-        .withClosedLoopRampRate(Seconds.of(0.2))
+        .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.2));
 
     public static final SmartMotorControllerConfig indexerMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
-            0.1,
+            0.003,
             0.0,
             0.0,
             RadiansPerSecondPerSecond.of(200),
@@ -139,7 +146,7 @@ public final class ShooterConstants {
         .withFeedforward(new SimpleMotorFeedforward(0.36775, 0.021249 * 2 * Math.PI, 0.0017431 * 2 * Math.PI))
         .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.059281 * 2 * Math.PI, 0.0046219 * 2 * Math.PI))
         .withGearing(1)
-        .withMotorInverted(false)
+        .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
         .withStatorCurrentLimit(Amps.of(35))
         .withOpenLoopRampRate(Seconds.of(0.2))

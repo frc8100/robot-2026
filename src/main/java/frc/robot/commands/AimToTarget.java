@@ -75,21 +75,21 @@ public class AimToTarget {
      * A map from distance to target in meters to exit velocity in meters per second.
      */
     // TODO: calculate this based on a formula instead of a lookup table
-    public static final InvertibleInterpolatingDoubleTreeMap distanceToExitVelocityMap =
-        new InvertibleInterpolatingDoubleTreeMap();
+    // public static final InvertibleInterpolatingDoubleTreeMap distanceToExitVelocityMap =
+    //     new InvertibleInterpolatingDoubleTreeMap();
 
-    static {
-        // Generate the distance to time of flight map based on calculations
-        // TODO: try empirical data later
-        // Zero distance corresponds to zero time of flight
-        distanceToExitVelocityMap.put(0.0, 0.0);
+    // static {
+    //     // Generate the distance to time of flight map based on calculations
+    //     // TODO: try empirical data later
+    //     // Zero distance corresponds to zero time of flight
+    //     distanceToExitVelocityMap.put(0.0, 0.0);
 
-        for (double distance = 1.0; distance <= 15.0; distance += 0.2) {
-            ExitVelocityCalculationResult result = solveExitVelocity(distance, 0.0, 0.0);
-            distanceToTimeOfFlightMap.put(distance, result.timeToTargetSeconds);
-            distanceToExitVelocityMap.put(distance, result.exitVelocityMetersPerSecond);
-        }
-    }
+    //     for (double distance = 1.0; distance <= 15.0; distance += 0.2) {
+    //         ExitVelocityCalculationResult result = solveExitVelocity(distance, 0.0, 0.0);
+    //         distanceToTimeOfFlightMap.put(distance, result.timeToTargetSeconds);
+    //         distanceToExitVelocityMap.put(distance, result.exitVelocityMetersPerSecond);
+    //     }
+    // }
 
     public final ProjectileSimulator projectileSimulator = new ProjectileSimulator(
         ProjectileSimulator.SimParameters.DEFAULT_PARAMETERS
@@ -102,63 +102,63 @@ public class AimToTarget {
      * @param radialVelocityMetersPerSecond - The radial velocity of the robot towards the target in meters per second. Positive values indicate the robot is moving away from the target, negative values indicate the robot is moving towards the target.
      * @return An {@link ExitVelocityCalculationResult} containing the exit velocity in meters per second and the time to target in seconds.
      */
-    public static ExitVelocityCalculationResult solveExitVelocity(
-        double distanceMeters,
-        double radialVelocityMetersPerSecond,
-        double tangentialVelocityMetersPerSecond
-    ) {
-        // Precompute constants
-        final double cosHorizontalComponent = ShooterConstants.exitAngle.getCos();
-        final double sinVerticalComponent = ShooterConstants.exitAngle.getSin();
-        final double targetHeightOffset =
-            FieldConstants.hubTargetHeight.in(Meters) - ShooterConstants.transformFromRobotCenter.getZ();
-        final double gMPS2 = ShooterConstants.g.in(MetersPerSecondPerSecond);
+    // public static ExitVelocityCalculationResult solveExitVelocity(
+    //     double distanceMeters,
+    //     double radialVelocityMetersPerSecond,
+    //     double tangentialVelocityMetersPerSecond
+    // ) {
+    //     // Precompute constants
+    //     final double cosHorizontalComponent = ShooterConstants.exitAngle.getCos();
+    //     final double sinVerticalComponent = ShooterConstants.exitAngle.getSin();
+    //     final double targetHeightOffset =
+    //         FieldConstants.hubTargetHeight.in(Meters) - ShooterConstants.transformFromRobotCenter.getZ();
+    //     final double gMPS2 = ShooterConstants.g.in(MetersPerSecondPerSecond);
 
-        // Binary search bounds
-        double velocityLowerBound = 1.0;
-        double velocityUpperBound = 30.0;
+    //     // Binary search bounds
+    //     double velocityLowerBound = 1.0;
+    //     double velocityUpperBound = 30.0;
 
-        double timeToTargetSeconds = 0.0;
+    //     double timeToTargetSeconds = 0.0;
 
-        for (int i = 0; i < 25; i++) {
-            // Midpoint velocity
-            double midpointVelocity = 0.5 * (velocityLowerBound + velocityUpperBound);
+    //     for (int i = 0; i < 25; i++) {
+    //         // Midpoint velocity
+    //         double midpointVelocity = 0.5 * (velocityLowerBound + velocityUpperBound);
 
-            // Calculate horizontal speed towards target, accounting for radial velocity
-            double horizontalSpeed = midpointVelocity * cosHorizontalComponent + radialVelocityMetersPerSecond;
-            if (horizontalSpeed <= 0.0) {
-                velocityLowerBound = midpointVelocity;
-                continue;
-            }
+    //         // Calculate horizontal speed towards target, accounting for radial velocity
+    //         double horizontalSpeed = midpointVelocity * cosHorizontalComponent + radialVelocityMetersPerSecond;
+    //         if (horizontalSpeed <= 0.0) {
+    //             velocityLowerBound = midpointVelocity;
+    //             continue;
+    //         }
 
-            // First-order time of flight
-            timeToTargetSeconds = distanceMeters / horizontalSpeed;
+    //         // First-order time of flight
+    //         timeToTargetSeconds = distanceMeters / horizontalSpeed;
 
-            // Tangential displacement during flight
-            double lateralDisplacement = tangentialVelocityMetersPerSecond * timeToTargetSeconds;
+    //         // Tangential displacement during flight
+    //         double lateralDisplacement = tangentialVelocityMetersPerSecond * timeToTargetSeconds;
 
-            // Effective horizontal distance
-            double effectiveDistance = Math.hypot(distanceMeters, lateralDisplacement);
+    //         // Effective horizontal distance
+    //         double effectiveDistance = Math.hypot(distanceMeters, lateralDisplacement);
 
-            // Recompute time with corrected distance
-            timeToTargetSeconds = effectiveDistance / horizontalSpeed;
+    //         // Recompute time with corrected distance
+    //         timeToTargetSeconds = effectiveDistance / horizontalSpeed;
 
-            double heightAtTarget =
-                midpointVelocity * sinVerticalComponent * timeToTargetSeconds -
-                // Subtract the effect of gravity
-                (0.5 * (gMPS2 * timeToTargetSeconds * timeToTargetSeconds));
+    //         double heightAtTarget =
+    //             midpointVelocity * sinVerticalComponent * timeToTargetSeconds -
+    //             // Subtract the effect of gravity
+    //             (0.5 * (gMPS2 * timeToTargetSeconds * timeToTargetSeconds));
 
-            // Adjust bounds based on whether the height at the target is above or below the target height
-            if (heightAtTarget > targetHeightOffset) {
-                velocityUpperBound = midpointVelocity;
-            } else {
-                velocityLowerBound = midpointVelocity;
-            }
-        }
+    //         // Adjust bounds based on whether the height at the target is above or below the target height
+    //         if (heightAtTarget > targetHeightOffset) {
+    //             velocityUpperBound = midpointVelocity;
+    //         } else {
+    //             velocityLowerBound = midpointVelocity;
+    //         }
+    //     }
 
-        // Return the average of the bounds as the solution
-        return new ExitVelocityCalculationResult(0.5 * (velocityLowerBound + velocityUpperBound), timeToTargetSeconds);
-    }
+    //     // Return the average of the bounds as the solution
+    //     return new ExitVelocityCalculationResult(0.5 * (velocityLowerBound + velocityUpperBound), timeToTargetSeconds);
+    // }
 
     /**
      * @param distanceToTargetMeters - The distance to the target in meters.
@@ -181,19 +181,21 @@ public class AimToTarget {
      */
     public static class AimCalculationMutable {
 
+        public ShotCalculator.LaunchParameters result = ShotCalculator.LaunchParameters.INVALID;
+
         protected Pose2d robotPose = Pose2d.kZero;
         protected Pose2d targetPose = Pose2d.kZero;
 
-        protected final MutAngularVelocity shooterVelocity = RPM.mutable(0.0);
-        protected final MutAngle rotationTarget = Radians.mutable(0.0);
-        protected final MutDistance distanceToTarget = Meters.mutable(0.0);
-        protected final MutTime timeToTarget = Seconds.mutable(0.0);
-        // protected final MutAngularVelocity radialVelocity = RadiansPerSecond.mutable(0.0);
-        // protected final MutLinearVelocity tangentialVelocity = MetersPerSecond.mutable(0.0);
-        // protected final MutAngularVelocity deltaThetaRate = RadiansPerSecond.mutable(0.0);
-        // protected final MutLinearVelocity targetFuelExitVelocity = MetersPerSecond.mutable(0.0);
-        protected final MutAngularVelocity totalAngularVelocityFF = RadiansPerSecond.mutable(0.0);
-        protected double confidence = 0.0;
+        // protected final MutAngularVelocity shooterVelocity = RPM.mutable(0.0);
+        // protected final MutAngle rotationTarget = Radians.mutable(0.0);
+        // protected final MutDistance distanceToTarget = Meters.mutable(0.0);
+        // protected final MutTime timeToTarget = Seconds.mutable(0.0);
+        // // protected final MutAngularVelocity radialVelocity = RadiansPerSecond.mutable(0.0);
+        // // protected final MutLinearVelocity tangentialVelocity = MetersPerSecond.mutable(0.0);
+        // // protected final MutAngularVelocity deltaThetaRate = RadiansPerSecond.mutable(0.0);
+        // // protected final MutLinearVelocity targetFuelExitVelocity = MetersPerSecond.mutable(0.0);
+        // protected final MutAngularVelocity totalAngularVelocityFF = RadiansPerSecond.mutable(0.0);
+        // protected double confidence = 0.0;
 
         protected AimCalculationMutable() {
             // Log once at construction to warmup log fields
@@ -201,25 +203,25 @@ public class AimToTarget {
         }
 
         public void log() {
-            Logger.recordOutput("AimToTarget/TargetPose", targetPose);
+            Logger.recordOutput("AimToTarget/LaunchParameters", result);
+            // Logger.recordOutput("AimToTarget/TargetPose", targetPose);
 
-            Logger.recordOutput("AimToTarget/RotationTarget", rotationTarget);
+            // Logger.recordOutput("AimToTarget/RotationTarget", rotationTarget);
             // Logger.recordOutput("AimToTarget/DistanceToTarget", distanceToTarget);
             // Logger.recordOutput("AimToTarget/RadialVelocity", radialVelocity);
             // Logger.recordOutput("AimToTarget/TangentialVelocity", tangentialVelocity);
             // Logger.recordOutput("AimToTarget/DeltaThetaRate", deltaThetaRate);
             // Logger.recordOutput("AimToTarget/TargetFuelExitVelocity", targetFuelExitVelocity);
-            Logger.recordOutput("AimToTarget/TotalAngularVelocityFF", totalAngularVelocityFF);
+            // Logger.recordOutput("AimToTarget/TotalAngularVelocityFF", totalAngularVelocityFF);
         }
-
         // Getters
-        public Angle getRotationTarget() {
-            return rotationTarget;
-        }
+        // public Angle getRotationTarget() {
+        //     return rotationTarget;
+        // }
 
-        public Distance getDistanceToTarget() {
-            return distanceToTarget;
-        }
+        // public Distance getDistanceToTarget() {
+        //     return distanceToTarget;
+        // }
 
         // public AngularVelocity getRadialVelocity() {
         //     return radialVelocity;
@@ -237,17 +239,17 @@ public class AimToTarget {
         //     return targetFuelExitVelocity;
         // }
 
-        public AngularVelocity getTotalAngularVelocityFF() {
-            return totalAngularVelocityFF;
-        }
+        // public AngularVelocity getTotalAngularVelocityFF() {
+        //     return totalAngularVelocityFF;
+        // }
 
-        public AngularVelocity getShooterVelocity() {
-            return shooterVelocity;
-        }
+        // public AngularVelocity getShooterVelocity() {
+        //     return shooterVelocity;
+        // }
 
-        public Time getTimeToTarget() {
-            return timeToTarget;
-        }
+        // public Time getTimeToTarget() {
+        //     return timeToTarget;
+        // }
     }
 
     public final AimCalculationMutable latestCalculationResult = new AimCalculationMutable();
@@ -277,7 +279,7 @@ public class AimToTarget {
         Pose2d targetPose,
         ChassisSpeeds desiredRobotRelativeSpeeds,
         ChassisSpeeds actualRobotRelativeSpeeds,
-        Translation2d desiredChassisAcceleration,
+        // Translation2d desiredChassisAcceleration,
         ChassisSpeeds rawDesiredChassisSpeeds
     ) {
         // Convert robot-relative speeds to field-relative speeds
@@ -315,15 +317,19 @@ public class AimToTarget {
         //     boolean warmStartUsed
         // ) {
 
-        latestCalculationResult.shooterVelocity.mut_replace(result.rpm(), RPM);
-        latestCalculationResult.timeToTarget.mut_replace(result.timeOfFlightSec(), Seconds);
-        latestCalculationResult.rotationTarget.mut_replace(result.driveAngle().getRadians(), Radians);
-        latestCalculationResult.totalAngularVelocityFF.mut_replace(
-            result.driveAngularVelocityRadPerSec(),
-            RadiansPerSecond
-        );
-        latestCalculationResult.distanceToTarget.mut_replace(result.solvedDistanceM(), Meters);
-        latestCalculationResult.confidence = result.confidence();
+        // latestCalculationResult.shooterVelocity.mut_replace(result.rpm(), RPM);
+        // latestCalculationResult.timeToTarget.mut_replace(result.timeOfFlightSec(), Seconds);
+        // latestCalculationResult.rotationTarget.mut_replace(result.driveAngle().getRadians(), Radians);
+        // latestCalculationResult.totalAngularVelocityFF.mut_replace(
+        //     result.driveAngularVelocityRadPerSec(),
+        //     RadiansPerSecond
+        // );
+        // latestCalculationResult.distanceToTarget.mut_replace(result.solvedDistanceM(), Meters);
+        // latestCalculationResult.confidence = result.confidence();
+
+        latestCalculationResult.result = result;
+        latestCalculationResult.robotPose = robotPose;
+        latestCalculationResult.targetPose = targetPose;
         // Get pose components to reduce method calls
         // double shooterPoseXMeters = shooterPose.getTranslation().getX();
         // double shooterPoseYMeters = shooterPose.getTranslation().getY();
@@ -449,20 +455,23 @@ public class AimToTarget {
             // If we are within the setpoint tolerance, do not apply PID output
             MathUtil.isNear(
                     latestCalculationResult.robotPose.getRotation().getRadians(),
-                    latestCalculationResult.getRotationTarget().in(Radians) +
+                    // latestCalculationResult.getRotationTarget().in(Radians) +
+                    latestCalculationResult.result.driveAngle().getRadians() +
                     ShooterConstants.AIM_ROTATION_OFFSET.getRadians(),
                     // setpointToleranceRadians
-                    0.1
+                    0.03
                 )
                 ? 0.0
                 : rotationController.calculate(
                     latestCalculationResult.robotPose.getRotation().getRadians(),
-                    latestCalculationResult.getRotationTarget().in(Radians) +
+                    // latestCalculationResult.getRotationTarget().in(Radians) +
+                    latestCalculationResult.result.driveAngle().getRadians() +
                     ShooterConstants.AIM_ROTATION_OFFSET.getRadians()
                 );
 
         double unclampedOutput =
-            pidRotationOutput + latestCalculationResult.getTotalAngularVelocityFF().in(RadiansPerSecond);
+            // pidRotationOutput + latestCalculationResult.getTotalAngularVelocityFF().in(RadiansPerSecond);
+            pidRotationOutput + latestCalculationResult.result.driveAngularVelocityRadPerSec();
 
         Logger.recordOutput("AimToTarget/PIDRotationOutput", pidRotationOutput);
 

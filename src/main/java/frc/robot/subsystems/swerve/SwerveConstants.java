@@ -235,8 +235,7 @@ public class SwerveConstants {
     public static final VelocityUnit<LinearAccelerationUnit> MetersPerSecond3 = MetersPerSecondPerSecond.per(Second);
     public static final Measure<VelocityUnit<LinearAccelerationUnit>> MAX_JERK = MetersPerSecond3.of(10);
 
-    // ! IMPORTANT: The actual max angular velocity is much higher
-    public static final AngularVelocity MAX_ANGULAR_VELOCITY_OF_ROBOT = RadiansPerSecond.of(7.0);
+    public static final AngularVelocity MAX_ANGULAR_VELOCITY_OF_ROBOT = RadiansPerSecond.of(20.0);
 
     public static final AngularVelocity MAX_ANGULAR_VELOCITY_OF_SWERVE_MODULE = RadiansPerSecond.of(20.0);
 
@@ -293,9 +292,16 @@ public class SwerveConstants {
     // TODO: measure this
     public static final MomentOfInertia ROBOT_MOI = KilogramSquareMeters.of(3.9506340342);
 
-    public static final Pose2d initialPose = new Pose2d(12.9, 2.29, Rotation2d.fromDegrees(0));
+    public static final Pose2d initialPose = new Pose2d(12.9, 2.29, Rotation2d.k180deg);
     public static final PathConstraints pathConstraints = new PathConstraints(
         MAX_SPEED,
+        MAX_ACCELERATION,
+        MAX_ANGULAR_VELOCITY_OF_ROBOT,
+        MAX_ANGULAR_ACCELERATION
+    );
+
+    public static final PathConstraints sotmPathConstraints = new PathConstraints(
+        MetersPerSecond.of(2.5),
         MAX_ACCELERATION,
         MAX_ANGULAR_VELOCITY_OF_ROBOT,
         MAX_ANGULAR_ACCELERATION

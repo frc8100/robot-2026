@@ -27,6 +27,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.robot.subsystems.swerve.SwerveConstants;
+import frc.util.InvertibleInterpolatingDoubleTreeMap;
 
 /**
  * Shoot-on-the-move fire control solver. Figures out what RPM and heading your robot needs
@@ -82,7 +84,7 @@ public class ShotCalculator {
         public static final LaunchParameters INVALID = new LaunchParameters(
             0,
             0,
-            new Rotation2d(),
+            Rotation2d.kZero,
             0,
             false,
             0,
@@ -141,7 +143,7 @@ public class ShotCalculator {
         public double minSOTMSpeed = 0.1;
 
         // Above this speed (m/s), don't shoot, we're outside calibration range
-        public double maxSOTMSpeed = 3.0;
+        public double maxSOTMSpeed = SwerveConstants.sotmPathConstraints.maxVelocityMPS();
 
         // Latency compensation (ms)
         public double phaseDelayMs = 20.0; // vision pipeline lag
@@ -176,8 +178,8 @@ public class ShotCalculator {
 
     private final Config config;
 
-    private final InterpolatingDoubleTreeMap rpmMap = new InterpolatingDoubleTreeMap();
-    private final InterpolatingDoubleTreeMap tofMap = new InterpolatingDoubleTreeMap();
+    private final InvertibleInterpolatingDoubleTreeMap rpmMap = new InvertibleInterpolatingDoubleTreeMap();
+    private final InvertibleInterpolatingDoubleTreeMap tofMap = new InvertibleInterpolatingDoubleTreeMap();
     private final InterpolatingDoubleTreeMap correctionRpmMap = new InterpolatingDoubleTreeMap();
     private final InterpolatingDoubleTreeMap correctionTofMap = new InterpolatingDoubleTreeMap();
 
@@ -594,11 +596,11 @@ public class ShotCalculator {
         prevRobotOmega = 0;
     }
 
-    InterpolatingDoubleTreeMap getRpmMap() {
+    InvertibleInterpolatingDoubleTreeMap getRpmMap() {
         return rpmMap;
     }
 
-    InterpolatingDoubleTreeMap getTofMap() {
+    InvertibleInterpolatingDoubleTreeMap getTofMap() {
         return tofMap;
     }
 }

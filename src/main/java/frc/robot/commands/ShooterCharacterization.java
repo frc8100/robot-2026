@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -10,6 +11,7 @@ import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.swerve.Swerve;
 import java.util.Map;
 import java.util.TreeMap;
 import org.littletonrobotics.junction.Logger;
@@ -32,9 +34,9 @@ public class ShooterCharacterization extends Command {
     public static final String DASHBOARD_PREFIX = "ShooterCharacterization";
 
     // TODO: tune this
-    public static final AngularVelocity STARTING_ANGULAR_VELOCITY = RadiansPerSecond.of(120);
-    public static final AngularVelocity ENDING_ANGULAR_VELOCITY = RadiansPerSecond.of(900);
-    public static final AngularVelocity VELOCITY_STEP = RadiansPerSecond.of(30);
+    public static final AngularVelocity STARTING_ANGULAR_VELOCITY = RadiansPerSecond.of(30);
+    public static final AngularVelocity ENDING_ANGULAR_VELOCITY = RadiansPerSecond.of(200);
+    public static final AngularVelocity VELOCITY_STEP = RPM.of(30);
 
     public static final AngularVelocity VELOCITY_STEP_WHEN_NEW_DISTANCE = RadiansPerSecond.of(-120);
 
@@ -69,6 +71,7 @@ public class ShooterCharacterization extends Command {
     public static final Map<Double, TestingShooterDataPoint> shooterDataPoints = new TreeMap<>();
 
     public final Shooter shooterSubsystem;
+    public final Swerve swerveSubsystem;
 
     public final LoggedNetworkNumber distanceOverride = new LoggedNetworkNumber(
         DASHBOARD_PREFIX + "/DistanceOverrideInches",
@@ -93,8 +96,9 @@ public class ShooterCharacterization extends Command {
      */
     public boolean hasHitTargetAtCurrentDistance = false;
 
-    public ShooterCharacterization(Shooter shooterSubsystem) {
+    public ShooterCharacterization(Shooter shooterSubsystem, Swerve swerveSubsystem) {
         this.shooterSubsystem = shooterSubsystem;
+        this.swerveSubsystem = swerveSubsystem;
 
         addRequirements(shooterSubsystem);
     }
@@ -104,7 +108,11 @@ public class ShooterCharacterization extends Command {
 
         // currentAngularVelocityTarget.mut_replace(STARTING_ANGULAR_VELOCITY);
         // Decrease angular velocity a bit (for faster)
-        currentAngularVelocityTarget.mut_plus(VELOCITY_STEP_WHEN_NEW_DISTANCE);
+        // currentAngularVelocityTarget.mut_plus(VELOCITY_STEP_WHEN_NEW_DISTANCE);
+        currentAngularVelocityTarget.mut_replace(
+            swerveSubsystem.autoAim.shotCalculator.getBaseRPM(currentDistance.in(Meters)),
+            RPM
+        );
 
         hasHitTargetAtCurrentDistance = false;
 
@@ -195,6 +203,7 @@ public class ShooterCharacterization extends Command {
     @Override
     public void execute() {
         shooterSubsystem.setTargetExitVelocity(currentAngularVelocityTarget);
+        shooterSubsystem.runIndexerIfShooterAtSpeed();
 
         logState();
     }

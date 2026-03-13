@@ -50,7 +50,7 @@ public final class IntakeConstants {
 
     private IntakeConstants() {}
 
-    public static final double INTAKE_RUN_SPEED = 0.8;
+    public static final double INTAKE_RUN_SPEED = 0.95;
 
     public static final SmartMotorControllerConfig rollerMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
         .withControlMode(ControlMode.OPEN_LOOP)
@@ -58,10 +58,10 @@ public final class IntakeConstants {
         // Motor properties to prevent over currenting.
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(33))
+        .withStatorCurrentLimit(Amps.of(43))
         .withVoltageCompensation(Volts.of(11.5))
         .withClosedLoopRampRate(Seconds.of(0.2))
-        .withOpenLoopRampRate(Seconds.of(0.35));
+        .withOpenLoopRampRate(Seconds.of(0.2));
 
     // sim
     public static final Distance SIM_INTAKE_LENGTH = Inches.of(5);
@@ -70,7 +70,7 @@ public final class IntakeConstants {
     // Intake positions
     public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(70);
     public static final Angle INTAKE_RETRACTED_ANGLE_SETPOINT = INTAKE_RETRACTED_ANGLE.minus(Degrees.of(15));
-    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(180);
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(170);
 
     // public static final TrapezoidProfile.State retractGoalState = new TrapezoidProfile.State(
     //     INTAKE_RETRACTED_ANGLE.in(Rotations),

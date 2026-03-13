@@ -36,6 +36,10 @@ public class ControlConstants {
     //     ButtonBindings.Controller.POVButtonDirection.DOWN;
 
     // Operator controls
+    public static final ButtonBindings.Controller.POVButtonDirection increaseRPMOffset =
+        ButtonBindings.Controller.POVButtonDirection.UP;
+    public static final ButtonBindings.Controller.POVButtonDirection decreaseRPMOffset =
+        ButtonBindings.Controller.POVButtonDirection.DOWN;
 
     // Simulation controls (on operator controller)
     public static final XboxController.Button spawnAllFuelButton = XboxController.Button.kBack;

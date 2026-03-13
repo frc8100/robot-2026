@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathfindingCommand;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -97,21 +98,23 @@ public class RobotContainer {
         switch (Constants.currentMode) {
             case REAL:
                 // Real robot, instantiate hardware IO implementations
-                // swerveSubsystem = new Swerve(
-                //     new GyroIOPigeon2(),
-                //     new ModuleIO[] {
-                //         new ModuleIOSpark(0),
-                //         new ModuleIOSpark(1),
-                //         new ModuleIOSpark(2),
-                //         new ModuleIOSpark(3),
-                //     }
-                // );
                 swerveSubsystem = new Swerve(
-                    new GyroIO() {},
-                    new ModuleIO[] { new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {} }
+                    new GyroIOPigeon2(),
+                    new ModuleIO[] {
+                        new ModuleIOSpark(0),
+                        new ModuleIOSpark(1),
+                        new ModuleIOSpark(2),
+                        new ModuleIOSpark(3),
+                    }
                 );
 
-                questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIOReal());
+                // swerveSubsystem = new Swerve(
+                //     new GyroIO() {},
+                //     new ModuleIO[] { new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {} }
+                // );
+
+                // questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIOReal());
+                questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIO() {});
                 visionSubsystem = new Vision(
                     swerveSubsystem,
                     questNavSubsystem,
@@ -390,7 +393,10 @@ public class RobotContainer {
 
         // Shooter SysId routines
         autoChooser.addOption("Shooter SysId", shooterSubsystem.shooterSysidCommand());
-        autoChooser.addOption("Shooter Shooting Characterization", new ShooterCharacterization(shooterSubsystem));
+        autoChooser.addOption(
+            "Shooter Shooting Characterization",
+            new ShooterCharacterization(shooterSubsystem, swerveSubsystem)
+        );
 
         autoChooser.addOption("Intake SysId", intakeSubsystem.sysid());
     }
