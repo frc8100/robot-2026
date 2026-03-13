@@ -80,7 +80,7 @@ public final class ShooterConstants {
     public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(175);
 
     public static final AngularVelocity SHOOTER_MIN_SPEED = RPM.of(1000);
-    public static final AngularVelocity SHOOTER_MAX_SPEED = RPM.of(11000);
+    public static final AngularVelocity SHOOTER_MAX_SPEED = RadiansPerSecond.of(300);
 
     public static final Distance WHEEL_DIAMETER = Inches.of(4);
 

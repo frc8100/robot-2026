@@ -239,14 +239,14 @@ public class ButtonBindings {
         //     .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
 
         // TODO: temporary voltage control
-        operatorController
-            .getButtonTrigger(XboxController.Button.kB)
-            .onTrue(
-                Commands.runOnce(() ->
-                    // intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_SETPOINT_CHANGE)
-                    shooterSubsystem.stateMachine.scheduleStateChange(Shooter.ShooterState.TEST_VOLTAGE_CONTROL)
-                ).ignoringDisable(true)
-            );
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kB)
+        //     .onTrue(
+        //         Commands.runOnce(() ->
+        //             // intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_SETPOINT_CHANGE)
+        //             shooterSubsystem.stateMachine.scheduleStateChange(Shooter.ShooterState.TEST_VOLTAGE_CONTROL)
+        //         ).ignoringDisable(true)
+        //     );
         // operatorController
         //     .getButtonTrigger(XboxController.Button.kX)
         //     .onTrue(
@@ -274,12 +274,13 @@ public class ButtonBindings {
         //     .onFalse(shooterSubsystem.runShooterDutyCycle(Volts.zero()));
 
         // RPM offset
-        // operatorController
-        //     .getButtonTrigger(ControlConstants.increaseRPMOffset)
-        //     .onTrue(shooterSubsystem.changeShooterRPMOffset(10.0));
-        // operatorController
-        //     .getButtonTrigger(ControlConstants.decreaseRPMOffset)
-        //     .onTrue(shooterSubsystem.changeShooterRPMOffset(-10.0));
+        operatorController
+            .getButtonTrigger(ControlConstants.increaseRPMOffset)
+            .onTrue(shooterSubsystem.changeShooterRPMOffset(10.0));
+        operatorController
+            .getButtonTrigger(ControlConstants.decreaseRPMOffset)
+            .onTrue(shooterSubsystem.changeShooterRPMOffset(-10.0));
+
         final Voltage incrementVoltage = Volts.of(0.5);
         final Voltage fineIncrementVoltage = Volts.of(0.01);
         final Voltage decrementVoltage = incrementVoltage.times(-1);
