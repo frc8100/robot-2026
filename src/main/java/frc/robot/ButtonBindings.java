@@ -202,7 +202,11 @@ public class ButtonBindings {
         // Temporary shooter test button
         driverController
             .getButtonTrigger(ControlConstants.toggleShoot)
-            .onTrue(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.SHOOTING)))
+            .onTrue(
+                Commands.runOnce(() ->
+                    shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.AUTO_TARGET_SHOOTING)
+                )
+            )
             .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
 
         driverController
@@ -269,7 +273,14 @@ public class ButtonBindings {
         //     .whileTrue(shooterSubsystem.runShooterDutyCycle(Volts.of(3)))
         //     .onFalse(shooterSubsystem.runShooterDutyCycle(Volts.zero()));
 
-        final Voltage incrementVoltage = Volts.of(0.1);
+        // RPM offset
+        // operatorController
+        //     .getButtonTrigger(ControlConstants.increaseRPMOffset)
+        //     .onTrue(shooterSubsystem.changeShooterRPMOffset(10.0));
+        // operatorController
+        //     .getButtonTrigger(ControlConstants.decreaseRPMOffset)
+        //     .onTrue(shooterSubsystem.changeShooterRPMOffset(-10.0));
+        final Voltage incrementVoltage = Volts.of(0.5);
         final Voltage fineIncrementVoltage = Volts.of(0.01);
         final Voltage decrementVoltage = incrementVoltage.times(-1);
         final Voltage fineDecrementVoltage = fineIncrementVoltage.times(-1);

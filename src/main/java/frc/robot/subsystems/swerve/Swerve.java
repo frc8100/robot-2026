@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -233,6 +234,7 @@ public class Swerve extends SubsystemBase {
     private SwerveSetpoint moduleStateSetpoint = null;
 
     private ChassisSpeeds setpointSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
+    private PathConstraints currentConstraints = null;
 
     /**
      * The swerve modules. These are the four swerve modules on the robot. Each module has a drive
@@ -322,7 +324,7 @@ public class Swerve extends SubsystemBase {
         );
 
         // TODO: store this in constants
-        zeroYawOffset(Rotation2d.k180deg);
+        zeroYawOffset(Rotation2d.kZero);
 
         teleopSwerve = new TeleopSwerve(
             this,
@@ -422,6 +424,7 @@ public class Swerve extends SubsystemBase {
         moduleStateSetpoint = setpointGenerator.generateSetpoint(
             moduleStateSetpoint,
             setpointSpeeds,
+            currentConstraints,
             Constants.LOOP_PERIOD_SECONDS,
             false
         );
@@ -443,6 +446,7 @@ public class Swerve extends SubsystemBase {
         SwerveSetpoint nextSetpoint = setpointGenerator.generateSetpoint(
             moduleStateSetpoint,
             setpointSpeeds,
+            currentConstraints,
             Constants.LOOP_PERIOD_SECONDS,
             false
         );
@@ -776,7 +780,6 @@ public class Swerve extends SubsystemBase {
 
         // Run state machine
         // TODO: better validation (this essentially just works the same as a default command)
-
         // boolean isRunningPathPlannerCommand = getCurrentCommand() instanceof FollowPathCommand;
 
         if (getCurrentCommand() == null) {
@@ -803,41 +806,44 @@ public class Swerve extends SubsystemBase {
                 moduleStateSetpointWithoutRotation = setpointGenerator.generateSetpoint(
                     moduleStateSetpointWithoutRotation,
                     setpointSpeeds,
+                    SwerveConstants.sotmPathConstraints,
                     Constants.LOOP_PERIOD_SECONDS,
                     false
                 );
 
-                Translation2d desiredChassisSpeedAcceleration = new Translation2d(
-                    moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vxMetersPerSecond -
-                    moduleStateSetpoint.robotRelativeSpeeds().vxMetersPerSecond,
-                    moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vyMetersPerSecond -
-                    moduleStateSetpoint.robotRelativeSpeeds().vyMetersPerSecond
-                ).div(0.02);
+                // Translation2d desiredChassisSpeedAcceleration = new Translation2d(
+                //     moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vxMetersPerSecond -
+                //     moduleStateSetpoint.robotRelativeSpeeds().vxMetersPerSecond,
+                //     moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vyMetersPerSecond -
+                //     moduleStateSetpoint.robotRelativeSpeeds().vyMetersPerSecond
+                // ).div(0.02);
 
                 autoAim.updateCalculatedResult(
                     getPose(),
                     targetPoseToRotateTo,
                     moduleStateSetpointWithoutRotation.robotRelativeSpeeds(),
                     getChassisSpeeds(),
-                    desiredChassisSpeedAcceleration,
+                    // desiredChassisSpeedAcceleration,
                     setpointSpeeds
                 );
 
                 // Override the angular velocity setpoint with the auto-aim result
                 setpointSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond();
                 shouldRunSpeedsThisCycle = true;
+                currentConstraints = SwerveConstants.sotmPathConstraints;
             }
 
             autoAim.latestCalculationResult.log();
-
             // debug
-            Logger.recordOutput(
-                "AimToTarget/RotationErrorRad",
-                getRotation()
-                    .plus(ShooterConstants.AIM_ROTATION_OFFSET)
-                    .minus(new Rotation2d(autoAim.latestCalculationResult.getRotationTarget()))
-                    .getRadians()
-            );
+            // Logger.recordOutput(
+            //     "AimToTarget/RotationErrorRad",
+            //     getRotation()
+            //         .plus(ShooterConstants.AIM_ROTATION_OFFSET)
+            //         .minus(new Rotation2d(autoAim.latestCalculationResult.getRotationTarget()))
+            //         .getRadians()
+            // );
+        } else {
+            currentConstraints = null;
         }
 
         // Apply outputs

@@ -35,7 +35,8 @@ public interface ShooterIO {
         public MutAngularVelocity indexerSetpointProfiled = RadiansPerSecond.mutable(0.0);
         public MutAngularAcceleration indexerSetpointAcceleration = RadiansPerSecondPerSecond.mutable(0.0);
 
-        // TODO: check for this
+        public boolean beamBreakerConnected = true;
+        // TODO: use this
         public boolean isFuelDetectedAtTopOfIndexer = false;
     }
 

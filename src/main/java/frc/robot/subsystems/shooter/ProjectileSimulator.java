@@ -78,7 +78,10 @@ public class ProjectileSimulator {
         double rpmMin,
         double rpmMax,
         int binarySearchIters,
-        double maxSimTime
+        double maxSimTime,
+        double minDistanceM,
+        double maxDistanceM,
+        double distanceStepM
     ) {
         public static SimParameters DEFAULT_PARAMETERS = new SimParameters(
             0.215, // ball mass kg
@@ -96,7 +99,10 @@ public class ProjectileSimulator {
             ShooterConstants.SHOOTER_MIN_SPEED.in(RPM),
             ShooterConstants.SHOOTER_MAX_SPEED.in(RPM),
             25,
-            5.0
+            5.0,
+            ShooterConstants.SOTM_MIN_DISTANCE.in(Meters),
+            ShooterConstants.SOTM_MAX_DISTANCE.in(Meters),
+            ShooterConstants.SOTM_DISTANCE_STEP.in(Meters)
         );
     }
 
@@ -282,8 +288,12 @@ public class ProjectileSimulator {
         double maxRange = 0;
 
         // 0.50 to 5.00 at 0.05m steps = 91 entries
-        for (int i = 0; i <= 90; i++) {
-            double distance = 0.50 + i * 0.05;
+        // for (double distance = 0.50; distance <= 5.00; distance += 0.05) {
+        for (
+            double distance = params.minDistanceM();
+            distance <= params.maxDistanceM();
+            distance += params.distanceStepM()
+        ) {
             // Round to avoid floating-point drift
             distance = Math.round(distance * 100.0) / 100.0;
 

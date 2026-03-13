@@ -14,6 +14,7 @@
 package frc.robot.subsystems.vision;
 
 import static edu.wpi.first.units.Units.Centimeters;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
@@ -144,10 +145,10 @@ public class VisionConstants {
      * (Not used by Limelight, configure in web UI instead)
      */
     public static final Transform3d TRANSFORM_TO_CAMERA_0 = new Transform3d(
-        Inches.of(9.5), // (28 - 4.5) - 14 or 0.2413 m
-        Inches.of(-5.25), // -((28 - 8.75) - 14) or 0.1397 m
-        Inches.of(11.25), // 0.28575 m
-        Rotation3d.kZero
+        Inches.of(2.0), // 15.5 - 27/2
+        Inches.of(-11.25), // 24.75 - 27/2
+        Inches.of(28.25),
+        new Rotation3d(Degrees.zero(), Degrees.of(10.0), Degrees.zero())
     );
 
     public enum CameraPipelines {

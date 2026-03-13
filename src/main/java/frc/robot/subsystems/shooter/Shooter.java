@@ -3,6 +3,7 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -45,17 +46,25 @@ public class Shooter extends SubsystemBase {
      * @param motorAngularVelocity - The current motor angular velocity in radians per second.
      * @return The predicted fuel exit velocity in meters per second.
      */
-    public static double getCurrentPredictedFuelExitVelocityFromMotor(AngularVelocity motorAngularVelocity) {
-        double predictedDistanceMeters = motorAngularVelocityToDistanceMap.get(
-            motorAngularVelocity.in(RadiansPerSecond)
-        );
+    public static double getCurrentPredictedFuelExitVelocityFromMotor(
+        ShotCalculator shotCalculator,
+        AngularVelocity motorAngularVelocity
+    ) {
+        // double predictedDistanceMeters = motorAngularVelocityToDistanceMap.get(
+        //     motorAngularVelocity.in(RadiansPerSecond)
+        // );
 
-        return AimToTarget.distanceToExitVelocityMap.get(predictedDistanceMeters);
+        // return AimToTarget.distanceToExitVelocityMap.get(predictedDistanceMeters);
+
+        return (
+            shotCalculator.getRpmMap().getInverseMap().get(motorAngularVelocity.in(RPM)) /
+            (shotCalculator.getTofMap().getInverseMap().get(motorAngularVelocity.in(RPM)))
+        );
     }
 
     // Inverse maps
-    private static final InterpolatingDoubleTreeMap motorAngularVelocityToDistanceMap =
-        ShooterConstants.distanceToMotorAngularVelocityMap.getInverseMap();
+    // private static final InterpolatingDoubleTreeMap motorAngularVelocityToDistanceMap =
+    //     ShooterConstants.distanceToMotorAngularVelocityMap.getInverseMap();
 
     public enum ShooterState {
         /**
@@ -65,8 +74,15 @@ public class Shooter extends SubsystemBase {
 
         /**
          * The shooter is spinning to the target velocity and the indexer is running to move fuel to the shooter.
+         * The target velocity is determined automatically by the distance to the target.
          */
-        SHOOTING,
+        AUTO_TARGET_SHOOTING,
+
+        /**
+         * The shooter is spinning to the target velocity and the indexer is running to move fuel to the shooter.
+         * Target velocity is determined manually.
+         */
+        MANUAL_TARGET_SHOOTING,
 
         /**
          * The intake deploy is running duty cycle based on the voltage controlled by the human operator.
@@ -79,7 +95,8 @@ public class Shooter extends SubsystemBase {
         "Shooter"
     )
         .withDefaultState(new StateMachineState<>(ShooterState.IDLE, "Idle"))
-        .withState(new StateMachineState<>(ShooterState.SHOOTING, "Shooting"))
+        .withState(new StateMachineState<>(ShooterState.AUTO_TARGET_SHOOTING, "AutoShooting"))
+        .withState(new StateMachineState<>(ShooterState.MANUAL_TARGET_SHOOTING, "ManualShooting"))
         .withState(new StateMachineState<>(ShooterState.TEST_VOLTAGE_CONTROL, "TestVoltage"))
         .withReturnToDefaultStateOnDisable(true);
 
@@ -109,6 +126,7 @@ public class Shooter extends SubsystemBase {
         CANIdConstants.RIGHT_SHOOTER_MOTOR_ID,
         "RightShootMotor"
     );
+    private final DeviceAlert beamBreakerDisconnectedAlert = new DeviceAlert("ShootBeamBreaker");
 
     /**
      * Stores the result of a fuel trajectory prediction, including the trajectory points, the final point, and whether it would hit the target.
@@ -138,7 +156,8 @@ public class Shooter extends SubsystemBase {
 
         // State machine bindings
         stateMachine.whileState(ShooterState.IDLE, this::handleIdleState);
-        stateMachine.whileState(ShooterState.SHOOTING, this::handleShootState);
+        stateMachine.whileState(ShooterState.AUTO_TARGET_SHOOTING, this::handleShootState);
+        stateMachine.whileState(ShooterState.MANUAL_TARGET_SHOOTING, this::handleManualShootState);
         stateMachine.whileState(ShooterState.TEST_VOLTAGE_CONTROL, () -> {
             io.runShooterDutyCycle(testVoltageOutputShooter);
             io.runIndexerDutyCycle(testVoltageOutputIndexer);
@@ -184,6 +203,10 @@ public class Shooter extends SubsystemBase {
         return run(() -> io.runShooterDutyCycle(dutyCycleOutput));
     }
 
+    public Command changeShooterRPMOffset(double rpmOffset) {
+        return Commands.runOnce(() -> swerveSubsystem.autoAim.shotCalculator.adjustOffset(rpmOffset));
+    }
+
     /**
      * Handles the logic for the {@link ShooterState#IDLE} state which stops the shooter and indexer.
      */
@@ -193,119 +216,135 @@ public class Shooter extends SubsystemBase {
     }
 
     /**
-     * Handles the logic for the {@link ShooterState#SHOOTING} state which sets the target exit velocity based on the distance to the target.
+     * Handles the logic for the {@link ShooterState#AUTO_TARGET_SHOOTING} state which sets the target exit velocity based on the distance to the target.
      */
     private void handleShootState() {
-        setTargetExitVelocity(swerveSubsystem.autoAim.latestCalculationResult.getDistanceToTarget());
+        setTargetExitVelocityToTarget();
+        runIndexerIfShooterAtSpeed();
+    }
 
-        boolean shooterUpToSpeed = cachedCurrentTrajectoryResult.hitTarget;
+    private void handleManualShootState() {
+        setTargetExitVelocity(cachedTargetExitAngularVelocity);
+        runIndexerIfShooterAtSpeed();
+    }
+
+    public void runIndexerIfShooterAtSpeed() {
+        boolean shooterUpToSpeed = inputs.leaderShootMotorData.velocity.isNear(
+            cachedTargetExitAngularVelocity,
+            RadiansPerSecond.of(10.0)
+        );
+
+        Logger.recordOutput("Shooter/UpToSpeed", shooterUpToSpeed);
 
         // TODO: add override
-        boolean isBeingOverrided = true;
+        boolean isBeingOverrided = false;
 
         if (shooterUpToSpeed || isBeingOverrided) {
             io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
+        } else {
+            io.stopIndexer();
         }
     }
 
     /**
      * Predicts the trajectory of a fuel based on the current shooter exit velocity, angle, and robot velocity. Also predicts whether the fuel would score in the hub.
      */
-    private void updatePredictedFuelTrajectory(
-        CachedPredictedTrajectoryResult result,
-        double exitVelocityMPS,
-        boolean shouldLogExtraData
-    ) {
-        result.trajectoryPoints.clear();
+    // private void updatePredictedFuelTrajectory(
+    //     CachedPredictedTrajectoryResult result,
+    //     double exitVelocityMPS,
+    //     boolean shouldLogExtraData
+    // ) {
+    //     result.trajectoryPoints.clear();
 
-        // Precompute constants
-        final Rotation2d shooterAngle = swerveSubsystem
-            .getPose()
-            .getRotation()
-            .plus(ShooterConstants.AIM_ROTATION_OFFSET);
-        final ChassisSpeeds robotVelocity = swerveSubsystem.getFieldRelativeSpeeds();
+    //     // Precompute constants
+    //     final Rotation2d shooterAngle = swerveSubsystem
+    //         .getPose()
+    //         .getRotation()
+    //         .plus(ShooterConstants.AIM_ROTATION_OFFSET);
+    //     final ChassisSpeeds robotVelocity = swerveSubsystem.getFieldRelativeSpeeds();
 
-        // Calculate the initial velocity vector based on the exit velocity and angle
-        Translation3d velocity = new Translation3d(
-            exitVelocityMPS * ShooterConstants.exitAngle.getCos() * shooterAngle.getCos() +
-            robotVelocity.vxMetersPerSecond,
-            exitVelocityMPS * ShooterConstants.exitAngle.getCos() * shooterAngle.getSin() +
-            robotVelocity.vyMetersPerSecond,
-            exitVelocityMPS * ShooterConstants.exitAngle.getSin()
-        );
+    //     // Calculate the initial velocity vector based on the exit velocity and angle
+    //     Translation3d velocity = new Translation3d(
+    //         exitVelocityMPS * ShooterConstants.exitAngle.getCos() * shooterAngle.getCos() +
+    //         robotVelocity.vxMetersPerSecond,
+    //         exitVelocityMPS * ShooterConstants.exitAngle.getCos() * shooterAngle.getSin() +
+    //         robotVelocity.vyMetersPerSecond,
+    //         exitVelocityMPS * ShooterConstants.exitAngle.getSin()
+    //     );
 
-        Translation3d position = new Pose3d(swerveSubsystem.getPose())
-            .transformBy(ShooterConstants.transformFromRobotCenter)
-            .getTranslation();
+    //     Translation3d position = new Pose3d(swerveSubsystem.getPose())
+    //         .transformBy(ShooterConstants.transformFromRobotCenter)
+    //         .getTranslation();
 
-        // Predict final position at time to target
-        double finalT =
-            swerveSubsystem.autoAim.latestCalculationResult.getTimeToTarget().in(Seconds) +
-            ShooterConstants.PREDICT_FUEL_POSITION_LOOKAHEAD_TIME.in(Seconds);
-        Translation3d finalPosition = new Translation3d(
-            position.getX() + velocity.getX() * finalT,
-            position.getY() + velocity.getY() * finalT,
-            position.getZ() +
-            velocity.getZ() * finalT -
-            0.5 * ShooterConstants.g.in(MetersPerSecondPerSecond) * finalT * finalT
-        );
-        Translation3d velocityAtFinalPosition = new Translation3d(
-            velocity.getX(),
-            velocity.getY(),
-            velocity.getZ() - ShooterConstants.g.in(MetersPerSecondPerSecond) * finalT
-        );
+    //     // Predict final position at time to target
+    //     double finalT =
+    //         swerveSubsystem.autoAim.latestCalculationResult.getTimeToTarget().in(Seconds) +
+    //         ShooterConstants.PREDICT_FUEL_POSITION_LOOKAHEAD_TIME.in(Seconds);
+    //     Translation3d finalPosition = new Translation3d(
+    //         position.getX() + velocity.getX() * finalT,
+    //         position.getY() + velocity.getY() * finalT,
+    //         position.getZ() +
+    //         velocity.getZ() * finalT -
+    //         0.5 * ShooterConstants.g.in(MetersPerSecondPerSecond) * finalT * finalT
+    //     );
+    //     Translation3d velocityAtFinalPosition = new Translation3d(
+    //         velocity.getX(),
+    //         velocity.getY(),
+    //         velocity.getZ() - ShooterConstants.g.in(MetersPerSecondPerSecond) * finalT
+    //     );
 
-        // Check if the predicted final position would score in the hub
-        FuelSim.Fuel predictedFuel = new FuelSim.Fuel(finalPosition, velocityAtFinalPosition);
-        boolean hitTarget =
-            // Check both hubs because we aren't aiming at the opponent's hub (hopefully)
-            FuelSim.Hub.BLUE_HUB.didFuelScoreAtAll(predictedFuel) ||
-            FuelSim.Hub.RED_HUB.didFuelScoreAtAll(predictedFuel);
+    //     // Check if the predicted final position would score in the hub
+    //     FuelSim.Fuel predictedFuel = new FuelSim.Fuel(finalPosition, velocityAtFinalPosition);
+    //     boolean hitTarget =
+    //         // Check both hubs because we aren't aiming at the opponent's hub (hopefully)
+    //         FuelSim.Hub.BLUE_HUB.didFuelScoreAtAll(predictedFuel) ||
+    //         FuelSim.Hub.RED_HUB.didFuelScoreAtAll(predictedFuel);
 
-        result.finalPoint = finalPosition;
-        result.hitTarget = hitTarget;
+    //     result.finalPoint = finalPosition;
+    //     result.hitTarget = hitTarget;
 
-        // If we don't need to log additional data, skip calculating the full trajectory for performance reasons
-        if (!shouldLogExtraData) {
-            result.finalPoint = finalPosition;
-            result.hitTarget = hitTarget;
-        }
+    //     // If we don't need to log additional data, skip calculating the full trajectory for performance reasons
+    //     if (!shouldLogExtraData) {
+    //         result.finalPoint = finalPosition;
+    //         result.hitTarget = hitTarget;
+    //     }
 
-        for (int i = 0; i < 30; i++) {
-            double t = i * 0.1;
+    //     for (int i = 0; i < 30; i++) {
+    //         double t = i * 0.1;
 
-            // If we've reached the final time, add the final position and break
-            if (t > finalT) {
-                result.trajectoryPoints.add(finalPosition);
+    //         // If we've reached the final time, add the final position and break
+    //         if (t > finalT) {
+    //             result.trajectoryPoints.add(finalPosition);
 
-                break;
-            }
+    //             break;
+    //         }
 
-            // Calculate with simple projectile motion equations with gravity
-            double z =
-                position.getZ() + velocity.getZ() * t - 0.5 * ShooterConstants.g.in(MetersPerSecondPerSecond) * t * t;
+    //         // Calculate with simple projectile motion equations with gravity
+    //         double z =
+    //             position.getZ() + velocity.getZ() * t - 0.5 * ShooterConstants.g.in(MetersPerSecondPerSecond) * t * t;
 
-            // If below ground level, stop the trajectory
-            if (z < 0) {
-                result.trajectoryPoints.add(
-                    new Translation3d(position.getX() + velocity.getX() * t, position.getY() + velocity.getY() * t, 0)
-                );
-                break;
-            }
+    //         // If below ground level, stop the trajectory
+    //         if (z < 0) {
+    //             result.trajectoryPoints.add(
+    //                 new Translation3d(position.getX() + velocity.getX() * t, position.getY() + velocity.getY() * t, 0)
+    //             );
+    //             break;
+    //         }
 
-            double x = position.getX() + velocity.getX() * t;
-            double y = position.getY() + velocity.getY() * t;
+    //         double x = position.getX() + velocity.getX() * t;
+    //         double y = position.getY() + velocity.getY() * t;
 
-            // Update position for the next iteration
-            result.trajectoryPoints.add(new Translation3d(x, y, z));
-        }
-    }
+    //         // Update position for the next iteration
+    //         result.trajectoryPoints.add(new Translation3d(x, y, z));
+    //     }
+    // }
 
     /**
      * Sets the target exit velocity for the shooter. Does not look up.
      * @param targetExitVelocity - The target exit velocity in radians per second of the shooter motor angular velocity.
      */
     public void setTargetExitVelocity(AngularVelocity targetExitVelocity) {
+        cachedTargetExitAngularVelocity.mut_replace(targetExitVelocity);
         io.setTargetShootMotorVelocity(targetExitVelocity);
     }
 
@@ -313,15 +352,20 @@ public class Shooter extends SubsystemBase {
      * Sets the target exit velocity for the shooter based on the distance to the target.
      * @param distanceToTarget - The distance to the target in meters.
      */
-    public void setTargetExitVelocity(Distance distanceToTarget) {
+    public void setTargetExitVelocityToTarget() {
         // Look up the corresponding motor angular velocity for the given distance and update cache
-        // cachedTargetExitAngularVelocity.mut_replace(
-        //     // ShooterConstants.distanceToMotorAngularVelocityMap.get(distanceToTarget.in(Meters)),
-        //     swerveSubsystem.autoAim.latestCalculationResult.getTotalAngularVelocityFF()
-        //     RadiansPerSecond
-        // );
+        cachedTargetExitAngularVelocity.mut_replace(
+            // ShooterConstants.distanceToMotorAngularVelocityMap.get(distanceToTarget.in(Meters)),
+            swerveSubsystem.autoAim.latestCalculationResult.result.rpm(),
+            RPM
+        );
 
-        io.setTargetShootMotorVelocity(swerveSubsystem.autoAim.latestCalculationResult.getShooterVelocity());
+        io.setTargetShootMotorVelocity(cachedTargetExitAngularVelocity);
+    }
+
+    public void setTargetExitVelocityToTarget(AngularVelocity targetExitVelocity) {
+        cachedTargetExitAngularVelocity.mut_replace(targetExitVelocity);
+        io.setTargetShootMotorVelocity(cachedTargetExitAngularVelocity);
     }
 
     @Override
@@ -333,6 +377,7 @@ public class Shooter extends SubsystemBase {
         indexerDisconnectedAlert.updateConnectionStatus(inputs.indexerMotorConnected);
         leaderDisconnectedAlert.updateConnectionStatus(inputs.leaderShootMotorConnected);
         followerDisconnectedAlert.updateConnectionStatus(inputs.followerShootMotorConnected);
+        beamBreakerDisconnectedAlert.updateConnectionStatus(inputs.beamBreakerConnected);
         // Log trajectory points for visualization
         // updatePredictedFuelTrajectory(
         //     cachedTargetTrajectoryResult,

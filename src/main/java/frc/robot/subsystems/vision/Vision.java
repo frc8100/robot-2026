@@ -145,7 +145,9 @@ public class Vision extends SubsystemBase {
     private void setupDuringMatch() {
         // Change to game piece detection pipeline
         for (VisionIO visionIO : io) {
-            visionIO.setPipeline(VisionConstants.CameraPipelines.DETECTION);
+            // visionIO.setPipeline(VisionConstants.CameraPipelines.DETECTION);
+            // TODO: game piece
+            visionIO.setPipeline(VisionConstants.CameraPipelines.APRILTAG);
         }
 
         // Reset quest nav pose to vision pose
@@ -226,20 +228,19 @@ public class Vision extends SubsystemBase {
 
             // Process inputs for this camera
             processInputsForCamera(cameraIndex, inputs[cameraIndex]);
-
             // Update game pieces
-            for (int typeIndex = 0; typeIndex < inputs[cameraIndex].gamePieceObservationsByType.length; typeIndex++) {
-                GamePieceObservation[] gamePieceObservations =
-                    inputs[cameraIndex].gamePieceObservationsByType[typeIndex];
+            // for (int typeIndex = 0; typeIndex < inputs[cameraIndex].gamePieceObservationsByType.length; typeIndex++) {
+            //     GamePieceObservation[] gamePieceObservations =
+            //         inputs[cameraIndex].gamePieceObservationsByType[typeIndex];
 
-                gamePiecePoseEstimator.updateWithObservations(
-                    gamePieceObservations,
-                    GamePieceObservationType.fromArrayIndex(typeIndex)
-                );
-            }
+            //     gamePiecePoseEstimator.updateWithObservations(
+            //         gamePieceObservations,
+            //         GamePieceObservationType.fromArrayIndex(typeIndex)
+            //     );
+            // }
         }
 
-        gamePiecePoseEstimator.processObservations();
+        // gamePiecePoseEstimator.processObservations();
 
         // Log summary data
         Logger.recordOutput("Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
@@ -262,7 +263,6 @@ public class Vision extends SubsystemBase {
         allTagIds.clear();
         allRobotPosesAccepted.clear();
         allRobotPosesRejected.clear();
-
-        gamePiecePoseEstimator.logGamePiecePoses();
+        // gamePiecePoseEstimator.logGamePiecePoses();
     }
 }
