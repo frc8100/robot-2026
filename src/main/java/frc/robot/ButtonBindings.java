@@ -92,6 +92,14 @@ public class ButtonBindings {
             return getPOVButton(direction);
         }
 
+        public Trigger getButtonTrigger(XboxController.Axis axis, double threshold) {
+            return new Trigger(() -> Math.abs(super.getRawAxis(axis.value)) > threshold);
+        }
+
+        public Trigger getButtonTrigger(XboxController.Axis axis) {
+            return getButtonTrigger(axis, 0.2);
+        }
+
         /**
          * @param button - The button to get the state of.
          * @return A BooleanSupplier that returns true when the button is pressed.
@@ -145,7 +153,7 @@ public class ButtonBindings {
      */
     public void configureButtonBindings() {
         // Driver controller bindings
-        driverController
+        operatorController
             .getButtonTrigger(ControlConstants.mainDriveControls.zeroYawOffsetButton)
             .onTrue(Commands.runOnce(swerveSubsystem::zeroYawOffset));
 
@@ -182,14 +190,14 @@ public class ButtonBindings {
                 })
             );
 
-        driverController
-            .getButtonTrigger(ControlConstants.toggleAutoDriveIntake)
-            .onTrue(
-                Commands.runOnce(() -> {
-                    toggleAutoIntake.scheduleNextState();
-                    toggleAutoAim.reset();
-                })
-            );
+        // driverController
+        //     .getButtonTrigger(ControlConstants.toggleAutoDriveIntake)
+        //     .onTrue(
+        //         Commands.runOnce(() -> {
+        //             toggleAutoIntake.scheduleNextState();
+        //             toggleAutoAim.reset();
+        //         })
+        //     );
 
         // Temporary shooter test button
         driverController
@@ -198,7 +206,7 @@ public class ButtonBindings {
             .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
 
         driverController
-            .getButtonTrigger(ControlConstants.runIntakeButton)
+            .getButtonTrigger(ControlConstants.runIntakeRollers)
             .whileTrue(intakeSubsystem.runRollerCommand())
             .whileFalse(intakeSubsystem.stopRollerCommand());
 
@@ -256,10 +264,10 @@ public class ButtonBindings {
         //         ).ignoringDisable(true)
         //     );
 
-        operatorController
-            .getButtonTrigger(XboxController.Button.kY)
-            .whileTrue(shooterSubsystem.runShooterDutyCycle(Volts.of(3)))
-            .onFalse(shooterSubsystem.runShooterDutyCycle(Volts.zero()));
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kY)
+        //     .whileTrue(shooterSubsystem.runShooterDutyCycle(Volts.of(3)))
+        //     .onFalse(shooterSubsystem.runShooterDutyCycle(Volts.zero()));
 
         final Voltage incrementVoltage = Volts.of(0.1);
         final Voltage fineIncrementVoltage = Volts.of(0.01);

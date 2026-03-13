@@ -3,6 +3,7 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -28,7 +29,9 @@ import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.units.measure.MutLinearVelocity;
 import edu.wpi.first.units.measure.MutTime;
 import edu.wpi.first.units.measure.Time;
+import frc.robot.subsystems.shooter.ProjectileSimulator;
 import frc.robot.subsystems.shooter.ShooterConstants;
+import frc.robot.subsystems.shooter.ShotCalculator;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.util.FieldConstants;
 import frc.util.InvertibleInterpolatingDoubleTreeMap;
@@ -87,6 +90,11 @@ public class AimToTarget {
             distanceToExitVelocityMap.put(distance, result.exitVelocityMetersPerSecond);
         }
     }
+
+    public final ProjectileSimulator projectileSimulator = new ProjectileSimulator(
+        ProjectileSimulator.SimParameters.DEFAULT_PARAMETERS
+    );
+    public final ShotCalculator shotCalculator = new ShotCalculator();
 
     /**
      * Solves for the exit velocity needed to hit the target at the given distance, accounting for the radial velocity of the robot.
@@ -176,14 +184,16 @@ public class AimToTarget {
         protected Pose2d robotPose = Pose2d.kZero;
         protected Pose2d targetPose = Pose2d.kZero;
 
+        protected final MutAngularVelocity shooterVelocity = RPM.mutable(0.0);
         protected final MutAngle rotationTarget = Radians.mutable(0.0);
         protected final MutDistance distanceToTarget = Meters.mutable(0.0);
         protected final MutTime timeToTarget = Seconds.mutable(0.0);
-        protected final MutAngularVelocity radialVelocity = RadiansPerSecond.mutable(0.0);
-        protected final MutLinearVelocity tangentialVelocity = MetersPerSecond.mutable(0.0);
-        protected final MutAngularVelocity deltaThetaRate = RadiansPerSecond.mutable(0.0);
-        protected final MutLinearVelocity targetFuelExitVelocity = MetersPerSecond.mutable(0.0);
+        // protected final MutAngularVelocity radialVelocity = RadiansPerSecond.mutable(0.0);
+        // protected final MutLinearVelocity tangentialVelocity = MetersPerSecond.mutable(0.0);
+        // protected final MutAngularVelocity deltaThetaRate = RadiansPerSecond.mutable(0.0);
+        // protected final MutLinearVelocity targetFuelExitVelocity = MetersPerSecond.mutable(0.0);
         protected final MutAngularVelocity totalAngularVelocityFF = RadiansPerSecond.mutable(0.0);
+        protected double confidence = 0.0;
 
         protected AimCalculationMutable() {
             // Log once at construction to warmup log fields
@@ -194,11 +204,11 @@ public class AimToTarget {
             Logger.recordOutput("AimToTarget/TargetPose", targetPose);
 
             Logger.recordOutput("AimToTarget/RotationTarget", rotationTarget);
-            Logger.recordOutput("AimToTarget/DistanceToTarget", distanceToTarget);
-            Logger.recordOutput("AimToTarget/RadialVelocity", radialVelocity);
-            Logger.recordOutput("AimToTarget/TangentialVelocity", tangentialVelocity);
-            Logger.recordOutput("AimToTarget/DeltaThetaRate", deltaThetaRate);
-            Logger.recordOutput("AimToTarget/TargetFuelExitVelocity", targetFuelExitVelocity);
+            // Logger.recordOutput("AimToTarget/DistanceToTarget", distanceToTarget);
+            // Logger.recordOutput("AimToTarget/RadialVelocity", radialVelocity);
+            // Logger.recordOutput("AimToTarget/TangentialVelocity", tangentialVelocity);
+            // Logger.recordOutput("AimToTarget/DeltaThetaRate", deltaThetaRate);
+            // Logger.recordOutput("AimToTarget/TargetFuelExitVelocity", targetFuelExitVelocity);
             Logger.recordOutput("AimToTarget/TotalAngularVelocityFF", totalAngularVelocityFF);
         }
 
@@ -211,24 +221,28 @@ public class AimToTarget {
             return distanceToTarget;
         }
 
-        public AngularVelocity getRadialVelocity() {
-            return radialVelocity;
-        }
+        // public AngularVelocity getRadialVelocity() {
+        //     return radialVelocity;
+        // }
 
-        public LinearVelocity getTangentialVelocity() {
-            return tangentialVelocity;
-        }
+        // public LinearVelocity getTangentialVelocity() {
+        //     return tangentialVelocity;
+        // }
 
-        public AngularVelocity getDeltaThetaRate() {
-            return deltaThetaRate;
-        }
+        // public AngularVelocity getDeltaThetaRate() {
+        //     return deltaThetaRate;
+        // }
 
-        public LinearVelocity getTargetFuelExitVelocity() {
-            return targetFuelExitVelocity;
-        }
+        // public LinearVelocity getTargetFuelExitVelocity() {
+        //     return targetFuelExitVelocity;
+        // }
 
         public AngularVelocity getTotalAngularVelocityFF() {
             return totalAngularVelocityFF;
+        }
+
+        public AngularVelocity getShooterVelocity() {
+            return shooterVelocity;
         }
 
         public Time getTimeToTarget() {
@@ -278,114 +292,146 @@ public class AimToTarget {
 
         Pose2d shooterPose = robotPose.transformBy(ShooterConstants.transformFromRobotCenter2d);
 
+        var result = shotCalculator.calculate(
+            new ShotCalculator.ShotInputs(
+                robotPose,
+                actualFieldRelativeSpeeds,
+                actualRobotRelativeSpeeds,
+                targetPose.getTranslation(),
+                Translation2d.kZero,
+                1
+            )
+        );
+
+        // public record LaunchParameters(
+        //     double rpm,
+        //     double timeOfFlightSec,
+        //     Rotation2d driveAngle,
+        //     double driveAngularVelocityRadPerSec,
+        //     boolean isValid,
+        //     double confidence,
+        //     double solvedDistanceM,
+        //     int iterationsUsed,
+        //     boolean warmStartUsed
+        // ) {
+
+        latestCalculationResult.shooterVelocity.mut_replace(result.rpm(), RPM);
+        latestCalculationResult.timeToTarget.mut_replace(result.timeOfFlightSec(), Seconds);
+        latestCalculationResult.rotationTarget.mut_replace(result.driveAngle().getRadians(), Radians);
+        latestCalculationResult.totalAngularVelocityFF.mut_replace(
+            result.driveAngularVelocityRadPerSec(),
+            RadiansPerSecond
+        );
+        latestCalculationResult.distanceToTarget.mut_replace(result.solvedDistanceM(), Meters);
+        latestCalculationResult.confidence = result.confidence();
         // Get pose components to reduce method calls
-        double shooterPoseXMeters = shooterPose.getTranslation().getX();
-        double shooterPoseYMeters = shooterPose.getTranslation().getY();
-        double targetPoseXMeters = targetPose.getTranslation().getX();
-        double targetPoseYMeters = targetPose.getTranslation().getY();
+        // double shooterPoseXMeters = shooterPose.getTranslation().getX();
+        // double shooterPoseYMeters = shooterPose.getTranslation().getY();
+        // double targetPoseXMeters = targetPose.getTranslation().getX();
+        // double targetPoseYMeters = targetPose.getTranslation().getY();
 
-        Translation2d deltaTranslation = targetPose.getTranslation().minus(shooterPose.getTranslation());
-        double distanceToTarget = deltaTranslation.getNorm();
+        // Translation2d deltaTranslation = targetPose.getTranslation().minus(shooterPose.getTranslation());
+        // double distanceToTarget = deltaTranslation.getNorm();
 
-        // Check for zero distance to avoid division by zero
-        if (distanceToTarget < 1e-6) {
-            return;
-        }
+        // // Check for zero distance to avoid division by zero
+        // if (distanceToTarget < 1e-6) {
+        //     return;
+        // }
 
-        // Account for imparted velocity by robot to offset
-        // ExitVelocityCalculationResult calculatedResult = ExitVelocityCalculationResult.ZERO;
-        double timeToTargetSeconds = 0.0;
-        double lookaheadPoseAsTranslationXMeters = 0.0;
-        double lookaheadPoseAsTranslationYMeters = 0.0;
-        double lookaheadPoseToTargetDistance = distanceToTarget;
+        // // Account for imparted velocity by robot to offset
+        // // ExitVelocityCalculationResult calculatedResult = ExitVelocityCalculationResult.ZERO;
+        // double timeToTargetSeconds = 0.0;
+        // double lookaheadPoseAsTranslationXMeters = 0.0;
+        // double lookaheadPoseAsTranslationYMeters = 0.0;
+        // double lookaheadPoseToTargetDistance = distanceToTarget;
 
-        // Special case: if the desired robot-relative speeds are zero, don't do lookahead
-        // Also helps converge faster when decelerating to a stop
-        if (
-            Math.abs(rawDesiredChassisSpeeds.vxMetersPerSecond) < 0.1 &&
-            Math.abs(rawDesiredChassisSpeeds.vyMetersPerSecond) < 0.1
-        ) {
-            // calculatedResult = distanceToTimeOfFlightMap.get(distanceToTarget);
-            timeToTargetSeconds = distanceToTimeOfFlightMap.get(distanceToTarget);
-            lookaheadPoseAsTranslationXMeters = shooterPoseXMeters;
-            lookaheadPoseAsTranslationYMeters = shooterPoseYMeters;
-        } else {
-            for (int i = 0; i < 15; i++) {
-                timeToTargetSeconds = distanceToTimeOfFlightMap.get(lookaheadPoseToTargetDistance);
-                lookaheadPoseAsTranslationXMeters =
-                    shooterPoseXMeters + (actualFieldRelativeSpeeds.vxMetersPerSecond * timeToTargetSeconds);
-                lookaheadPoseAsTranslationYMeters =
-                    shooterPoseYMeters + (actualFieldRelativeSpeeds.vyMetersPerSecond * timeToTargetSeconds);
-                lookaheadPoseToTargetDistance = Math.hypot(
-                    targetPoseXMeters - lookaheadPoseAsTranslationXMeters,
-                    targetPoseYMeters - lookaheadPoseAsTranslationYMeters
-                );
-            }
-        }
+        // // Special case: if the desired robot-relative speeds are zero, don't do lookahead
+        // // Also helps converge faster when decelerating to a stop
+        // if (
+        //     Math.abs(rawDesiredChassisSpeeds.vxMetersPerSecond) < 0.1 &&
+        //     Math.abs(rawDesiredChassisSpeeds.vyMetersPerSecond) < 0.1
+        // ) {
+        //     // calculatedResult = distanceToTimeOfFlightMap.get(distanceToTarget);
+        //     timeToTargetSeconds = distanceToTimeOfFlightMap.get(distanceToTarget);
+        //     lookaheadPoseAsTranslationXMeters = shooterPoseXMeters;
+        //     lookaheadPoseAsTranslationYMeters = shooterPoseYMeters;
+        // } else {
+        //     for (int i = 0; i < 15; i++) {
+        //         timeToTargetSeconds = distanceToTimeOfFlightMap.get(lookaheadPoseToTargetDistance);
+        //         lookaheadPoseAsTranslationXMeters =
+        //             shooterPoseXMeters + (actualFieldRelativeSpeeds.vxMetersPerSecond * timeToTargetSeconds);
+        //         lookaheadPoseAsTranslationYMeters =
+        //             shooterPoseYMeters + (actualFieldRelativeSpeeds.vyMetersPerSecond * timeToTargetSeconds);
+        //         lookaheadPoseToTargetDistance = Math.hypot(
+        //             targetPoseXMeters - lookaheadPoseAsTranslationXMeters,
+        //             targetPoseYMeters - lookaheadPoseAsTranslationYMeters
+        //         );
+        //     }
+        // }
 
-        Translation2d lookaheadPoseAsTranslation = new Translation2d(
-            lookaheadPoseAsTranslationXMeters,
-            lookaheadPoseAsTranslationYMeters
-        );
+        // Translation2d lookaheadPoseAsTranslation = new Translation2d(
+        //     lookaheadPoseAsTranslationXMeters,
+        //     lookaheadPoseAsTranslationYMeters
+        // );
 
-        // Calculate direction
-        deltaTranslation = targetPose.getTranslation().minus(lookaheadPoseAsTranslation);
-        double targetAngleRadians = Math.atan2(deltaTranslation.getY(), deltaTranslation.getX());
+        // // Calculate direction
+        // deltaTranslation = targetPose.getTranslation().minus(lookaheadPoseAsTranslation);
+        // double targetAngleRadians = Math.atan2(deltaTranslation.getY(), deltaTranslation.getX());
 
-        // Update the latest calculation result
-        latestCalculationResult.robotPose = robotPose;
-        latestCalculationResult.targetPose = new Pose2d(lookaheadPoseAsTranslation, targetPose.getRotation());
+        // // Update the latest calculation result
+        // latestCalculationResult.robotPose = robotPose;
+        // latestCalculationResult.targetPose = new Pose2d(lookaheadPoseAsTranslation, targetPose.getRotation());
 
-        latestCalculationResult.rotationTarget.mut_replace(targetAngleRadians, Radians);
-        latestCalculationResult.distanceToTarget.mut_replace(lookaheadPoseToTargetDistance, Meters);
-        latestCalculationResult.timeToTarget.mut_replace(timeToTargetSeconds, Seconds);
+        // latestCalculationResult.rotationTarget.mut_replace(targetAngleRadians, Radians);
+        // latestCalculationResult.distanceToTarget.mut_replace(lookaheadPoseToTargetDistance, Meters);
+        // latestCalculationResult.timeToTarget.mut_replace(timeToTargetSeconds, Seconds);
 
-        // double fuelExitVelocityMPS = timeToTargetSeconds > 1e-6
-        //     ? (lookaheadPoseToTargetDistance / timeToTargetSeconds) / ShooterConstants.exitAngle.getCos()
-        //     : 0.0;
-        // latestCalculationResult.targetFuelExitVelocity.mut_replace(fuelExitVelocityMPS, MetersPerSecond);
-        latestCalculationResult.targetFuelExitVelocity.mut_replace(
-            distanceToExitVelocityMap.get(lookaheadPoseToTargetDistance),
-            MetersPerSecond
-        );
+        // // double fuelExitVelocityMPS = timeToTargetSeconds > 1e-6
+        // //     ? (lookaheadPoseToTargetDistance / timeToTargetSeconds) / ShooterConstants.exitAngle.getCos()
+        // //     : 0.0;
+        // // latestCalculationResult.targetFuelExitVelocity.mut_replace(fuelExitVelocityMPS, MetersPerSecond);
+        // latestCalculationResult.targetFuelExitVelocity.mut_replace(
+        //     distanceToExitVelocityMap.get(lookaheadPoseToTargetDistance),
+        //     MetersPerSecond
+        // );
 
-        // Calculate feedforward
-        Twist2d robotTwist = desiredFieldRelativeSpeeds.toTwist2d(
-            ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds)
-        );
-        Translation2d futureLookaheadPoseAsTranslation = new Translation2d(
-            lookaheadPoseAsTranslation.getX() +
-            robotTwist.dx +
-            (0.5 *
-                desiredChassisAcceleration.getX() *
-                Math.pow(ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds), 2)),
-            lookaheadPoseAsTranslation.getY() +
-            robotTwist.dy +
-            (0.5 *
-                desiredChassisAcceleration.getY() *
-                Math.pow(ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds), 2))
-        );
+        // // Calculate feedforward
+        // Twist2d robotTwist = desiredFieldRelativeSpeeds.toTwist2d(
+        //     ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds)
+        // );
+        // Translation2d futureLookaheadPoseAsTranslation = new Translation2d(
+        //     lookaheadPoseAsTranslation.getX() +
+        //     robotTwist.dx +
+        //     (0.5 *
+        //         desiredChassisAcceleration.getX() *
+        //         Math.pow(ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds), 2)),
+        //     lookaheadPoseAsTranslation.getY() +
+        //     robotTwist.dy +
+        //     (0.5 *
+        //         desiredChassisAcceleration.getY() *
+        //         Math.pow(ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds), 2))
+        // );
 
-        double futureTargetAngleRadians = Math.atan2(
-            targetPose.getTranslation().getY() - futureLookaheadPoseAsTranslation.getY(),
-            targetPose.getTranslation().getX() - futureLookaheadPoseAsTranslation.getX()
-        );
+        // double futureTargetAngleRadians = Math.atan2(
+        //     targetPose.getTranslation().getY() - futureLookaheadPoseAsTranslation.getY(),
+        //     targetPose.getTranslation().getX() - futureLookaheadPoseAsTranslation.getX()
+        // );
 
-        double yawFF = new Rotation2d(futureTargetAngleRadians).minus(new Rotation2d(targetAngleRadians)).getRadians() /
-        ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds);
+        // double yawFF = new Rotation2d(futureTargetAngleRadians).minus(new Rotation2d(targetAngleRadians)).getRadians() /
+        // ShooterConstants.LOOKAHEAD_CALCULATION_TIME.in(Seconds);
 
-        latestCalculationResult.totalAngularVelocityFF.mut_replace(yawFF, RadiansPerSecond);
+        // latestCalculationResult.totalAngularVelocityFF.mut_replace(yawFF, RadiansPerSecond);
 
-        // debug
-        Logger.recordOutput(
-            "AimToTarget/LookaheadPose",
-            new Pose2d(lookaheadPoseAsTranslation, new Rotation2d(latestCalculationResult.getRotationTarget()))
-        );
-        Logger.recordOutput(
-            "AimToTarget/FutureLookaheadPose",
-            new Pose2d(futureLookaheadPoseAsTranslation, new Rotation2d(futureTargetAngleRadians))
-        );
-        Logger.recordOutput("AimToTarget/ChassisAcceleration", desiredChassisAcceleration);
+        // // debug
+        // Logger.recordOutput(
+        //     "AimToTarget/LookaheadPose",
+        //     new Pose2d(lookaheadPoseAsTranslation, new Rotation2d(latestCalculationResult.getRotationTarget()))
+        // );
+        // Logger.recordOutput(
+        //     "AimToTarget/FutureLookaheadPose",
+        //     new Pose2d(futureLookaheadPoseAsTranslation, new Rotation2d(futureTargetAngleRadians))
+        // );
+        // Logger.recordOutput("AimToTarget/ChassisAcceleration", desiredChassisAcceleration);
     }
 
     /**
@@ -394,9 +440,9 @@ public class AimToTarget {
      * @return The rotation output in radians per second.
      */
     public double getRotationOutputRadiansPerSecond() {
-        double setpointToleranceRadians = getSetpointToleranceRadiusRadians(
-            latestCalculationResult.getDistanceToTarget().in(Meters)
-        );
+        // double setpointToleranceRadians = getSetpointToleranceRadiusRadians(
+        //     latestCalculationResult.getDistanceToTarget().in(Meters)
+        // );
 
         // Calculate the PID output
         double pidRotationOutput =
@@ -405,7 +451,8 @@ public class AimToTarget {
                     latestCalculationResult.robotPose.getRotation().getRadians(),
                     latestCalculationResult.getRotationTarget().in(Radians) +
                     ShooterConstants.AIM_ROTATION_OFFSET.getRadians(),
-                    setpointToleranceRadians
+                    // setpointToleranceRadians
+                    0.1
                 )
                 ? 0.0
                 : rotationController.calculate(
