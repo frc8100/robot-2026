@@ -152,7 +152,7 @@
       }
     },
     {
-      "name": "Intake",
+      "name": "RunIntakeRoller",
       "waypointRelativePos": 3.1999999999999975,
       "endWaypointRelativePos": 4.0,
       "command": {

@@ -36,7 +36,7 @@
         "y": 5.982268188302426
       },
       "prevControl": {
-        "x": 0.1802987424011493,
+        "x": 0.18029874240114932,
         "y": 5.958565915145427
       },
       "nextControl": {
@@ -95,7 +95,7 @@
       }
     },
     {
-      "name": "Intake",
+      "name": "RunIntakeRoller",
       "waypointRelativePos": 0.6396011396011435,
       "endWaypointRelativePos": null,
       "command": {

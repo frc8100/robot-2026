@@ -210,18 +210,22 @@ public class ButtonBindings {
             )
             .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
 
-        driverController
+        operatorController
             .getButtonTrigger(XboxController.Button.kY)
             .whileTrue(shooterSubsystem.setspeedShoot(ShooterSpeeds.HIGHEST));
 
-        driverController
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kRightBumper)
+        //     .whileTrue(shooterSubsystem.runIndexer());
+
+        operatorController
             .getButtonTrigger(ControlConstants.runIntakeRollers)
             // .whileTrue(intakeSubsystem.runRollerCommand())
             // .whileFalse(intakeSubsystem.stopRollerCommand());
             .onTrue(Commands.runOnce(intakeSubsystem::toggleRollers));
 
         // Intake deploy/retract toggle
-        driverController
+        operatorController
             .getButtonTrigger(ControlConstants.toggleIntakeDeploy)
             .onTrue(
                 Commands.runOnce(() -> {
@@ -262,7 +266,7 @@ public class ButtonBindings {
         //     );
 
         operatorController
-            .getButtonTrigger(XboxController.Button.kY)
+            .getButtonTrigger(XboxController.Button.kX)
             .onTrue(
                 Commands.runOnce(() ->
                     intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.CALIBRATE_RETRACT)
@@ -286,15 +290,14 @@ public class ButtonBindings {
         operatorController
             .getButtonTrigger(ControlConstants.decreaseRPMOffset)
             .onTrue(shooterSubsystem.changeShooterRPMOffset(-10.0));
-
-        operatorController
-            .getButtonTrigger(XboxController.Button.kRightBumper)
-            .onTrue(
-                Commands.runOnce(() ->
-                    shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.MANUAL_TARGET_SHOOTING)
-                )
-            )
-            .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kRightBumper)
+        //     .onTrue(
+        //         Commands.runOnce(() ->
+        //             shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.MANUAL_TARGET_SHOOTING)
+        //         )
+        //     )
+        //     .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
         // final Voltage incrementVoltage = Volts.of(0.5);
         // final Voltage fineIncrementVoltage = Volts.of(0.01);
         // final Voltage decrementVoltage = incrementVoltage.times(-1);

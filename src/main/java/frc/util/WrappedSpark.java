@@ -217,6 +217,7 @@ public class WrappedSpark extends SparkWrapper {
 
     // TODO: this is a bit of a hack, but it allows us to use the existing SparkWrapper closed loop control methods while also allowing us to set the setpoint velocity in simulation (since YAMS does not simulate closed loop control of velocity)
     public void setCustomSetpointVelocity(AngularVelocity velocity) {
+        super.setpointPosition = Optional.empty();
         super.setpointVelocity = Optional.ofNullable(velocity);
     }
 

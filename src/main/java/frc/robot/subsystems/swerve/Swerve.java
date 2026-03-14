@@ -838,6 +838,7 @@ public class Swerve extends SubsystemBase {
                 // desiredChassisSpeedAcceleration,
                 new ChassisSpeeds()
             );
+            setpointSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond();
 
             autoAim.latestCalculationResult.log();
             // debug

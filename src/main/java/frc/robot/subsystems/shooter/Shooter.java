@@ -241,17 +241,23 @@ public class Shooter extends SubsystemBase {
     public Command setspeedShoot(ShooterSpeeds shooterSpeed) {
         return new Command() {
             @Override
-            public void initialize() {
-                // setTargetExitVelocity(shooterSpeed.speed);
+            public void execute() {
                 stateMachine.scheduleStateChange(ShooterState.MANUAL_TARGET_SHOOTING);
                 setTargetExitVelocity(shooterSpeed.speed);
+                // io.runShooterDutyCycle(Volts.of(12));
             }
+
+            // @Override
+            // public void execute() {
+            //     io.runShooterDutyCycle(Volts.of(12));
+            // }
 
             @Override
             public void end(boolean interrupted) {
                 stateMachine.scheduleStateChange(ShooterState.IDLE);
             }
         };
+        // return run(() -> io.runShooterDutyCycle(Volts.of(12)));
     }
 
     private void handleManualShootState() {
@@ -284,19 +290,27 @@ public class Shooter extends SubsystemBase {
     public void runIndexerIfShooterAtSpeed() {
         boolean shooterUpToSpeed = inputs.leaderShootMotorData.velocity.isNear(
             cachedTargetExitAngularVelocity,
-            RadiansPerSecond.of(12.0)
+            RadiansPerSecond.of(22.0)
         );
 
         Logger.recordOutput("Shooter/UpToSpeed", shooterUpToSpeed);
 
         // TODO: add override
-        boolean isBeingOverrided = false;
-
+        boolean isBeingOverrided = ButtonBindings.operatorController.getRawButton(
+            XboxController.Button.kRightBumper.value
+        );
         if (shooterUpToSpeed || isBeingOverrided) {
             io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
         } else {
             io.stopIndexer();
         }
+    }
+
+    public Command runIndexer() {
+        // return Commands.run(() -> io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED)).andThen(
+        //     io::stopIndexer
+        // );
+        return Commands.run(() -> io.runIndexerDutyCycle(Volts.of(3))).andThen(io::stopIndexer);
     }
 
     /**

@@ -148,7 +148,7 @@ public final class ShooterConstants {
         .withGearing(1)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(35))
+        .withStatorCurrentLimit(Amps.of(45))
         .withOpenLoopRampRate(Seconds.of(0.2))
         .withMomentOfInertia(
             KilogramSquareMeters.of(

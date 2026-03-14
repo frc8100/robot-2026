@@ -394,6 +394,10 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
      * @throws IllegalArgumentException if the new state does not exist in the state machine.
      */
     public boolean scheduleStateChange(TStateEnum newState) {
+        if (currentState.enumType == newState) {
+            return false;
+        }
+
         StateMachineState<TStateEnum> newStateObj = getStateObject(newState);
 
         // If it can change now, change immediately

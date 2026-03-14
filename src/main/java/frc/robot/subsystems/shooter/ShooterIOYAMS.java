@@ -134,7 +134,7 @@ public class ShooterIOYAMS implements ShooterIO {
     @Override
     public void setTargetShootMotorVelocity(AngularVelocity velocity) {
         enableClosedLoopControlShoot();
-        leaderShootMotorWrapped.setVelocity(velocity);
+        leaderShootMotorWrapped.setCustomSetpointVelocity(velocity);
     }
 
     @Override
@@ -164,7 +164,7 @@ public class ShooterIOYAMS implements ShooterIO {
     @Override
     public void setIndexerVelocitySetpoint(AngularVelocity velocity) {
         enableClosedLoopControlIndexer();
-        indexerMotorWrapped.setVelocity(velocity);
+        indexerMotorWrapped.setCustomSetpointVelocity(velocity);
     }
 
     @Override

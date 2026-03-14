@@ -11,9 +11,22 @@
           }
         },
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "RunShooterHighest"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "RunShooterHighest"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "SwerveStop"
+                }
+              }
+            ]
           }
         }
       ]

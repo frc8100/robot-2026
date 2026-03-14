@@ -282,6 +282,8 @@ public class RobotContainer {
         NamedCommands.registerCommands(intakeSubsystem.stateMachine.getNamedCommands());
         // NamedCommands.registerCommand("RunIntakeRoller", intakeSubsystem.runRollerCommand());
         // NamedCommands.registerCommand("StopIntakeRoller", intakeSubsystem.stopRollerCommand());
+
+        NamedCommands.registerCommand("SwerveStop", Commands.run(() -> swerveSubsystem.stop()));
         NamedCommands.registerCommand("RunIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(true)));
         NamedCommands.registerCommand("StopIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
 
@@ -293,7 +295,6 @@ public class RobotContainer {
             shooterSubsystem.setspeedShoot(Shooter.ShooterSpeeds.HIGHEST)
         );
         NamedCommands.registerCommands(shooterSubsystem.stateMachine.getNamedCommands());
-
         NamedCommands.registerCommands(climbSubsystem.stateMachine.getNamedCommands());
 
         Swerve.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);
