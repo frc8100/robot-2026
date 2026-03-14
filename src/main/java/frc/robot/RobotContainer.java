@@ -467,6 +467,8 @@ public class RobotContainer {
 
         // Reset objective
         objectiveIO.resetForAuto();
+
+        swerveSubsystem.zeroYawOffset();
     }
 
     /**

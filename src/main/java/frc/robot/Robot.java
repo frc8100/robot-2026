@@ -157,14 +157,14 @@ public class Robot extends LoggedRobot {
             FuelSim.getInstance().spawnStartingFuel();
         }
 
-        robotContainer.autonomousInit();
-
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         // Schedule the autonomous command
         if (autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(autonomousCommand);
         }
+
+        robotContainer.autonomousInit();
     }
 
     /** This function is called periodically during autonomous. */

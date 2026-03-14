@@ -62,14 +62,31 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 1.479008396641328,
+      "waypointRelativePos": 0.8504598160735722,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 2.1651339464213977,
       "rotationDegrees": 180.0
     }
   ],
   "constraintZones": [
     {
-      "name": "Constraints Zone",
-      "minWaypointRelativePos": 1.0156695156695243,
+      "name": "Depot Intake",
+      "minWaypointRelativePos": 1.1980056980056986,
+      "maxWaypointRelativePos": 2.001424501424503,
+      "constraints": {
+        "maxVelocity": 0.15,
+        "maxAcceleration": 4.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    },
+    {
+      "name": "Depot",
+      "minWaypointRelativePos": 0.8504273504273578,
       "maxWaypointRelativePos": 2.160968660968659,
       "constraints": {
         "maxVelocity": 0.8,
@@ -81,11 +98,11 @@
       }
     },
     {
-      "name": "Constraints Zone",
-      "minWaypointRelativePos": 2.70797720797721,
+      "name": "Shoot",
+      "minWaypointRelativePos": 2.7877492877492855,
       "maxWaypointRelativePos": 3.0,
       "constraints": {
-        "maxVelocity": 0.2,
+        "maxVelocity": 0.3,
         "maxAcceleration": 5.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -131,8 +148,8 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
-    "maxAcceleration": 5.0,
+    "maxVelocity": 2.0,
+    "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,

@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Back Up"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Go To Home And Shoot"
+            "pathName": "Right Back Up"
           }
         },
         {

@@ -26,6 +26,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.MutLinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -37,6 +38,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.ControlConstants;
+import frc.robot.RobotActions;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
@@ -858,6 +860,14 @@ public class Swerve extends SubsystemBase {
             runSpeeds();
             shouldRunSpeedsThisCycle = false;
         }
+
+        Logger.recordOutput(
+            "Swerve/DistanceToHubInches",
+            Units.metersToInches(
+                getPose().getTranslation().getDistance(RobotActions.FieldLocations.HUB.getPose().getTranslation()) -
+                1.03500
+            )
+        );
     }
 
     // Characterization methods
