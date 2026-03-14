@@ -184,7 +184,7 @@ public class ShotCalculator {
     private final InterpolatingDoubleTreeMap correctionTofMap = new InterpolatingDoubleTreeMap();
 
     // Copilot RPM trim (flat offset applied during match)
-    private double rpmOffset = 0;
+    public double rpmOffset = 0;
 
     // Solver state (reused across cycles to avoid allocation)
     private double previousTOF = -1;

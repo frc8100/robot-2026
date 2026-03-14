@@ -99,7 +99,7 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
     /**
      * A trigger that is active when the driver station/robot is disabled.
      */
-    private static final Trigger onDriverStationDisable = new Trigger(DriverStation::isDisabled);
+    public static final Trigger onDriverStationDisable = new Trigger(DriverStation::isDisabled);
 
     /**
      * The current state of the subsystem.

@@ -23,7 +23,7 @@ public class ControlConstants {
     public static final XboxController.Button toggleIntakeDeploy = XboxController.Button.kLeftBumper;
     // public static final XboxController.Button toggleIntakeDeployReverseTest = XboxController.Button.kRightBumper;
 
-    public static final XboxController.Axis runIntakeRollers = XboxController.Axis.kLeftTrigger;
+    public static final XboxController.Button runIntakeRollers = XboxController.Button.kB;
 
     // public static final ButtonBindings.Controller.POVButtonDirection deployClimbButton =
     //     ButtonBindings.Controller.POVButtonDirection.RIGHT;
