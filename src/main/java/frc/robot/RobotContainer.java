@@ -280,9 +280,20 @@ public class RobotContainer {
         );
         NamedCommands.registerCommands(visionSubsystem.stateMachine.getNamedCommands());
         NamedCommands.registerCommands(intakeSubsystem.stateMachine.getNamedCommands());
-        NamedCommands.registerCommand("RunIntakeRoller", intakeSubsystem.runRollerCommand());
-        NamedCommands.registerCommand("StopIntakeRoller", intakeSubsystem.stopRollerCommand());
+        // NamedCommands.registerCommand("RunIntakeRoller", intakeSubsystem.runRollerCommand());
+        // NamedCommands.registerCommand("StopIntakeRoller", intakeSubsystem.stopRollerCommand());
+        NamedCommands.registerCommand("RunIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(true)));
+        NamedCommands.registerCommand("StopIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
+
+        NamedCommands.registerCommand("RunShooterLow", shooterSubsystem.setspeedShoot(Shooter.ShooterSpeeds.LOW));
+        NamedCommands.registerCommand("RunShooterMedium", shooterSubsystem.setspeedShoot(Shooter.ShooterSpeeds.MEDIUM));
+        NamedCommands.registerCommand("RunShooterHigh", shooterSubsystem.setspeedShoot(Shooter.ShooterSpeeds.HIGH));
+        NamedCommands.registerCommand(
+            "RunShooterHighest",
+            shooterSubsystem.setspeedShoot(Shooter.ShooterSpeeds.HIGHEST)
+        );
         NamedCommands.registerCommands(shooterSubsystem.stateMachine.getNamedCommands());
+
         NamedCommands.registerCommands(climbSubsystem.stateMachine.getNamedCommands());
 
         Swerve.configurePathPlannerAutoBuilder(swerveSubsystem, questNavSubsystem);

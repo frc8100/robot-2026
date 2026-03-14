@@ -18,11 +18,13 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.ButtonBindings;
 import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.commands.AimToTarget;
@@ -65,6 +67,19 @@ public class Shooter extends SubsystemBase {
     // Inverse maps
     // private static final InterpolatingDoubleTreeMap motorAngularVelocityToDistanceMap =
     //     ShooterConstants.distanceToMotorAngularVelocityMap.getInverseMap();
+
+    public enum ShooterSpeeds {
+        LOW(ShooterConstants.SHOOTER_MAX_SPEED.times(0.25)),
+        MEDIUM(ShooterConstants.SHOOTER_MAX_SPEED.times(0.5)),
+        HIGH(ShooterConstants.SHOOTER_MAX_SPEED.times(0.75)),
+        HIGHEST(ShooterConstants.SHOOTER_MAX_SPEED);
+
+        public final AngularVelocity speed;
+
+        private ShooterSpeeds(AngularVelocity speed) {
+            this.speed = speed;
+        }
+    }
 
     public enum ShooterState {
         /**
@@ -223,15 +238,53 @@ public class Shooter extends SubsystemBase {
         runIndexerIfShooterAtSpeed();
     }
 
+    public Command setspeedShoot(ShooterSpeeds shooterSpeed) {
+        return new Command() {
+            @Override
+            public void initialize() {
+                // setTargetExitVelocity(shooterSpeed.speed);
+                stateMachine.scheduleStateChange(ShooterState.MANUAL_TARGET_SHOOTING);
+                setTargetExitVelocity(shooterSpeed.speed);
+            }
+
+            @Override
+            public void end(boolean interrupted) {
+                stateMachine.scheduleStateChange(ShooterState.IDLE);
+            }
+        };
+    }
+
     private void handleManualShootState() {
-        setTargetExitVelocity(cachedTargetExitAngularVelocity);
+        boolean usingManualControls = ButtonBindings.operatorController.getRawButton(
+            XboxController.Button.kRightBumper.value
+        );
+
+        double controllerAngle = Math.atan2(
+            -ButtonBindings.operatorController.getRawAxis(XboxController.Axis.kLeftY.value),
+            ButtonBindings.operatorController.getRawAxis(XboxController.Axis.kLeftX.value)
+        );
+
+        if (controllerAngle < 0) {
+            controllerAngle += 2 * Math.PI;
+        }
+
+        Logger.recordOutput("Shooter/ControllerAngle", controllerAngle);
+
+        if (usingManualControls) {
+            double controllerMagnitude = controllerAngle / (Math.PI * 2);
+            AngularVelocity targetVelocity = ShooterConstants.SHOOTER_MAX_SPEED.times(controllerMagnitude);
+            setTargetExitVelocity(targetVelocity);
+        } else {
+            setTargetExitVelocity(cachedTargetExitAngularVelocity);
+        }
+
         runIndexerIfShooterAtSpeed();
     }
 
     public void runIndexerIfShooterAtSpeed() {
         boolean shooterUpToSpeed = inputs.leaderShootMotorData.velocity.isNear(
             cachedTargetExitAngularVelocity,
-            RadiansPerSecond.of(10.0)
+            RadiansPerSecond.of(12.0)
         );
 
         Logger.recordOutput("Shooter/UpToSpeed", shooterUpToSpeed);

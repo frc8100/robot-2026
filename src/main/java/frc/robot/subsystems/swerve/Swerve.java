@@ -19,7 +19,6 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -41,9 +40,7 @@ import frc.robot.ControlConstants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
-import frc.robot.subsystems.shooter.ProjectileSimulator;
-import frc.robot.subsystems.shooter.ShooterConstants;
-import frc.robot.subsystems.shooter.ShotCalculator;
+import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.Module;
@@ -230,7 +227,6 @@ public class Swerve extends SubsystemBase {
     /**
      * Previous setpoints used for {@link #setpointGenerator}.
      */
-    // TODO: temporarily public for testing; make private later
     private SwerveSetpoint moduleStateSetpoint = null;
 
     private ChassisSpeeds setpointSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
@@ -802,36 +798,46 @@ public class Swerve extends SubsystemBase {
 
             SwerveSetpoint moduleStateSetpointWithoutRotation = moduleStateSetpoint;
 
-            for (int i = 0; i < refinementSteps; i++) {
-                moduleStateSetpointWithoutRotation = setpointGenerator.generateSetpoint(
-                    moduleStateSetpointWithoutRotation,
-                    setpointSpeeds,
-                    SwerveConstants.sotmPathConstraints,
-                    Constants.LOOP_PERIOD_SECONDS,
-                    false
-                );
+            // TODO: enable SOTM
+            // for (int i = 0; i < refinementSteps; i++) {
+            //     moduleStateSetpointWithoutRotation = setpointGenerator.generateSetpoint(
+            //         moduleStateSetpointWithoutRotation,
+            //         setpointSpeeds,
+            //         SwerveConstants.sotmPathConstraints,
+            //         Constants.LOOP_PERIOD_SECONDS,
+            //         false
+            //     );
 
-                // Translation2d desiredChassisSpeedAcceleration = new Translation2d(
-                //     moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vxMetersPerSecond -
-                //     moduleStateSetpoint.robotRelativeSpeeds().vxMetersPerSecond,
-                //     moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vyMetersPerSecond -
-                //     moduleStateSetpoint.robotRelativeSpeeds().vyMetersPerSecond
-                // ).div(0.02);
+            //     // Translation2d desiredChassisSpeedAcceleration = new Translation2d(
+            //     //     moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vxMetersPerSecond -
+            //     //     moduleStateSetpoint.robotRelativeSpeeds().vxMetersPerSecond,
+            //     //     moduleStateSetpointWithoutRotation.robotRelativeSpeeds().vyMetersPerSecond -
+            //     //     moduleStateSetpoint.robotRelativeSpeeds().vyMetersPerSecond
+            //     // ).div(0.02);
 
-                autoAim.updateCalculatedResult(
-                    getPose(),
-                    targetPoseToRotateTo,
-                    moduleStateSetpointWithoutRotation.robotRelativeSpeeds(),
-                    getChassisSpeeds(),
-                    // desiredChassisSpeedAcceleration,
-                    setpointSpeeds
-                );
+            //     autoAim.updateCalculatedResult(
+            //         getPose(),
+            //         targetPoseToRotateTo,
+            //         moduleStateSetpointWithoutRotation.robotRelativeSpeeds(),
+            //         getChassisSpeeds(),
+            //         // desiredChassisSpeedAcceleration,
+            //         setpointSpeeds
+            //     );
 
-                // Override the angular velocity setpoint with the auto-aim result
-                setpointSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond();
-                shouldRunSpeedsThisCycle = true;
-                currentConstraints = SwerveConstants.sotmPathConstraints;
-            }
+            //     // Override the angular velocity setpoint with the auto-aim result
+            //     setpointSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond();
+            //     shouldRunSpeedsThisCycle = true;
+            //     currentConstraints = SwerveConstants.sotmPathConstraints;
+            // }
+
+            autoAim.updateCalculatedResult(
+                getPose(),
+                targetPoseToRotateTo,
+                new ChassisSpeeds(),
+                new ChassisSpeeds(),
+                // desiredChassisSpeedAcceleration,
+                new ChassisSpeeds()
+            );
 
             autoAim.latestCalculationResult.log();
             // debug

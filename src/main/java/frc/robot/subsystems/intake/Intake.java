@@ -163,6 +163,8 @@ public class Intake extends SubsystemBase {
     );
     private final MutAngle deploySetpointTestAngle = Degrees.mutable(0.0);
 
+    private boolean isRollersRunning = false;
+
     /**
      * Creates a new Intake subsystem.
      * @param io - The IO interface for the intake subsystem.
@@ -181,6 +183,12 @@ public class Intake extends SubsystemBase {
             io.setDeploySetpoint(deploySetpointTestAngle.mut_replace(deploySetpointTestDegrees.get(), Degrees));
             Logger.recordOutput("Intake/DeploySetpointTest", deploySetpointTestDegrees);
         });
+
+        StateMachine.onDriverStationDisable.onTrue(
+            Commands.runOnce(() -> {
+                isRollersRunning = false;
+            })
+        );
 
         stateMachine.onStateChange(IntakeState.CALIBRATE_RETRACT, this::onCalibrateDeploy);
 
@@ -244,30 +252,9 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * @return A value from 0 to 1 representing the deploy state of the intake for visualization. Goes from 0 to 1 as the intake deploys, and from 1 to 0 as the intake retracts, with a delay to match the time it takes for the intake to deploy/retract in simulation.
-     */
-    private double getDeployStateForVisualization() {
-        // return deployStateFilter.calculate(
-        //     inputs.measuredDeployState == IntakeIO.MeasuredDeployState.DEPLOYED ? 1.0 : 0.0
-        // );
-
-        return MathUtil.inverseInterpolate(
-            IntakeConstants.INTAKE_RETRACTED_ANGLE.baseUnitMagnitude(),
-            IntakeConstants.INTAKE_DEPLOYED_ANGLE.baseUnitMagnitude(),
-            inputs.deployMotorData.positionAngle.baseUnitMagnitude()
-        );
-    }
-
-    /**
      * @return The angle to use for visualization of the intake deploy state.
      */
     public Angle getDeployAngle() {
-        // return deployStateForVisualization.mut_replace(MathUtil.interpolate(
-        //     IntakeConstants.INTAKE_RETRACTED_ANGLE.in(Radians),
-        //     IntakeConstants.INTAKE_DEPLOYED_ANGLE.in(Radians),
-        //     getDeployStateForVisualization()
-        // ), Radians);
-
         return deployStateForVisualization.mut_replace(inputs.deployMotorData.positionAngle);
     }
 
@@ -275,15 +262,23 @@ public class Intake extends SubsystemBase {
      * @return A command to run the roller.
      * No requirement because also run state machine at same time (state machine does not require intake subsystem, so can run at same time as this command)
      */
-    public Command runRollerCommand() {
-        return Commands.run(() -> io.runRollerDutyCycle(IntakeConstants.INTAKE_RUN_SPEED));
-    }
+    // public Command runRollerCommand() {
+    //     return Commands.run(() -> io.runRollerDutyCycle(IntakeConstants.INTAKE_RUN_SPEED));
+    // }
 
     /**
      * @return A command to stop the roller.
      */
-    public Command stopRollerCommand() {
-        return Commands.run(() -> io.runRollerDutyCycle(0));
+    // public Command stopRollerCommand() {
+    //     return Commands.run(() -> io.runRollerDutyCycle(0));
+    // }
+
+    public void toggleRollers() {
+        isRollersRunning = !isRollersRunning;
+    }
+
+    public void setRollers(boolean set) {
+        isRollersRunning = set;
     }
 
     /**
@@ -465,6 +460,12 @@ public class Intake extends SubsystemBase {
         // Update alerts
         intakeDisconnectedAlert.updateConnectionStatus(inputs.rollerMotorConnected);
         deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
+
+        if (isRollersRunning) {
+            io.runRollerDutyCycle(IntakeConstants.INTAKE_RUN_SPEED);
+        } else {
+            io.runRollerDutyCycle(0.0);
+        }
 
         // Visualization
         Logger.recordOutput("Intake/TestVoltOut", testVoltageOutput);

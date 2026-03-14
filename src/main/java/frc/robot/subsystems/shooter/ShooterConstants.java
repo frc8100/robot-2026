@@ -77,7 +77,7 @@ public final class ShooterConstants {
      */
     public static final double INDEXER_OUTPUT = 0.5;
 
-    public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(175);
+    public static final AngularVelocity INDEXER_SPEED = RadiansPerSecond.of(200);
 
     public static final AngularVelocity SHOOTER_MIN_SPEED = RPM.of(1000);
     public static final AngularVelocity SHOOTER_MAX_SPEED = RadiansPerSecond.of(300);
@@ -113,8 +113,8 @@ public final class ShooterConstants {
             RadiansPerSecondPerSecond.per(Second).of(7500)
         )
         // Feedforward Constants
-        // .withFeedforward(new SimpleMotorFeedforward(0.1155, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
-        .withFeedforward(new SimpleMotorFeedforward(0.0, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
+        .withFeedforward(new SimpleMotorFeedforward(0.1155, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
+        // .withFeedforward(new SimpleMotorFeedforward(0.0, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
         .withSimFeedforward(new SimpleMotorFeedforward(0.086627, 0.020285 * 2 * Math.PI, 0.003377 * 2 * Math.PI))
         .withGearing(2)
         // Motor properties to prevent over currenting.
