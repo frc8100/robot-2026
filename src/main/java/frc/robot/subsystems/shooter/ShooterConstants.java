@@ -99,7 +99,7 @@ public final class ShooterConstants {
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
-            0.003,
+            0.005,
             0.0,
             0.0,
             RadiansPerSecondPerSecond.of(750),
@@ -129,7 +129,7 @@ public final class ShooterConstants {
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
-            0.003,
+            0.008,
             0.0,
             0.0,
             RadiansPerSecondPerSecond.of(200),

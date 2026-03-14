@@ -162,6 +162,7 @@ public class Intake extends SubsystemBase {
         IntakeConstants.INTAKE_RETRACTED_ANGLE.in(Degrees)
     );
     private final MutAngle deploySetpointTestAngle = Degrees.mutable(0.0);
+    private final MutAngle deploySetpointTestAngleOffset = Degrees.mutable(0.0);
 
     private boolean isRollersRunning = false;
 
@@ -309,7 +310,7 @@ public class Intake extends SubsystemBase {
      * Called periodically while in the {@link IntakeState#CALIBRATE_RETRACT} state.
      */
     public void handleCalibrateRetract() {
-        runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.175);
+        runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.2);
 
         if (calibrationCompleteTrigger.getAsBoolean()) {
             io.setDeployEncoderPosition(IntakeConstants.INTAKE_RETRACTED_ANGLE);
@@ -398,12 +399,20 @@ public class Intake extends SubsystemBase {
         // return Commands.none();
     }
 
+    public Command changeAngleOffset(Angle change) {
+        return Commands.runOnce(() -> deploySetpointTestAngleOffset.mut_plus(change));
+    }
+
+    public Command setAngleOffset(Angle set) {
+        return Commands.runOnce(() -> deploySetpointTestAngleOffset.mut_replace(set));
+    }
+
     /**
      * Deploys the intake.
      * Called periodically while in the {@link IntakeState#DEPLOYED_RESTING} state by the state machine.
      */
     private void handleDeployRest() {
-        io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE);
+        io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
 
         // io.stopDeploy();
 
@@ -429,7 +438,7 @@ public class Intake extends SubsystemBase {
 
     private void handleTransitionDeploying() {
         // Set the setpoint slightly below the deployed angle so that the motion profile decelerates as it approaches the deployed position, which should help prevent slamming into the hard stop
-        io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE);
+        io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
 
         if (getMeasuredDeployState() == MeasuredDeployState.DEPLOYED) {
             stateMachine.scheduleStateChange(IntakeState.DEPLOYED_RESTING);
@@ -437,7 +446,7 @@ public class Intake extends SubsystemBase {
     }
 
     private void handleTransitionRetracting() {
-        io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE_SETPOINT);
+        io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE_SETPOINT, deploySetpointTestAngleOffset);
 
         if (getMeasuredDeployState() == MeasuredDeployState.RETRACTED) {
             stateMachine.scheduleStateChange(IntakeState.RETRACTED_RESTING);

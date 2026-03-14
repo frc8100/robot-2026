@@ -1,9 +1,11 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -284,12 +286,26 @@ public class ButtonBindings {
         //     .onFalse(shooterSubsystem.runShooterDutyCycle(Volts.zero()));
 
         // RPM offset
+        // operatorController
+        //     .getButtonTrigger(ControlConstants.increaseRPMOffset)
+        //     .onTrue(shooterSubsystem.changeShooterRPMOffset(10.0));
+        // operatorController
+        //     .getButtonTrigger(ControlConstants.decreaseRPMOffset)
+        //     .onTrue(shooterSubsystem.changeShooterRPMOffset(-10.0));
+
+        Angle changeBy = Degrees.of(5);
+
         operatorController
-            .getButtonTrigger(ControlConstants.increaseRPMOffset)
-            .onTrue(shooterSubsystem.changeShooterRPMOffset(10.0));
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
+            .onTrue(intakeSubsystem.changeAngleOffset(changeBy.unaryMinus()));
+
         operatorController
-            .getButtonTrigger(ControlConstants.decreaseRPMOffset)
-            .onTrue(shooterSubsystem.changeShooterRPMOffset(-10.0));
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
+            .onTrue(intakeSubsystem.changeAngleOffset(changeBy));
+
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+            .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()));
         // operatorController
         //     .getButtonTrigger(XboxController.Button.kRightBumper)
         //     .onTrue(

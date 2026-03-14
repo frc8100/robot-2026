@@ -87,7 +87,7 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing((5 * 5 * 22.0) / 15.0))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(9.5, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(440))
+        .withClosedLoopController(12, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(440))
         .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(350), DegreesPerSecondPerSecond.of(425))
         .withClosedLoopTolerance(Degrees.of(1))
         // Feedforward Constants

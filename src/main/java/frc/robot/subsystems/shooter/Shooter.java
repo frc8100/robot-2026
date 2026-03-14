@@ -301,6 +301,7 @@ public class Shooter extends SubsystemBase {
         );
         if (shooterUpToSpeed || isBeingOverrided) {
             io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
+            // io.runIndexerDutyCycle(Volts.of(6));
         } else {
             io.stopIndexer();
         }

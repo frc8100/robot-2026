@@ -67,6 +67,10 @@ public interface IntakeIO {
      * Sets the closed loop setpoint for the deploy motor.
      * @param setpoint - The setpoint to set for the deploy motor.
      */
+    public default void setDeploySetpoint(Angle setpoint, Angle offset) {
+        setDeploySetpoint(setpoint.plus(offset));
+    }
+
     public default void setDeploySetpoint(Angle setpoint) {}
 
     /**
