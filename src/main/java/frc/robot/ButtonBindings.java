@@ -155,6 +155,9 @@ public class ButtonBindings {
      * Creates button bindings for the robot.
      */
     public void configureButtonBindings() {
+        final boolean IS_USING_TWO_CONTROLLERS = true;
+        Controller theOperatorControllerIfOverriden = IS_USING_TWO_CONTROLLERS ? operatorController : driverController;
+
         // Driver controller bindings
         operatorController
             .getButtonTrigger(ControlConstants.mainDriveControls.zeroYawOffsetButton)

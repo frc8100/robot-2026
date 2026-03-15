@@ -6,6 +6,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.HttpCamera;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -132,6 +133,9 @@ public class RobotContainer {
                 climbSubsystem = new Climb(new ClimbIO() {});
 
                 objectiveIO = new ObjectiveIODashboard();
+
+                // HttpCamera limelightPassthrough = new HttpCamera("Limelight", "http://limelight.local:5800/");
+                // CameraServer.startAutomaticCapture(limelightPassthrough);
                 break;
             default:
             case SIM:

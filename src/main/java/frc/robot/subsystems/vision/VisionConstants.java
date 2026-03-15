@@ -160,7 +160,12 @@ public class VisionConstants {
         /**
          * Game piece detection pipeline.
          */
-        DETECTION(1);
+        DETECTION(1),
+
+        /**
+         * Game piece detection pipeline.
+         */
+        DRIVER_CAMERA(3);
 
         /**
          * @return The default pipeline to use. Defaults to {@link #APRILTAG}.

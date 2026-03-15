@@ -123,7 +123,7 @@ public final class ShooterConstants {
         .withVoltageCompensation(Volts.of(12.0))
         .withStatorCurrentLimit(Amps.of(45))
         .withClosedLoopRampRate(Seconds.of(0.1))
-        .withOpenLoopRampRate(Seconds.of(0.2));
+        .withOpenLoopRampRate(Seconds.of(0.15));
 
     public static final SmartMotorControllerConfig indexerMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -148,8 +148,8 @@ public final class ShooterConstants {
         .withGearing(1)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(45))
-        .withOpenLoopRampRate(Seconds.of(0.2))
+        .withStatorCurrentLimit(Amps.of(47))
+        .withOpenLoopRampRate(Seconds.of(0.125))
         .withMomentOfInertia(
             KilogramSquareMeters.of(
                 SingleJointedArmSim.estimateMOI(WHEEL_DIAMETER.in(Meters), Pounds.of(2).in(Kilograms))

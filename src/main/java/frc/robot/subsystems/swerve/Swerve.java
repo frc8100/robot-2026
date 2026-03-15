@@ -19,6 +19,8 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -90,6 +92,22 @@ public class Swerve extends SubsystemBase {
         PathPlannerLogging.setLogTargetPoseCallback(targetPose ->
             Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose)
         );
+    }
+
+    public static SwervePayload getTestAimToHubPayload(Swerve swerveSubsystem) {
+        return SwervePayload.fromPoseSupplierNoRotate(() -> {
+            Pose2d currentPose = swerveSubsystem.getPose();
+
+            Translation2d relative = RobotActions.FieldLocations.HUB.getPose()
+                .getTranslation()
+                .minus(currentPose.getTranslation());
+            double targetAngleRadians = Math.atan2(relative.getY(), relative.getX());
+
+            Pose2d targetPose = new Pose2d(currentPose.getTranslation(), new Rotation2d(targetAngleRadians));
+            targetPose = targetPose.transformBy(new Transform2d(relative.getNorm() - 1.03500, 0.0, Rotation2d.kZero));
+
+            return targetPose;
+        });
     }
 
     /**

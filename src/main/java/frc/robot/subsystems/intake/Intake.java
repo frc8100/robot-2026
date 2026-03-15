@@ -154,8 +154,8 @@ public class Intake extends SubsystemBase {
      * A trigger that is true when the intake deploy motor is stalled which indicates that the intake has hit the hard stop.
      */
     private final Trigger calibrationCompleteTrigger = new Trigger(() ->
-        inputs.deployMotorData.torqueCurrent.gte(Amps.of(26))
-    ).debounce(0.075);
+        inputs.deployMotorData.torqueCurrent.gte(Amps.of(28))
+    ).debounce(0.3);
 
     private final LoggedNetworkNumber deploySetpointTestDegrees = new LoggedNetworkNumber(
         "Intake/DeploySetpointTest",
@@ -440,7 +440,7 @@ public class Intake extends SubsystemBase {
         // Set the setpoint slightly below the deployed angle so that the motion profile decelerates as it approaches the deployed position, which should help prevent slamming into the hard stop
         io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
 
-        if (getMeasuredDeployState() == MeasuredDeployState.DEPLOYED) {
+        if (getMeasuredDeployState() == MeasuredDeployState.DEPLOYED || calibrationCompleteTrigger.getAsBoolean()) {
             stateMachine.scheduleStateChange(IntakeState.DEPLOYED_RESTING);
         }
     }
