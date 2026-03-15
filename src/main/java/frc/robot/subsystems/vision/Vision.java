@@ -135,7 +135,8 @@ public class Vision extends SubsystemBase {
     private void setupBeforeMatch() {
         // Change to apriltag pipeline
         for (VisionIO visionIO : io) {
-            visionIO.setPipeline(VisionConstants.CameraPipelines.APRILTAG);
+            // visionIO.setPipeline(VisionConstants.CameraPipelines.APRILTAG);
+            visionIO.setPipeline(VisionConstants.CameraPipelines.DRIVER_CAMERA);
         }
 
         // Pause quest nav pose consumption while we determine initial pose
@@ -147,7 +148,9 @@ public class Vision extends SubsystemBase {
         for (VisionIO visionIO : io) {
             // visionIO.setPipeline(VisionConstants.CameraPipelines.DETECTION);
             // TODO: game piece
-            visionIO.setPipeline(VisionConstants.CameraPipelines.APRILTAG);
+            // visionIO.setPipeline(VisionConstants.CameraPipelines.APRILTAG);
+
+            visionIO.setPipeline(VisionConstants.CameraPipelines.DRIVER_CAMERA);
         }
 
         // Reset quest nav pose to vision pose

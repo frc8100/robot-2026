@@ -58,7 +58,7 @@ public final class IntakeConstants {
         // Motor properties to prevent over currenting.
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(43))
+        .withStatorCurrentLimit(Amps.of(45))
         .withVoltageCompensation(Volts.of(11.5))
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.2));
@@ -87,7 +87,7 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing((5 * 5 * 22.0) / 15.0))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(12, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(440))
+        .withClosedLoopController(11, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(440))
         .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(350), DegreesPerSecondPerSecond.of(425))
         .withClosedLoopTolerance(Degrees.of(1))
         // Feedforward Constants
@@ -96,6 +96,7 @@ public final class IntakeConstants {
         // V2 = 0.6
         // .withFeedforward(new ArmFeedforward(0.08, 0.68, 0.0, 0.0))
         .withFeedforward(new ArmFeedforward(0.08, 0.68, 1.2022 * 2 * Math.PI, 0.38596 * 2 * Math.PI))
+        // .withFeedforward(new ArmFeedforward(0.08, 0.0, 1.2022 * 2 * Math.PI, 0.38596 * 2 * Math.PI))
         .withSimFeedforward(new ArmFeedforward(0.078431, 0.46875, 0.68997 * 2 * Math.PI, 0.025313 * 2 * Math.PI))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
@@ -104,7 +105,7 @@ public final class IntakeConstants {
         .withOpenLoopRampRate(Seconds.of(0.1));
 
     public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(6.7);
-    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(10);
+    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(16);
     public static final Angle INTAKE_SLIGHTLY_ABOVE_DEPLOYED_ANGLE = INTAKE_DEPLOYED_ANGLE.minus(
         DEPLOY_TARGET_TOLERANCE
     ).plus(Degrees.of(0.05));

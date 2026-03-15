@@ -67,6 +67,8 @@ public class WrappedSpark extends SparkWrapper {
     protected final RelativeEncoder encoder;
     protected final SparkClosedLoopController controller;
 
+    protected boolean isUsingGFeedforward = true;
+
     public WrappedSpark(SparkMax motor, DCMotor model, SmartMotorControllerConfig config) {
         super(motor, model, config);
         this.motor = motor;

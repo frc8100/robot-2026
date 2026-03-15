@@ -159,7 +159,7 @@ public class ButtonBindings {
         Controller theOperatorControllerIfOverriden = IS_USING_TWO_CONTROLLERS ? operatorController : driverController;
 
         // Driver controller bindings
-        operatorController
+        driverController
             .getButtonTrigger(ControlConstants.mainDriveControls.zeroYawOffsetButton)
             .onTrue(Commands.runOnce(swerveSubsystem::zeroYawOffset));
 

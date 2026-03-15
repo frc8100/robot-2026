@@ -126,16 +126,15 @@ public class RobotContainer {
                     )
                 );
 
-                // TODO: replace with real IO implementation when ready
-                intakeSubsystem = new Intake(new IntakeIOYAMS());
-                // intakeSubsystem = new Intake(new IntakeIO() {});
+                // intakeSubsystem = new Intake(new IntakeIOYAMS());
+                intakeSubsystem = new Intake(new IntakeIO() {});
                 shooterSubsystem = new Shooter(new ShooterIOYAMS(), swerveSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
 
                 objectiveIO = new ObjectiveIODashboard();
 
-                // HttpCamera limelightPassthrough = new HttpCamera("Limelight", "http://limelight.local:5800/");
-                // CameraServer.startAutomaticCapture(limelightPassthrough);
+                HttpCamera limelightPassthrough = new HttpCamera("Limelight", "http://limelight.local:5800/");
+                CameraServer.startAutomaticCapture(limelightPassthrough);
                 break;
             default:
             case SIM:

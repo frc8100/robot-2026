@@ -412,9 +412,9 @@ public class Intake extends SubsystemBase {
      * Called periodically while in the {@link IntakeState#DEPLOYED_RESTING} state by the state machine.
      */
     private void handleDeployRest() {
-        io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
+        // io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
 
-        // io.stopDeploy();
+        io.stopDeploy();
 
         if (getMeasuredDeployState() != MeasuredDeployState.DEPLOYED) {
             stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
@@ -429,7 +429,7 @@ public class Intake extends SubsystemBase {
     private void handleRetractRest() {
         // io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
 
-        io.stopDeploy();
+        runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.08);
 
         if (getMeasuredDeployState() != MeasuredDeployState.RETRACTED) {
             stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
