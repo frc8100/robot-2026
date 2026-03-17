@@ -13,6 +13,8 @@
 
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Microseconds;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -190,7 +192,9 @@ public class VisionIOLimelight implements VisionIO {
     @Override
     public void updateInputs(VisionIOInputs inputs) {
         // Update connection status based on whether an update has been seen in the last 500ms
-        inputs.connected = RobotController.getFPGATime() - latencySubscriber.getLastChange() < 0.5;
+        inputs.connected =
+            RobotController.getFPGATime() - latencySubscriber.getLastChange() <
+            VisionConstants.DISCONNECTION_TIMEOUT.in(Microseconds);
 
         double latencySeconds = latencySubscriber.get() * 1.0e-3;
 
