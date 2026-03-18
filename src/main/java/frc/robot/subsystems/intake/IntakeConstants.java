@@ -52,7 +52,8 @@ public final class IntakeConstants {
 
     public static final double INTAKE_RUN_SPEED = 0.95;
 
-    public static final SmartMotorControllerConfig rollerMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
+    public static final SmartMotorControllerConfig rollerMotorConfig = new SmartMotorControllerConfig()
+        .withVendorConfig(WrappedSpark.createDefaultSparkMaxConfig())
         .withControlMode(ControlMode.OPEN_LOOP)
         .withGearing(3)
         // Motor properties to prevent over currenting.
@@ -72,16 +73,8 @@ public final class IntakeConstants {
     public static final Angle INTAKE_RETRACTED_ANGLE_SETPOINT = INTAKE_RETRACTED_ANGLE.minus(Degrees.of(15));
     public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(170);
 
-    // public static final TrapezoidProfile.State retractGoalState = new TrapezoidProfile.State(
-    //     INTAKE_RETRACTED_ANGLE.in(Rotations),
-    //     0
-    // );
-    // public static final TrapezoidProfile.State deployGoalState = new TrapezoidProfile.State(
-    //     INTAKE_DEPLOYED_ANGLE.in(Rotations),
-    //     0
-    // );
-
-    public static final SmartMotorControllerConfig deployMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
+    public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
+        .withVendorConfig(WrappedSpark.createDefaultSparkMaxConfig())
         .withSubsystem(new Subsystem() {})
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withGearing(new MechanismGearing((5 * 5 * 22.0) / 15.0))
@@ -104,7 +97,7 @@ public final class IntakeConstants {
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.1));
 
-    public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(6.7);
+    public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(16);
     public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(16);
     public static final Angle INTAKE_SLIGHTLY_ABOVE_DEPLOYED_ANGLE = INTAKE_DEPLOYED_ANGLE.minus(
         DEPLOY_TARGET_TOLERANCE

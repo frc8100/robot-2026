@@ -98,7 +98,6 @@ public class ShooterIOYAMS implements ShooterIO {
         SparkBaseConfig followerConfig = new SparkMaxConfig().apply(leaderShootMotorWrapped.getSparkConfig());
         followerConfig.follow(leaderShootMotor, true);
         followerShootMotor.configure(followerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-
         enableClosedLoopControlShoot();
     }
 

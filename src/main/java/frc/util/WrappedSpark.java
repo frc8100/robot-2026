@@ -47,8 +47,13 @@ import yams.motorcontrollers.simulation.DCMotorSimSupplier;
 // TODO: rename
 public class WrappedSpark extends SparkWrapper {
 
-    public static SmartMotorControllerConfig createCustomSparkMaxConfig() {
+    /**
+     * @return A default SparkMaxConfig that is optimized for general use with a NEO motor.
+     * Main change is that signals are 20 ms instead of 10 ms to reduce can utilization.
+     */
+    public static SparkMaxConfig createDefaultSparkMaxConfig() {
         SparkMaxConfig sparkConfig = new SparkMaxConfig();
+
         sparkConfig.signals
             .primaryEncoderPositionAlwaysOn(true)
             .primaryEncoderPositionPeriodMs(20)
@@ -56,11 +61,33 @@ public class WrappedSpark extends SparkWrapper {
             .primaryEncoderVelocityPeriodMs(20)
             .appliedOutputPeriodMs(20)
             .busVoltagePeriodMs(20)
-            .outputCurrentPeriodMs(20)
-            // actually this is useless because its on the same status frame and the 20 ms overrides it
-            .motorTemperaturePeriodMs(100);
+            .outputCurrentPeriodMs(20);
 
-        return new SmartMotorControllerConfig().withVendorConfig(sparkConfig);
+        return sparkConfig;
+    }
+
+    /**
+     * @return A custom SparkMaxConfig that is optimized for velocity control of a NEO motor.
+     * See https://www.chiefdelphi.com/t/psa-rev-spark-default-velocity-filtering-is-still-really-bad-for-flywheels/514567 for more details on why this is necessary.
+     */
+    public static SparkMaxConfig createCustomVelocitySparkMaxConfig(boolean hasFollowers) {
+        SparkMaxConfig sparkConfig = createDefaultSparkMaxConfig();
+        sparkConfig.encoder
+            .quadratureAverageDepth(8)
+            .quadratureMeasurementPeriod(32)
+            .uvwAverageDepth(2)
+            .uvwMeasurementPeriod(10);
+
+        // If this motor has followers, reduce period to reduce latency of followers
+        if (hasFollowers) {
+            sparkConfig.signals.appliedOutputPeriodMs(10);
+        }
+
+        return sparkConfig;
+    }
+
+    public static SparkMaxConfig createCustomVelocitySparkMaxConfig() {
+        return createCustomVelocitySparkMaxConfig(false);
     }
 
     protected final SparkMax motor;

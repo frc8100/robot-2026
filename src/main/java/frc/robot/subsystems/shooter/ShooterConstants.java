@@ -96,6 +96,7 @@ public final class ShooterConstants {
 
     // Motor configs
     public static final SmartMotorControllerConfig shootMotorConfig = new SmartMotorControllerConfig()
+        .withVendorConfig(WrappedSpark.createCustomVelocitySparkMaxConfig(true))
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
@@ -120,27 +121,27 @@ public final class ShooterConstants {
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
         .withIdleMode(MotorMode.COAST)
-        .withVoltageCompensation(Volts.of(12.0))
-        .withStatorCurrentLimit(Amps.of(45))
+        .withStatorCurrentLimit(Amps.of(52))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.15));
 
-    public static final SmartMotorControllerConfig indexerMotorConfig = WrappedSpark.createCustomSparkMaxConfig()
+    public static final SmartMotorControllerConfig indexerMotorConfig = new SmartMotorControllerConfig()
+        .withVendorConfig(WrappedSpark.createCustomVelocitySparkMaxConfig())
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
             0.008,
             0.0,
             0.0,
-            RadiansPerSecondPerSecond.of(200),
-            RadiansPerSecondPerSecond.per(Second).of(400)
+            RadiansPerSecondPerSecond.of(400),
+            RadiansPerSecondPerSecond.per(Second).of(800)
         )
         .withSimClosedLoopController(
             0.1,
             0.0,
             0.0,
-            RadiansPerSecondPerSecond.of(200),
-            RadiansPerSecondPerSecond.per(Second).of(400)
+            RadiansPerSecondPerSecond.of(400),
+            RadiansPerSecondPerSecond.per(Second).of(800)
         )
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0.36775, 0.021249 * 2 * Math.PI, 0.0017431 * 2 * Math.PI))
@@ -148,7 +149,7 @@ public final class ShooterConstants {
         .withGearing(1)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(47))
+        .withStatorCurrentLimit(Amps.of(52))
         .withOpenLoopRampRate(Seconds.of(0.125))
         .withMomentOfInertia(
             KilogramSquareMeters.of(

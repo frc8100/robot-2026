@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkBase.Faults;
 import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -37,7 +38,20 @@ public final class SubsystemIOUtil {
      */
     public static class SparkMotorControllerData implements StructSerializable {
 
-        private static final int NUMBER_OF_FIELDS = 6;
+        // Default values for faults and warnings to reduce allocation as they are immutable
+        public static final SparkBase.Faults DEFAULT_FAULTS = new SparkBase.Faults(0);
+        public static final SparkBase.Warnings DEFAULT_WARNINGS = new SparkBase.Warnings(0);
+
+        public static boolean hasFault(SparkBase.Faults faults) {
+            return faults.rawBits != 0;
+        }
+
+        public static boolean hasWarning(SparkBase.Warnings warnings) {
+            return warnings.rawBits != 0;
+        }
+
+        private static final int NUMBER_OF_DOUBLE_FIELDS = 6;
+        private static final int NUMBER_OF_INT_FIELDS = 2;
 
         /**
          * The position of the mechanism. Multiplied by a conversion factor from the motor rotations.
@@ -69,6 +83,16 @@ public final class SubsystemIOUtil {
          * The temperature of the motor. Not simulated.
          */
         public final MutTemperature temperature = Celsius.mutable(0);
+
+        /**
+         * The faults of the motor controller. Not simulated.
+         */
+        protected SparkBase.Faults faults = DEFAULT_FAULTS;
+
+        /**
+         * The warnings of the motor controller. Not simulated.
+         */
+        protected SparkBase.Warnings warnings = DEFAULT_WARNINGS;
 
         /**
          * Creates a new Spark motor controller data object with default values (zeroes).
@@ -108,6 +132,14 @@ public final class SubsystemIOUtil {
             Temperature temperature
         ) {
             mut_replace(positionAngle, setpointAngle, velocity, appliedVolts, torqueCurrent, temperature);
+        }
+
+        public SparkBase.Faults getFaults() {
+            return faults;
+        }
+
+        public SparkBase.Warnings getWarnings() {
+            return warnings;
         }
 
         /**
@@ -170,7 +202,7 @@ public final class SubsystemIOUtil {
 
             @Override
             public int getSize() {
-                return NUMBER_OF_FIELDS * kSizeDouble;
+                return NUMBER_OF_DOUBLE_FIELDS * kSizeDouble + NUMBER_OF_INT_FIELDS * kSizeInt32;
             }
 
             @Override
@@ -181,13 +213,15 @@ public final class SubsystemIOUtil {
                     "double velocityRadPerSec;" +
                     "double appliedVolts;" +
                     "double torqueCurrentAmps;" +
-                    "double temperatureCelsius;"
+                    "double temperatureCelsius;" +
+                    "int faults;" +
+                    "int warnings;"
                 );
             }
 
             @Override
             public SparkMotorControllerData unpack(ByteBuffer bb) {
-                return new SparkMotorControllerData(
+                SparkMotorControllerData output = new SparkMotorControllerData(
                     bb.getDouble(),
                     bb.getDouble(),
                     bb.getDouble(),
@@ -195,6 +229,10 @@ public final class SubsystemIOUtil {
                     bb.getDouble(),
                     bb.getDouble()
                 );
+
+                output.faults = new SparkBase.Faults(bb.getInt());
+                output.warnings = new SparkBase.Warnings(bb.getInt());
+                return output;
             }
 
             @Override
@@ -205,6 +243,8 @@ public final class SubsystemIOUtil {
                 bb.putDouble(data.appliedVolts.in(Volts));
                 bb.putDouble(data.torqueCurrent.in(Amps));
                 bb.putDouble(data.temperature.in(Celsius));
+                bb.putInt(data.faults.rawBits);
+                bb.putInt(data.warnings.rawBits);
             }
         }
     }
@@ -249,6 +289,13 @@ public final class SubsystemIOUtil {
         );
         dataToUpdate.temperature.mut_replace(
             SparkUtil.ifOkElseValue(spark, motorController::getTemperature, Celsius.zero())
+        );
+
+        dataToUpdate.faults = SparkUtil.ifOkElseValue(spark, spark::getFaults, SparkMotorControllerData.DEFAULT_FAULTS);
+        dataToUpdate.warnings = SparkUtil.ifOkElseValue(
+            spark,
+            spark::getWarnings,
+            SparkMotorControllerData.DEFAULT_WARNINGS
         );
 
         return !SparkUtil.hasStickyFault();
@@ -303,6 +350,17 @@ public final class SubsystemIOUtil {
             Celsius
         );
 
+        dataToUpdate.faults = SparkUtil.ifOkElseValue(
+            motorController,
+            motorController::getFaults,
+            SparkMotorControllerData.DEFAULT_FAULTS
+        );
+        dataToUpdate.warnings = SparkUtil.ifOkElseValue(
+            motorController,
+            motorController::getWarnings,
+            SparkMotorControllerData.DEFAULT_WARNINGS
+        );
+
         return !SparkUtil.hasStickyFault();
     }
 
@@ -348,6 +406,17 @@ public final class SubsystemIOUtil {
         dataToUpdate.temperature.mut_replace(
             SparkUtil.ifOkOtherwiseZero(motorController, motorController::getMotorTemperature),
             Celsius
+        );
+
+        dataToUpdate.faults = SparkUtil.ifOkElseValue(
+            motorController,
+            motorController::getFaults,
+            SparkMotorControllerData.DEFAULT_FAULTS
+        );
+        dataToUpdate.warnings = SparkUtil.ifOkElseValue(
+            motorController,
+            motorController::getWarnings,
+            SparkMotorControllerData.DEFAULT_WARNINGS
         );
 
         return !SparkUtil.hasStickyFault();

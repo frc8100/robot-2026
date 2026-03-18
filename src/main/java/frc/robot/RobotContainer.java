@@ -126,8 +126,8 @@ public class RobotContainer {
                     )
                 );
 
-                // intakeSubsystem = new Intake(new IntakeIOYAMS());
-                intakeSubsystem = new Intake(new IntakeIO() {});
+                intakeSubsystem = new Intake(new IntakeIOYAMS());
+                // intakeSubsystem = new Intake(new IntakeIO() {});
                 shooterSubsystem = new Shooter(new ShooterIOYAMS(), swerveSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
 

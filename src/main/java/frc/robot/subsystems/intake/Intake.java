@@ -414,7 +414,9 @@ public class Intake extends SubsystemBase {
     private void handleDeployRest() {
         // io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
 
-        io.stopDeploy();
+        // io.stopDeploy();
+
+        runDeployDutyCycle(IntakeDeployDirection.DEPLOYING, 0.05);
 
         if (getMeasuredDeployState() != MeasuredDeployState.DEPLOYED) {
             stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);

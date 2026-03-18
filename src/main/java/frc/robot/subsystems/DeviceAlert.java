@@ -20,7 +20,7 @@ public class DeviceAlert {
     /**
      * The default debounce time for CAN connection alerts.
      */
-    public static final Time DEFAULT_DEBOUNCE_TIME = Seconds.of(0.5);
+    public static final Time DEFAULT_DEBOUNCE_TIME = Seconds.of(0.2);
 
     /**
      * The default alert type for CAN connection alerts.
@@ -44,7 +44,7 @@ public class DeviceAlert {
     /**
      * The alert to be triggered on disconnection.
      */
-    private final Alert disconnectionAlert;
+    protected final Alert disconnectionAlert;
 
     /**
      * The CAN ID of the device being monitored.
