@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.subsystems.DeviceAlert;
+import frc.robot.subsystems.SparkAlert;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import org.littletonrobotics.junction.Logger;
@@ -137,8 +138,16 @@ public class Intake extends SubsystemBase {
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
     // Alerts for disconnected motors
-    private final DeviceAlert intakeDisconnectedAlert = new DeviceAlert(CANIdConstants.ROLLER_MOTOR_ID, "IntakeMotor");
-    private final DeviceAlert deployDisconnectedAlert = new DeviceAlert(CANIdConstants.DEPLOY_MOTOR_ID, "DeployMotor");
+    private final DeviceAlert rollerDisconnectedAlert = new SparkAlert(
+        () -> inputs.rollerMotorData,
+        CANIdConstants.ROLLER_MOTOR_ID,
+        "IntakeMotor"
+    );
+    private final DeviceAlert deployDisconnectedAlert = new SparkAlert(
+        () -> inputs.deployMotorData,
+        CANIdConstants.DEPLOY_MOTOR_ID,
+        "DeployMotor"
+    );
 
     // Deploy state visualization
     private final LinearFilter deployStateFilter = LinearFilter.movingAverage(
@@ -469,7 +478,7 @@ public class Intake extends SubsystemBase {
         Logger.processInputs("Intake", inputs);
 
         // Update alerts
-        intakeDisconnectedAlert.updateConnectionStatus(inputs.rollerMotorConnected);
+        rollerDisconnectedAlert.updateConnectionStatus(inputs.rollerMotorConnected);
         deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
 
         if (isRollersRunning) {

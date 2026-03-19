@@ -29,6 +29,7 @@ import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.subsystems.DeviceAlert;
+import frc.robot.subsystems.SparkAlert;
 import frc.robot.subsystems.intake.Intake.IntakeState;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
@@ -129,15 +130,18 @@ public class Shooter extends SubsystemBase {
     private final SysIdRoutine shooterSysidRoutine;
 
     // Alerts for disconnected motors
-    private final DeviceAlert indexerDisconnectedAlert = new DeviceAlert(
+    private final DeviceAlert indexerDisconnectedAlert = new SparkAlert(
+        () -> inputs.indexerMotorData,
         CANIdConstants.INDEXER_MOTOR_ID,
         "IndexShootMotor"
     );
-    private final DeviceAlert leaderDisconnectedAlert = new DeviceAlert(
+    private final DeviceAlert leaderDisconnectedAlert = new SparkAlert(
+        () -> inputs.leaderShootMotorData,
         CANIdConstants.LEFT_SHOOTER_MOTOR_ID,
         "LeftShootMotor"
     );
-    private final DeviceAlert followerDisconnectedAlert = new DeviceAlert(
+    private final DeviceAlert followerDisconnectedAlert = new SparkAlert(
+        () -> inputs.followerShootMotorData,
         CANIdConstants.RIGHT_SHOOTER_MOTOR_ID,
         "RightShootMotor"
     );

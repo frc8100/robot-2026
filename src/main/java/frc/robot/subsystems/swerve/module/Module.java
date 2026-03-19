@@ -25,6 +25,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import frc.robot.CANIdConstants;
 import frc.robot.subsystems.DeviceAlert;
+import frc.robot.subsystems.SparkAlert;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import org.littletonrobotics.junction.Logger;
 
@@ -68,8 +69,16 @@ public class Module {
 
         CANIdConstants.SwerveModuleCanIDs canIds = CANIdConstants.getModuleCANIdsFromIndex(index);
 
-        driveDisconnectedAlert = new DeviceAlert(canIds.driveMotorID(), "DriveMotor" + Integer.toString(index));
-        turnDisconnectedAlert = new DeviceAlert(canIds.angleMotorID(), "TurnMotor" + Integer.toString(index));
+        driveDisconnectedAlert = new SparkAlert(
+            () -> inputs.driveMotorData,
+            canIds.driveMotorID(),
+            "DriveMotor" + Integer.toString(index)
+        );
+        turnDisconnectedAlert = new SparkAlert(
+            () -> inputs.turnMotorData,
+            canIds.angleMotorID(),
+            "TurnMotor" + Integer.toString(index)
+        );
         cancoderDisconnectedAlert = new DeviceAlert(canIds.canCoderID(), "CANCoder" + Integer.toString(index));
     }
 

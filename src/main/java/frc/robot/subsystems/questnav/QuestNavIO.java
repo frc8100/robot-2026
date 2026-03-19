@@ -17,7 +17,7 @@ public interface QuestNavIO {
          * True if the QuestNav is connected.
          * See {@link QuestNav#isConnected}.
          */
-        public boolean connected = false;
+        public boolean connected = true;
 
         /**
          * True if the QuestNav is currently tracking.

@@ -10,6 +10,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CANIdConstants;
 import frc.robot.subsystems.DeviceAlert;
+import frc.robot.subsystems.SparkAlert;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import org.littletonrobotics.junction.Logger;
@@ -97,11 +98,13 @@ public class Climb extends SubsystemBase {
     private final ClimbIOInputsAutoLogged inputs = new ClimbIOInputsAutoLogged();
 
     // Alerts
-    private final DeviceAlert leftDisconnectedAlert = new DeviceAlert(
+    private final DeviceAlert leftDisconnectedAlert = new SparkAlert(
+        () -> inputs.leftClimbMotorData,
         CANIdConstants.LEFT_CLIMB_MOTOR_ID,
         "LeftClimbMotor"
     );
-    private final DeviceAlert rightDisconnectedAlert = new DeviceAlert(
+    private final DeviceAlert rightDisconnectedAlert = new SparkAlert(
+        () -> inputs.rightClimbMotorData,
         CANIdConstants.RIGHT_CLIMB_MOTOR_ID,
         "RightClimbMotor"
     );
