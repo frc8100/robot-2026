@@ -22,7 +22,7 @@ public class SparkAlert extends DeviceAlert {
         alertMessageBuilder.append("[Faults: ");
 
         if (faults.motorType) {
-            alertMessageBuilder.append("Motor Type, ");
+            alertMessageBuilder.append("MotorType, ");
         }
         if (faults.sensor) {
             alertMessageBuilder.append("Sensor, ");
@@ -34,11 +34,11 @@ public class SparkAlert extends DeviceAlert {
             alertMessageBuilder.append("Temperature, ");
         }
         if (faults.gateDriver) {
-            alertMessageBuilder.append("Gate Driver, ");
+            alertMessageBuilder.append("GateDriver, ");
         }
         // TODO: what does this mean
         if (faults.escEeprom) {
-            alertMessageBuilder.append("ESC EEPROM, ");
+            alertMessageBuilder.append("ESC_EEPROM, ");
         }
         if (faults.firmware) {
             alertMessageBuilder.append("Firmware, ");
@@ -64,10 +64,10 @@ public class SparkAlert extends DeviceAlert {
             alertMessageBuilder.append("Overcurrent, ");
         }
         if (warnings.escEeprom) {
-            alertMessageBuilder.append("ESC EEPROM, ");
+            alertMessageBuilder.append("ESC_EEPROM, ");
         }
         if (warnings.extEeprom) {
-            alertMessageBuilder.append("External EEPROM, ");
+            alertMessageBuilder.append("ExternalEEPROM, ");
         }
         if (warnings.sensor) {
             alertMessageBuilder.append("Sensor, ");
@@ -76,7 +76,7 @@ public class SparkAlert extends DeviceAlert {
             alertMessageBuilder.append("Stall, ");
         }
         if (warnings.hasReset) {
-            alertMessageBuilder.append("Has Reset, ");
+            alertMessageBuilder.append("HasReset, ");
         }
         if (warnings.other) {
             alertMessageBuilder.append("Other, ");

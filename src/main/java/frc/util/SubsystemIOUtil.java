@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.Faults;
@@ -24,6 +25,10 @@ import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
 import frc.robot.Constants;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Queue;
 import yams.motorcontrollers.local.SparkWrapper;
 
 /**
@@ -42,6 +47,8 @@ public final class SubsystemIOUtil {
         public static final SparkBase.Faults DEFAULT_FAULTS = new SparkBase.Faults(0);
         public static final SparkBase.Warnings DEFAULT_WARNINGS = new SparkBase.Warnings(0);
 
+        private static final int NUMBER_OF_ERRORS_STORED = 4;
+
         public static boolean hasFault(SparkBase.Faults faults) {
             return faults.rawBits != 0;
         }
@@ -50,8 +57,18 @@ public final class SubsystemIOUtil {
             return warnings.rawBits != 0;
         }
 
-        private static final int NUMBER_OF_DOUBLE_FIELDS = 6;
-        private static final int NUMBER_OF_INT_FIELDS = 2;
+        /**
+         * A mapping of REVLibErrors to their string descriptions for logging purposes.
+         * String descriptions are in PascalCase and match the enum names without the leading "k".
+         * For example, REVLibError.kOk maps to "Ok", REVLibError.kSensorFault maps to "SensorFault", etc.
+         */
+        public static final Map<REVLibError, String> ERROR_DESCRIPTIONS = new EnumMap<>(REVLibError.class);
+
+        static {
+            for (REVLibError error : REVLibError.values()) {
+                ERROR_DESCRIPTIONS.put(error, error.toString().substring(1));
+            }
+        }
 
         /**
          * The position of the mechanism. Multiplied by a conversion factor from the motor rotations.
@@ -94,6 +111,8 @@ public final class SubsystemIOUtil {
          */
         protected SparkBase.Warnings warnings = DEFAULT_WARNINGS;
 
+        public final Queue<REVLibError> errorHistory = new ArrayDeque<>(NUMBER_OF_ERRORS_STORED);
+
         /**
          * Creates a new Spark motor controller data object with default values (zeroes).
          */
@@ -110,6 +129,7 @@ public final class SubsystemIOUtil {
             double torqueCurrentAmps,
             double temperatureCelsius
         ) {
+            this();
             mut_replace(
                 positionAngleRad,
                 setpointAngleRad,
@@ -131,6 +151,7 @@ public final class SubsystemIOUtil {
             Current torqueCurrent,
             Temperature temperature
         ) {
+            this();
             mut_replace(positionAngle, setpointAngle, velocity, appliedVolts, torqueCurrent, temperature);
         }
 
@@ -190,6 +211,26 @@ public final class SubsystemIOUtil {
          */
         public static class SparkMotorControllerDataStruct implements Struct<SparkMotorControllerData> {
 
+            private static final String SCHEMA;
+
+            static {
+                StringBuilder sb = new StringBuilder();
+                sb.append("double positionAngleRad;");
+                sb.append("double setpointAngleRad;");
+                sb.append("double velocityRadPerSec;");
+                sb.append("double appliedVolts;");
+                sb.append("double torqueCurrentAmps;");
+                sb.append("double temperatureCelsius;");
+                sb.append("int faults;");
+                sb.append("int warnings;");
+
+                for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
+                    sb.append("byte error").append(i).append(";");
+                }
+
+                SCHEMA = sb.toString();
+            }
+
             @Override
             public Class<SparkMotorControllerData> getTypeClass() {
                 return SparkMotorControllerData.class;
@@ -202,21 +243,12 @@ public final class SubsystemIOUtil {
 
             @Override
             public int getSize() {
-                return NUMBER_OF_DOUBLE_FIELDS * kSizeDouble + NUMBER_OF_INT_FIELDS * kSizeInt32;
+                return 6 * kSizeDouble + 3 * kSizeInt32 + NUMBER_OF_ERRORS_STORED * kSizeInt8;
             }
 
             @Override
             public String getSchema() {
-                return (
-                    "double positionAngleRad;" +
-                    "double setpointAngleRad;" +
-                    "double velocityRadPerSec;" +
-                    "double appliedVolts;" +
-                    "double torqueCurrentAmps;" +
-                    "double temperatureCelsius;" +
-                    "int faults;" +
-                    "int warnings;"
-                );
+                return SCHEMA;
             }
 
             @Override
@@ -232,6 +264,11 @@ public final class SubsystemIOUtil {
 
                 output.faults = new SparkBase.Faults(bb.getInt());
                 output.warnings = new SparkBase.Warnings(bb.getInt());
+
+                for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
+                    output.errorHistory.offer(REVLibError.fromInt(bb.get()));
+                }
+
                 return output;
             }
 
@@ -245,8 +282,37 @@ public final class SubsystemIOUtil {
                 bb.putDouble(data.temperature.in(Celsius));
                 bb.putInt(data.faults.rawBits);
                 bb.putInt(data.warnings.rawBits);
+
+                for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
+                    REVLibError error = data.errorHistory.poll();
+
+                    if (error == null) {
+                        error = REVLibError.kOk;
+                    }
+
+                    bb.put((byte) error.value);
+                }
             }
         }
+    }
+
+    /**
+     * Updates only the errors in the data from a Spark motor controller.
+     * @param dataToUpdate - The data to update. Modifies the faults, warnings, and errors fields of the data.
+     * @param motorController - The motor controller to get data from.
+     */
+    private static void updateErrorsFromSpark(SparkMotorControllerData dataToUpdate, SparkBase motorController) {
+        dataToUpdate.faults = SparkUtil.ifOkElseValue(
+            motorController,
+            motorController::getFaults,
+            SparkMotorControllerData.DEFAULT_FAULTS
+        );
+        dataToUpdate.warnings = SparkUtil.ifOkElseValue(
+            motorController,
+            motorController::getWarnings,
+            SparkMotorControllerData.DEFAULT_WARNINGS
+        );
+        // TODO: add errors to dataToUpdate.errors
     }
 
     /**
@@ -291,12 +357,7 @@ public final class SubsystemIOUtil {
             SparkUtil.ifOkElseValue(spark, motorController::getTemperature, Celsius.zero())
         );
 
-        dataToUpdate.faults = SparkUtil.ifOkElseValue(spark, spark::getFaults, SparkMotorControllerData.DEFAULT_FAULTS);
-        dataToUpdate.warnings = SparkUtil.ifOkElseValue(
-            spark,
-            spark::getWarnings,
-            SparkMotorControllerData.DEFAULT_WARNINGS
-        );
+        updateErrorsFromSpark(dataToUpdate, spark);
 
         return !SparkUtil.hasStickyFault();
     }
@@ -350,16 +411,7 @@ public final class SubsystemIOUtil {
             Celsius
         );
 
-        dataToUpdate.faults = SparkUtil.ifOkElseValue(
-            motorController,
-            motorController::getFaults,
-            SparkMotorControllerData.DEFAULT_FAULTS
-        );
-        dataToUpdate.warnings = SparkUtil.ifOkElseValue(
-            motorController,
-            motorController::getWarnings,
-            SparkMotorControllerData.DEFAULT_WARNINGS
-        );
+        updateErrorsFromSpark(dataToUpdate, motorController);
 
         return !SparkUtil.hasStickyFault();
     }
@@ -408,17 +460,7 @@ public final class SubsystemIOUtil {
             Celsius
         );
 
-        dataToUpdate.faults = SparkUtil.ifOkElseValue(
-            motorController,
-            motorController::getFaults,
-            SparkMotorControllerData.DEFAULT_FAULTS
-        );
-        dataToUpdate.warnings = SparkUtil.ifOkElseValue(
-            motorController,
-            motorController::getWarnings,
-            SparkMotorControllerData.DEFAULT_WARNINGS
-        );
-
+        updateErrorsFromSpark(dataToUpdate, motorController);
         return !SparkUtil.hasStickyFault();
     }
 }
