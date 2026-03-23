@@ -59,7 +59,7 @@ public final class IntakeConstants {
         // Motor properties to prevent over currenting.
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(45))
+        .withStatorCurrentLimit(Amps.of(47))
         .withVoltageCompensation(Volts.of(11.5))
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.2));
@@ -80,8 +80,8 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing((5 * 5 * 22.0) / 15.0))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(11, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(440))
-        .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(350), DegreesPerSecondPerSecond.of(425))
+        .withClosedLoopController(11, 0.0, 0.0, DegreesPerSecond.of(400), DegreesPerSecondPerSecond.of(500))
+        .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(400), DegreesPerSecondPerSecond.of(500))
         .withClosedLoopTolerance(Degrees.of(1))
         // Feedforward Constants
         // See https://docs.revrobotics.com/revlib/spark/closed-loop/feed-forward-control#manually-finding-kcos-and-ks-for-an-arm
@@ -93,7 +93,7 @@ public final class IntakeConstants {
         .withSimFeedforward(new ArmFeedforward(0.078431, 0.46875, 0.68997 * 2 * Math.PI, 0.025313 * 2 * Math.PI))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
-        .withStatorCurrentLimit(Amps.of(34))
+        .withStatorCurrentLimit(Amps.of(32))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.1));
 

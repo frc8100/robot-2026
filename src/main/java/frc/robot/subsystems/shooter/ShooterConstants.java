@@ -68,11 +68,6 @@ public final class ShooterConstants {
     public static final Rotation2d exitAngle = Rotation2d.fromDegrees(53.0);
 
     /**
-     * The acceleration due to gravity to use in fuel trajectory calculations.
-     */
-    public static final LinearAcceleration g = Gs.of(1);
-
-    /**
      * The duty cycle to run the indexer at when feeding fuel into the shooter between [0, 1].
      */
     public static final double INDEXER_OUTPUT = 0.5;
@@ -193,35 +188,4 @@ public final class ShooterConstants {
 
     public static final AngularVelocity SIMULATION_INDEXER_VELOCITY_AT_MAX_OUTPUT = INDEXER_SPEED;
     public static final double SIMULATION_MAX_FUEL_PER_SECOND = 8.5 / 2.0;
-
-    // Characterization constants
-    /**
-     * A map of distance to target in meters to required shooter motor velocity in radians per second.
-     */
-    public static final InvertibleInterpolatingDoubleTreeMap distanceToMotorAngularVelocityMap =
-        new InvertibleInterpolatingDoubleTreeMap();
-
-    /**
-     * Data for populating the shooter distance to velocity map.
-     * - First column: distance to target in meters
-     * - Second column: required shooter velocity in radians per second
-     */
-    // TODO: fill in with real data
-    private static final double[] shooterMapData = {
-        // @formatter:off
-        0.0, 0.0,
-        1.0, 50,
-        2.0, 120,
-        3.0, 200,
-        4.0, 300,
-        5.0, 450,
-        6.0, 600,
-        // @formatter:on
-    };
-
-    static {
-        for (int i = 0; i < shooterMapData.length; i += 2) {
-            distanceToMotorAngularVelocityMap.put(shooterMapData[i], shooterMapData[i + 1]);
-        }
-    }
 }

@@ -53,21 +53,11 @@ public class Shooter extends SubsystemBase {
         ShotCalculator shotCalculator,
         AngularVelocity motorAngularVelocity
     ) {
-        // double predictedDistanceMeters = motorAngularVelocityToDistanceMap.get(
-        //     motorAngularVelocity.in(RadiansPerSecond)
-        // );
-
-        // return AimToTarget.distanceToExitVelocityMap.get(predictedDistanceMeters);
-
         return (
             shotCalculator.getRpmMap().getInverseMap().get(motorAngularVelocity.in(RPM)) /
             (shotCalculator.getTofMap().getInverseMap().get(motorAngularVelocity.in(RPM)))
         );
     }
-
-    // Inverse maps
-    // private static final InterpolatingDoubleTreeMap motorAngularVelocityToDistanceMap =
-    //     ShooterConstants.distanceToMotorAngularVelocityMap.getInverseMap();
 
     public enum ShooterSpeeds {
         LOW(ShooterConstants.SHOOTER_MAX_SPEED.times(0.25)),
@@ -239,7 +229,7 @@ public class Shooter extends SubsystemBase {
      */
     private void handleShootState() {
         setTargetExitVelocityToTarget();
-        runIndexerIfShooterAtSpeed();
+        runIndexerIfShooterAtSpeed(true);
     }
 
     public Command setspeedShoot(ShooterSpeeds shooterSpeed) {
@@ -288,10 +278,13 @@ public class Shooter extends SubsystemBase {
             setTargetExitVelocity(cachedTargetExitAngularVelocity);
         }
 
-        runIndexerIfShooterAtSpeed();
+        runIndexerIfShooterAtSpeed(false);
     }
 
-    public void runIndexerIfShooterAtSpeed() {
+    /**
+     * Runs the indexer if the shooter is up to speed or if the operator is holding the override button.
+     */
+    public void runIndexerIfShooterAtSpeed(boolean shouldUseAimCalculation) {
         boolean shooterUpToSpeed = inputs.leaderShootMotorData.velocity.isNear(
             cachedTargetExitAngularVelocity,
             RadiansPerSecond.of(22.0)
@@ -303,7 +296,13 @@ public class Shooter extends SubsystemBase {
         boolean isBeingOverrided = ButtonBindings.operatorController.getRawButton(
             XboxController.Button.kRightBumper.value
         );
-        if (shooterUpToSpeed || isBeingOverrided) {
+
+        boolean autoAimCalculation =
+            (!shouldUseAimCalculation
+                    ? true
+                    : swerveSubsystem.autoAim.latestCalculationResult.result.confidence() > 50);
+
+        if ((shooterUpToSpeed || isBeingOverrided) && autoAimCalculation) {
             io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
             // io.runIndexerDutyCycle(Volts.of(6));
         } else {
@@ -311,12 +310,12 @@ public class Shooter extends SubsystemBase {
         }
     }
 
-    public Command runIndexer() {
-        // return Commands.run(() -> io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED)).andThen(
-        //     io::stopIndexer
-        // );
-        return Commands.run(() -> io.runIndexerDutyCycle(Volts.of(3))).andThen(io::stopIndexer);
-    }
+    // public Command runIndexer() {
+    //     // return Commands.run(() -> io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED)).andThen(
+    //     //     io::stopIndexer
+    //     // );
+    //     return Commands.run(() -> io.runIndexerDutyCycle(Volts.of(3))).andThen(io::stopIndexer);
+    // }
 
     /**
      * Predicts the trajectory of a fuel based on the current shooter exit velocity, angle, and robot velocity. Also predicts whether the fuel would score in the hub.

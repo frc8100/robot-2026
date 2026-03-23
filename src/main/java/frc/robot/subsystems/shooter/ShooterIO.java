@@ -18,25 +18,27 @@ public interface ShooterIO {
     @AutoLog
     public static class ShooterIOInputs {
 
-        // Motor controller data for the intake motor
+        // Shoot motor data
         public SparkMotorControllerData leaderShootMotorData = new SparkMotorControllerData();
         public boolean leaderShootMotorConnected = true;
 
         public SparkMotorControllerData followerShootMotorData = new SparkMotorControllerData();
         public boolean followerShootMotorConnected = true;
 
+        // Setpoint info
         public MutAngularVelocity shootSetpoint = RadiansPerSecond.mutable(0.0);
         public MutAngularVelocity shootSetpointProfiled = RadiansPerSecond.mutable(0.0);
         public MutAngularAcceleration shootSetpointAcceleration = RadiansPerSecondPerSecond.mutable(0.0);
 
+        // Indexer motor data
         public SparkMotorControllerData indexerMotorData = new SparkMotorControllerData();
         public boolean indexerMotorConnected = true;
 
         public MutAngularVelocity indexerSetpointProfiled = RadiansPerSecond.mutable(0.0);
         public MutAngularAcceleration indexerSetpointAcceleration = RadiansPerSecondPerSecond.mutable(0.0);
 
+        // Beam breaker data
         public boolean beamBreakerConnected = true;
-        // TODO: use this
         public boolean isFuelDetectedAtTopOfIndexer = false;
     }
 
@@ -60,10 +62,21 @@ public interface ShooterIO {
      */
     public default void runShooterDutyCycle(Voltage dutyCycleOutput) {}
 
+    /**
+     * Runs the indexer with a duty cycle output.
+     * @param dutyCycleOutput - The duty cycle output in voltage.
+     */
     public default void runIndexerDutyCycle(Voltage dutyCycleOutput) {}
 
+    /**
+     * Stops the indexer.
+     */
     public default void stopIndexer() {}
 
+    /**
+     * Sets the target velocity for the indexer.
+     * @param velocity - The target velocity in radians per second.
+     */
     public default void setIndexerVelocitySetpoint(AngularVelocity velocity) {}
 
     /**
