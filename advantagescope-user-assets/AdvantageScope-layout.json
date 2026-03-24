@@ -18,7 +18,6 @@
             "/AdvantageKit/Drive/Module1/OdometryTurnPositions/0",
             "/AdvantageKit/Drive/Module1/OdometryTurnPositions/1",
             "/AdvantageKit/RealOutputs/Align",
-            "/RealOutputs/Odometry",
             "/RealOutputs/Odometry/Field",
             "/RealOutputs/Swerve",
             "/RealOutputs/Swerve/Mod0",
@@ -64,10 +63,7 @@
             "/SmartDashboard/MapleSim/MatchData/Breakdown/Red Alliance",
             "/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds",
             "/AdvantageKit/RealOutputs/AP",
-            "/RealOutputs/Odometry/Robot",
             "/RealOutputs/Odometry/Robot/rotation",
-            "/DriverStation",
-            "/NetworkInputs",
             "/NetworkInputs/SmartDashboard",
             "/RadioStatus",
             "/PowerDistribution",
@@ -110,19 +106,25 @@
             "/AdvantageKit/DriverStation/Joystick0/POVs",
             "/AdvantageKit/DriverStation/Joystick1",
             "/AdvantageKit/RealOutputs",
-            "/Shooter",
-            "/Shooter/IndexerMotorData",
             "/Shooter/ShootMotorData",
             "/AdvantageKit/Shooter/ShootMotorData",
             "/AdvantageKit/RealOutputs/ObjectiveTracker",
             "/AdvantageKit/Objective",
             "/AdvantageKit/Objective/CurrentShiftMode",
             "/SmartDashboard/InitialActiveHubOverride",
-            "/AdvantageKit/Objective/NextShiftMode"
+            "/AdvantageKit/Objective/NextShiftMode",
+            "/AdvantageKit/RealOutputs/StateMachines",
+            "/Shooter/LeaderShootMotorData",
+            "/Shooter/FollowerShootMotorData",
+            "/RealOutputs",
+            "/SystemStats/NTClients",
+            "/SystemStats/NTClients/SmartDashboard-NT3@10.81.0.200/62410",
+            "/SystemStats/NTClients/AdvantageScope@2",
+            "/RealOutputs/Odometry"
           ]
         },
         "tabs": {
-          "selected": 3,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -139,7 +141,7 @@
                 "sources": [
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Field",
+                    "logKey": "/RealOutputs/Odometry/Field",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -148,7 +150,7 @@
                   },
                   {
                     "type": "robot",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+                    "logKey": "/RealOutputs/Odometry/Robot",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -157,7 +159,7 @@
                   },
                   {
                     "type": "vision",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
+                    "logKey": "/RealOutputs/Vision/Summary/TagPoses",
                     "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
@@ -167,7 +169,7 @@
                   },
                   {
                     "type": "swerveStates",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Measured",
+                    "logKey": "/RealOutputs/Swerve/States/Measured",
                     "logType": "SwerveModuleState[]",
                     "visible": true,
                     "options": {
@@ -196,7 +198,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/TargetRotationAsPose",
+                    "logKey": "/RealOutputs/AimToTarget/TargetRotationAsPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -205,7 +207,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/LookaheadPose",
+                    "logKey": "/RealOutputs/AimToTarget/LookaheadPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -214,7 +216,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/FutureLookaheadPose",
+                    "logKey": "/RealOutputs/AimToTarget/FutureLookaheadPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -237,14 +239,14 @@
                 "sources": [
                   {
                     "type": "rotation",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Field/rotation",
+                    "logKey": "/RealOutputs/Odometry/Field/rotation",
                     "logType": "Rotation2d",
                     "visible": true,
                     "options": {}
                   },
                   {
                     "type": "states",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Measured",
+                    "logKey": "/RealOutputs/Swerve/States/Measured",
                     "logType": "SwerveModuleState[]",
                     "visible": true,
                     "options": {
@@ -254,7 +256,7 @@
                   },
                   {
                     "type": "states",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Setpoints",
+                    "logKey": "/RealOutputs/Swerve/States/Setpoints",
                     "logType": "SwerveModuleState[]",
                     "visible": true,
                     "options": {
@@ -264,7 +266,7 @@
                   },
                   {
                     "type": "chassisSpeeds",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Measured",
+                    "logKey": "/RealOutputs/Swerve/ChassisSpeeds/Measured",
                     "logType": "ChassisSpeeds",
                     "visible": true,
                     "options": {
@@ -273,7 +275,7 @@
                   },
                   {
                     "type": "chassisSpeeds",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/Setpoints",
+                    "logKey": "/RealOutputs/Swerve/ChassisSpeeds/Setpoints",
                     "logType": "ChassisSpeeds",
                     "visible": true,
                     "options": {
@@ -282,7 +284,7 @@
                   },
                   {
                     "type": "chassisSpeeds",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ChassisSpeeds/SetpointsRaw",
+                    "logKey": "/RealOutputs/Swerve/ChassisSpeeds/SetpointsRaw",
                     "logType": "ChassisSpeeds",
                     "visible": true,
                     "options": {
@@ -306,7 +308,7 @@
                 "sources": [
                   {
                     "type": "robot",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+                    "logKey": "/RealOutputs/Odometry/Robot",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -315,7 +317,7 @@
                   },
                   {
                     "type": "vision",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
+                    "logKey": "/RealOutputs/Vision/Summary/TagPoses",
                     "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
@@ -325,7 +327,7 @@
                   },
                   {
                     "type": "swerveStates",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Measured",
+                    "logKey": "/RealOutputs/Swerve/States/Measured",
                     "logType": "SwerveModuleState[]",
                     "visible": true,
                     "options": {
@@ -335,7 +337,7 @@
                   },
                   {
                     "type": "vision",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
+                    "logKey": "/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
                     "logType": "Translation3d[]",
                     "visible": true,
                     "options": {
@@ -345,7 +347,7 @@
                   },
                   {
                     "type": "component",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Intake/VisualizationPose",
+                    "logKey": "/RealOutputs/Intake/VisualizationPose",
                     "logType": "Transform3d",
                     "visible": true,
                     "options": {}
@@ -362,7 +364,7 @@
                   },
                   {
                     "type": "aprilTag",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
+                    "logKey": "/RealOutputs/Vision/Summary/TagPoses",
                     "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
@@ -371,14 +373,14 @@
                   },
                   {
                     "type": "aprilTagIDs",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagIds",
+                    "logKey": "/RealOutputs/Vision/Summary/TagIds",
                     "logType": "NumberArray",
                     "visible": true,
                     "options": {}
                   },
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/LookaheadPose",
+                    "logKey": "/RealOutputs/AimToTarget/LookaheadPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -388,7 +390,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/FutureLookaheadPose",
+                    "logKey": "/RealOutputs/AimToTarget/FutureLookaheadPose",
                     "logType": "Pose2d",
                     "visible": false,
                     "options": {
@@ -398,7 +400,7 @@
                   },
                   {
                     "type": "gamePiece",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
+                    "logKey": "/RealOutputs/Vision/GamePieces/Fuel/LatestPoses",
                     "logType": "Translation3d[]",
                     "visible": false,
                     "options": {
@@ -407,7 +409,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AP/Target",
+                    "logKey": "/RealOutputs/AP/Target",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -417,7 +419,7 @@
                   },
                   {
                     "type": "gamePiece",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Simulation/Field/Fuel",
+                    "logKey": "/RealOutputs/Simulation/Field/Fuel",
                     "logType": "Translation3d[]",
                     "visible": true,
                     "options": {
@@ -426,7 +428,7 @@
                   },
                   {
                     "type": "trajectory",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/TargetTrajectory/Trajectory",
+                    "logKey": "/RealOutputs/Shooter/TargetTrajectory/Trajectory",
                     "logType": "Translation3d[]",
                     "visible": true,
                     "options": {
@@ -436,7 +438,7 @@
                   },
                   {
                     "type": "gamePiece",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/TargetTrajectory/FinalPoint",
+                    "logKey": "/RealOutputs/Shooter/TargetTrajectory/FinalPoint",
                     "logType": "Translation3d",
                     "visible": true,
                     "options": {
@@ -445,7 +447,7 @@
                   },
                   {
                     "type": "trajectory",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/CurrentTrajectory/Trajectory",
+                    "logKey": "/RealOutputs/Shooter/CurrentTrajectory/Trajectory",
                     "logType": "Translation3d[]",
                     "visible": true,
                     "options": {
@@ -455,7 +457,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Climb/RobotPose",
+                    "logKey": "/RealOutputs/Climb/RobotPose",
                     "logType": "Pose3d",
                     "visible": true,
                     "options": {
@@ -465,7 +467,7 @@
                   },
                   {
                     "type": "gamePiece",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Intake/FuelInIntake",
+                    "logKey": "/RealOutputs/Intake/FuelInIntake",
                     "logType": "Translation3d[]",
                     "visible": true,
                     "options": {
@@ -480,14 +482,14 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  1.4695761589768238e-15,
-                  5.999999999999999,
-                  -12
+                  0.22528352423617432,
+                  3.9136717349351136,
+                  5.971268586878114
                 ],
                 "cameraTarget": [
-                  0,
-                  0.5,
-                  0
+                  0.211448318665441,
+                  2.4871974258748604,
+                  3.335266887331774
                 ]
               },
               "controlsHeight": 200
@@ -499,7 +501,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Objective/TimeElapsedFromLastSwitch",
+                    "logKey": "/Objective/TimeElapsedFromLastSwitch",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -509,7 +511,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Objective/TimeUntilSwitch",
+                    "logKey": "/Objective/TimeUntilSwitch",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -521,7 +523,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/TimeRemainingCanShoot",
+                    "logKey": "/RealOutputs/ObjectiveTracker/TimeRemainingCanShoot",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -533,7 +535,7 @@
                 "discreteSources": [
                   {
                     "type": "stripes",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/CurrentFuelShiftMode",
+                    "logKey": "/RealOutputs/ObjectiveTracker/CurrentFuelShiftMode",
                     "logType": "String",
                     "visible": true,
                     "options": {
@@ -542,7 +544,7 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/NextFuelShiftMode",
+                    "logKey": "/RealOutputs/ObjectiveTracker/NextFuelShiftMode",
                     "logType": "String",
                     "visible": true,
                     "options": {
@@ -551,7 +553,7 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/ObjectiveTracker/CurrentShift",
+                    "logKey": "/RealOutputs/ObjectiveTracker/CurrentShift",
                     "logType": "String",
                     "visible": false,
                     "options": {
@@ -620,7 +622,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Shooter/ShootMotorData/velocityRadPerSec",
+                    "logKey": "/Shooter/ShootMotorData/velocityRadPerSec",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -630,7 +632,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Shooter/ShootSetpointProfiled",
+                    "logKey": "/Shooter/ShootSetpointProfiled",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -640,7 +642,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Shooter/ShootSetpoint",
+                    "logKey": "/Shooter/ShootSetpoint",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -652,7 +654,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Shooter/ShootSetpointAcceleration",
+                    "logKey": "/Shooter/ShootSetpointAcceleration",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -686,7 +688,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/velocityRadPerSec",
+                    "logKey": "/Intake/DeployMotorData/velocityRadPerSec",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -696,7 +698,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/positionAngleRad",
+                    "logKey": "/Intake/DeployMotorData/positionAngleRad",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -706,7 +708,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/setpointAngleRad",
+                    "logKey": "/Intake/DeployMotorData/setpointAngleRad",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -718,7 +720,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Intake/DeployMotorData/velocityRadPerSec",
+                    "logKey": "/Intake/DeployMotorData/velocityRadPerSec",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -752,7 +754,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/SystemStats/BatteryVoltage",
+                    "logKey": "/SystemStats/BatteryVoltage",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -764,7 +766,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/SystemStats/BatteryCurrent",
+                    "logKey": "/SystemStats/BatteryCurrent",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -804,7 +806,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/RotationTarget",
+                    "logKey": "/RealOutputs/AimToTarget/RotationTarget",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -814,7 +816,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation/value",
+                    "logKey": "/RealOutputs/Odometry/Robot/rotation/value",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -824,7 +826,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/RotationErrorRad",
+                    "logKey": "/RealOutputs/AimToTarget/RotationErrorRad",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -859,7 +861,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/OldExitVelocity",
+                    "logKey": "/RealOutputs/AimToTarget/OldExitVelocity",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -869,7 +871,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/AimToTarget/TargetFuelExitVelocity",
+                    "logKey": "/RealOutputs/AimToTarget/TargetFuelExitVelocity",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -881,7 +883,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Shooter/ShooterSupplyCurrent",
+                    "logKey": "/RealOutputs/Shooter/ShooterSupplyCurrent",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -891,7 +893,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Shooter/ShootMotorData/torqueCurrentAmps",
+                    "logKey": "/Shooter/ShootMotorData/torqueCurrentAmps",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -925,7 +927,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Measured/0/speed",
+                    "logKey": "/RealOutputs/Swerve/States/Measured/0/speed",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -935,7 +937,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/Setpoints/0/speed",
+                    "logKey": "/RealOutputs/Swerve/States/Setpoints/0/speed",
                     "logType": "Number",
                     "visible": false,
                     "options": {
@@ -947,7 +949,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Drive/Module0/DriveMotorData/torqueCurrentAmps",
+                    "logKey": "/Drive/Module0/DriveMotorData/torqueCurrentAmps",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -957,7 +959,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/States/FeedforwardTorqueCurrent/0",
+                    "logKey": "/RealOutputs/Swerve/States/FeedforwardTorqueCurrent/0",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -994,7 +996,7 @@
                 "sources": [
                   {
                     "type": "independent",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/LoggedRobot/FullCycleMS",
+                    "logKey": "/RealOutputs/LoggedRobot/FullCycleMS",
                     "logType": "Number",
                     "visible": true,
                     "options": {

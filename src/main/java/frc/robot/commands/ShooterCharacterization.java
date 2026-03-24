@@ -203,7 +203,7 @@ public class ShooterCharacterization extends Command {
     @Override
     public void execute() {
         shooterSubsystem.setTargetExitVelocity(currentAngularVelocityTarget);
-        shooterSubsystem.runIndexerIfShooterAtSpeed();
+        shooterSubsystem.runIndexerIfShooterAtSpeed(false);
 
         logState();
     }
