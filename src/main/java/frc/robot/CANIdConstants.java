@@ -59,21 +59,24 @@ public class CANIdConstants {
      */
     // TODO: set this
     public static final int[] canIdConnectionsInOrder = new int[] {
-        // PIGEON_ID,
-        // FRONT_LEFT_MODULE_CAN_IDS.driveMotorID,
-        // FRONT_LEFT_MODULE_CAN_IDS.angleMotorID,
-        // FRONT_LEFT_MODULE_CAN_IDS.canCoderID,
-        // FRONT_RIGHT_MODULE_CAN_IDS.driveMotorID,
-        // FRONT_RIGHT_MODULE_CAN_IDS.angleMotorID,
-        // FRONT_RIGHT_MODULE_CAN_IDS.canCoderID,
-        // BACK_LEFT_MODULE_CAN_IDS.driveMotorID,
-        // BACK_LEFT_MODULE_CAN_IDS.angleMotorID,
-        // BACK_LEFT_MODULE_CAN_IDS.canCoderID,
-        // BACK_RIGHT_MODULE_CAN_IDS.driveMotorID,
-        // BACK_RIGHT_MODULE_CAN_IDS.angleMotorID,
-        // BACK_RIGHT_MODULE_CAN_IDS.canCoderID,
-        // BACK_RIGHT_MODULE_CAN_IDS.canCoderID,
-        // FRONT_LEFT_MODULE_CAN_IDS.driveMotorID,
-        DEPLOY_MOTOR_ID,
+        // @formatter:off
+        FRONT_RIGHT_MODULE_CAN_IDS.canCoderID,
+        // TODO: these might be interchanged
+        FRONT_RIGHT_MODULE_CAN_IDS.angleMotorID,
+        FRONT_RIGHT_MODULE_CAN_IDS.driveMotorID,
+
+        BACK_RIGHT_MODULE_CAN_IDS.driveMotorID,
+        BACK_RIGHT_MODULE_CAN_IDS.angleMotorID,
+        BACK_RIGHT_MODULE_CAN_IDS.canCoderID,
+        PIGEON_ID,
+
+        BACK_LEFT_MODULE_CAN_IDS.canCoderID,
+        BACK_LEFT_MODULE_CAN_IDS.angleMotorID,
+        BACK_LEFT_MODULE_CAN_IDS.driveMotorID,
+
+        FRONT_LEFT_MODULE_CAN_IDS.canCoderID,
+        FRONT_LEFT_MODULE_CAN_IDS.driveMotorID,
+        FRONT_LEFT_MODULE_CAN_IDS.angleMotorID,
+        // @formatter:on
     };
 }
