@@ -171,9 +171,9 @@ public class ShooterIOYAMS implements ShooterIO {
         inputs.leaderShootMotorConnected = leaderShootMotorWrapped.updateData(inputs.leaderShootMotorData);
         inputs.indexerMotorConnected = indexerMotorWrapped.updateData(inputs.indexerMotorData);
 
-        inputs.isFuelDetectedAtTopOfIndexer = !fuelInShooterBeamBreaker.get();
+        // inputs.isFuelDetectedAtTopOfIndexer = !fuelInShooterBeamBreaker.get();
         // XOR the two channels to determine if the beam breaker is connected
-        inputs.beamBreakerConnected = fuelInShooterBeamBreaker.get() ^ fuelInShooterBeamBreakerOpposite.get();
+        // inputs.beamBreakerConnected = fuelInShooterBeamBreaker.get() ^ fuelInShooterBeamBreakerOpposite.get();
 
         inputs.followerShootMotorConnected = SubsystemIOUtil.updateDataFromSpark(
             inputs.followerShootMotorData,

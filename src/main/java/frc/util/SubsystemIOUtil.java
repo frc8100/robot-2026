@@ -62,13 +62,13 @@ public final class SubsystemIOUtil {
          * String descriptions are in PascalCase and match the enum names without the leading "k".
          * For example, REVLibError.kOk maps to "Ok", REVLibError.kSensorFault maps to "SensorFault", etc.
          */
-        public static final Map<REVLibError, String> ERROR_DESCRIPTIONS = new EnumMap<>(REVLibError.class);
+        // public static final Map<REVLibError, String> ERROR_DESCRIPTIONS = new EnumMap<>(REVLibError.class);
 
-        static {
-            for (REVLibError error : REVLibError.values()) {
-                ERROR_DESCRIPTIONS.put(error, error.toString().substring(1));
-            }
-        }
+        // static {
+        //     for (REVLibError error : REVLibError.values()) {
+        //         ERROR_DESCRIPTIONS.put(error, error.toString().substring(1));
+        //     }
+        // }
 
         /**
          * The position of the mechanism. Multiplied by a conversion factor from the motor rotations.
@@ -111,7 +111,7 @@ public final class SubsystemIOUtil {
          */
         protected SparkBase.Warnings warnings = DEFAULT_WARNINGS;
 
-        public final Queue<REVLibError> errorHistory = new ArrayDeque<>(NUMBER_OF_ERRORS_STORED);
+        // public final Queue<REVLibError> errorHistory = new ArrayDeque<>(NUMBER_OF_ERRORS_STORED);
 
         /**
          * Creates a new Spark motor controller data object with default values (zeroes).
@@ -211,25 +211,25 @@ public final class SubsystemIOUtil {
          */
         public static class SparkMotorControllerDataStruct implements Struct<SparkMotorControllerData> {
 
-            private static final String SCHEMA;
+            // private static final String SCHEMA;
 
-            static {
-                StringBuilder sb = new StringBuilder();
-                sb.append("double positionAngleRad;");
-                sb.append("double setpointAngleRad;");
-                sb.append("double velocityRadPerSec;");
-                sb.append("double appliedVolts;");
-                sb.append("double torqueCurrentAmps;");
-                sb.append("double temperatureCelsius;");
-                sb.append("int faults;");
-                sb.append("int warnings;");
+            // static {
+            //     StringBuilder sb = new StringBuilder();
+            //     sb.append("double positionAngleRad;");
+            //     sb.append("double setpointAngleRad;");
+            //     sb.append("double velocityRadPerSec;");
+            //     sb.append("double appliedVolts;");
+            //     sb.append("double torqueCurrentAmps;");
+            //     sb.append("double temperatureCelsius;");
+            //     sb.append("int faults;");
+            //     sb.append("int warnings;");
 
-                for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
-                    sb.append("byte error").append(i).append(";");
-                }
+            //     // for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
+            //     //     sb.append("byte error").append(i).append(";");
+            //     // }
 
-                SCHEMA = sb.toString();
-            }
+            //     SCHEMA = sb.toString();
+            // }
 
             @Override
             public Class<SparkMotorControllerData> getTypeClass() {
@@ -243,12 +243,24 @@ public final class SubsystemIOUtil {
 
             @Override
             public int getSize() {
-                return 6 * kSizeDouble + 3 * kSizeInt32 + NUMBER_OF_ERRORS_STORED * kSizeInt8;
+                // return 6 * kSizeDouble + 3 * kSizeInt32 + NUMBER_OF_ERRORS_STORED * kSizeInt8;
+                // return 6 * kSizeDouble + 2 * kSizeInt32;
+                return 8 * kSizeDouble;
             }
 
             @Override
             public String getSchema() {
-                return SCHEMA;
+                // return SCHEMA;
+                return (
+                    "double positionAngleRad;" +
+                    "double setpointAngleRad;" +
+                    "double velocityRadPerSec;" +
+                    "double appliedVolts;" +
+                    "double torqueCurrentAmps;" +
+                    "double temperatureCelsius;" +
+                    "double faults;" +
+                    "double warnings;"
+                );
             }
 
             @Override
@@ -262,12 +274,12 @@ public final class SubsystemIOUtil {
                     bb.getDouble()
                 );
 
-                output.faults = new SparkBase.Faults(bb.getInt());
-                output.warnings = new SparkBase.Warnings(bb.getInt());
+                output.faults = new SparkBase.Faults((int) bb.getDouble());
+                output.warnings = new SparkBase.Warnings((int) bb.getDouble());
 
-                for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
-                    output.errorHistory.offer(REVLibError.fromInt(bb.get()));
-                }
+                // for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
+                //     output.errorHistory.offer(REVLibError.fromInt(bb.get()));
+                // }
 
                 return output;
             }
@@ -280,18 +292,18 @@ public final class SubsystemIOUtil {
                 bb.putDouble(data.appliedVolts.in(Volts));
                 bb.putDouble(data.torqueCurrent.in(Amps));
                 bb.putDouble(data.temperature.in(Celsius));
-                bb.putInt(data.faults.rawBits);
-                bb.putInt(data.warnings.rawBits);
+                bb.putDouble((double) data.faults.rawBits);
+                bb.putDouble((double) data.warnings.rawBits);
 
-                for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
-                    REVLibError error = data.errorHistory.poll();
+                // for (int i = 0; i < NUMBER_OF_ERRORS_STORED; i++) {
+                //     REVLibError error = data.errorHistory.poll();
 
-                    if (error == null) {
-                        error = REVLibError.kOk;
-                    }
+                //     if (error == null) {
+                //         error = REVLibError.kOk;
+                //     }
 
-                    bb.put((byte) error.value);
-                }
+                //     bb.put((byte) error.value);
+                // }
             }
         }
     }

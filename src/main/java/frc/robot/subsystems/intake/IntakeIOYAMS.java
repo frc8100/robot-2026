@@ -114,8 +114,9 @@ public class IntakeIOYAMS implements IntakeIO {
         // test
         Logger.recordOutput("Intake/DeploySetpointState", deployMotorWrapped.currentState);
 
-        if (isUsingDeployClosedLoopControl) {
-            deployMotorWrapped.iterateCustomMotionProfile();
-        }
+        // if (isUsingDeployClosedLoopControl) {
+        //     deployMotorWrapped.iterateCustomMotionProfile();
+        // }
+        stopDeploy();
     }
 }

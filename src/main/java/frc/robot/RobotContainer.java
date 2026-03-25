@@ -128,8 +128,8 @@ public class RobotContainer {
 
                 // intakeSubsystem = new Intake(new IntakeIOYAMS());
                 intakeSubsystem = new Intake(new IntakeIO() {});
-                // shooterSubsystem = new Shooter(new ShooterIOYAMS(), swerveSubsystem);
-                shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
+                shooterSubsystem = new Shooter(new ShooterIOYAMS(), swerveSubsystem);
+                // shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
 
                 objectiveIO = new ObjectiveIODashboard();
