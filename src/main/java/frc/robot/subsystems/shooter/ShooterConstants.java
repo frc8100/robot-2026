@@ -109,10 +109,10 @@ public final class ShooterConstants {
             RadiansPerSecondPerSecond.per(Second).of(7500)
         )
         // Feedforward Constants
-        .withFeedforward(new SimpleMotorFeedforward(0.1155, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
+        .withFeedforward(new SimpleMotorFeedforward(0.1155, 0.030498 * 2 * Math.PI, 0.003663 * 2 * Math.PI))
         // .withFeedforward(new SimpleMotorFeedforward(0.0, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
         .withSimFeedforward(new SimpleMotorFeedforward(0.086627, 0.020285 * 2 * Math.PI, 0.003377 * 2 * Math.PI))
-        .withGearing(2)
+        .withGearing(1.5)
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
         .withIdleMode(MotorMode.COAST)
