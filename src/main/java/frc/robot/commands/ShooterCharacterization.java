@@ -10,6 +10,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.RobotActions;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.swerve.Swerve;
 import java.util.Map;
@@ -161,9 +162,18 @@ public class ShooterCharacterization extends Command {
         hasHitTargetAtCurrentDistance = hasHitTargetAtCurrentDistance || wasPreviouslySuccessful;
 
         // Read the distance override from the dashboard, if it is set
-        if (distanceOverride.get() > 0) {
-            currentDistance.mut_replace(distanceOverride.get(), Inches);
-        }
+        // if (distanceOverride.get() > 0) {
+        //     currentDistance.mut_replace(distanceOverride.get(), Inches);
+        // }
+
+        currentDistance.mut_replace(
+            swerveSubsystem
+                .getPose()
+                .getTranslation()
+                .getDistance(RobotActions.FieldLocations.HUB.getPose().getTranslation()),
+            Meters
+        );
+        distanceOverride.set(currentDistance.in(Inches));
 
         // Read velocity override from the dashboard, if it is set
         if (

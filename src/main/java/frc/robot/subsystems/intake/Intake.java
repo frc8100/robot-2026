@@ -231,10 +231,28 @@ public class Intake extends SubsystemBase {
         MeasuredDeployState outputMeasuredDeployState = MeasuredDeployState.TRANSITION;
 
         // Determine target angle based on state
-        if (currentState == IntakeState.DEPLOYED_RESTING || currentState == IntakeState.TRANSITION_DEPLOYING) {
+        if (currentState == IntakeState.TRANSITION_DEPLOYING) {
             currentTargetDeployAngle = IntakeConstants.INTAKE_DEPLOYED_ANGLE;
             targetTolerance = IntakeConstants.DEPLOY_TARGET_TOLERANCE;
             outputMeasuredDeployState = MeasuredDeployState.DEPLOYED;
+        } else if (currentState == IntakeState.DEPLOYED_RESTING) {
+            currentTargetDeployAngle = IntakeConstants.INTAKE_DEPLOYED_ANGLE;
+            targetTolerance = IntakeConstants.DEPLOY_TARGET_TOLERANCE_AT_REST;
+            outputMeasuredDeployState = MeasuredDeployState.DEPLOYED;
+
+            if (
+                !inputs.deployMotorData.positionAngle.isNear(
+                    currentTargetDeployAngle,
+                    IntakeConstants.DEPLOY_TARGET_TOLERANCE
+                ) &&
+                (inputs.deployMotorData.positionAngle.in(Radians) - currentTargetDeployAngle.in(Radians) >
+                        IntakeConstants.DEPLOY_TARGET_TOLERANCE_AT_REST.in(Radians) ||
+                    inputs.deployMotorData.positionAngle.in(Radians) - currentTargetDeployAngle.in(Radians) < 0)
+            ) {
+                return MeasuredDeployState.TRANSITION;
+            } else {
+                return MeasuredDeployState.DEPLOYED;
+            }
         } else if (currentState == IntakeState.RETRACTED_RESTING || currentState == IntakeState.TRANSITION_RETRACTING) {
             // currentTargetDeployAngle = IntakeConstants.INTAKE_RETRACTED_ANGLE;
             currentTargetDeployAngle = IntakeConstants.INTAKE_RETRACTED_ANGLE_SETPOINT;
@@ -421,11 +439,13 @@ public class Intake extends SubsystemBase {
      * Called periodically while in the {@link IntakeState#DEPLOYED_RESTING} state by the state machine.
      */
     private void handleDeployRest() {
-        // io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
+        if (!deploySetpointTestAngleOffset.isNear(Radians.zero(), IntakeConstants.DEPLOY_OFFSET_EPSILON)) {
+            io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
+        }
 
         // io.stopDeploy();
 
-        runDeployDutyCycle(IntakeDeployDirection.DEPLOYING, 0.05);
+        runDeployDutyCycle(IntakeDeployDirection.DEPLOYING, 0.04);
 
         if (getMeasuredDeployState() != MeasuredDeployState.DEPLOYED) {
             stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
@@ -440,7 +460,7 @@ public class Intake extends SubsystemBase {
     private void handleRetractRest() {
         // io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
 
-        runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.08);
+        // runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.03);
 
         if (getMeasuredDeployState() != MeasuredDeployState.RETRACTED) {
             stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);

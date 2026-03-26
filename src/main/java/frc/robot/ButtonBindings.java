@@ -159,7 +159,7 @@ public class ButtonBindings {
         Controller theOperatorControllerIfOverriden = IS_USING_TWO_CONTROLLERS ? operatorController : driverController;
 
         // Driver controller bindings
-        driverController
+        operatorController
             .getButtonTrigger(ControlConstants.mainDriveControls.zeroYawOffsetButton)
             .onTrue(Commands.runOnce(swerveSubsystem::zeroYawOffset));
 
@@ -183,6 +183,11 @@ public class ButtonBindings {
                 ),
                 StateCycle.StateCycleBehavior.RELY_ON_INDEX
             );
+
+        StateCycle<ShooterState, Object> toggleAutoShoot = shooterSubsystem.stateMachine.createStateCycle(
+            List.of(ShooterState.IDLE, ShooterState.AUTO_TARGET_SHOOTING),
+            StateCycle.StateCycleBehavior.RELY_ON_INDEX
+        );
 
         // In the scenario where: 1. swerve is in FULL_DRIVER_CONTROL 2. driver presses X to go to AUTO_AIM
         // 3. driver presses DOWN to go to AUTO_INTAKE, 4. when driver presses X again, it will go back to AUTO_AIM
@@ -215,22 +220,37 @@ public class ButtonBindings {
         //     )
         //     .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
 
-        // operatorController
-        //     .getButtonTrigger(XboxController.Button.kY)
-        //     .whileTrue(shooterSubsystem.setspeedShoot(ShooterSpeeds.HIGHEST));
+        theOperatorControllerIfOverriden
+            .getButtonTrigger(XboxController.Button.kY)
+            .whileTrue(shooterSubsystem.setspeedShoot(ShooterSpeeds.HIGHEST));
+
+        theOperatorControllerIfOverriden
+            .getButtonTrigger(XboxController.Button.kA)
+            .onTrue(
+                Commands.runOnce(
+                    toggleAutoShoot::scheduleNextState
+                    // () -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.AUTO_TARGET_SHOOTING)
+                )
+            )
+            .onTrue(
+                Commands.runOnce(
+                    toggleAutoShoot::scheduleNextState
+                    // () -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)
+                )
+            );
 
         // operatorController
         //     .getButtonTrigger(XboxController.Button.kRightBumper)
         //     .whileTrue(shooterSubsystem.runIndexer());
 
-        operatorController
+        theOperatorControllerIfOverriden
             .getButtonTrigger(ControlConstants.runIntakeRollers)
             // .whileTrue(intakeSubsystem.runRollerCommand())
             // .whileFalse(intakeSubsystem.stopRollerCommand());
             .onTrue(Commands.runOnce(intakeSubsystem::toggleRollers));
 
         // Intake deploy/retract toggle
-        operatorController
+        theOperatorControllerIfOverriden
             .getButtonTrigger(ControlConstants.toggleIntakeDeploy)
             .onTrue(
                 Commands.runOnce(() -> {
@@ -254,14 +274,14 @@ public class ButtonBindings {
         //     .onFalse(intakeSubsystem.stopDeployDutyCycleCommand());
 
         // TODO: temporary voltage control
-        operatorController
-            .getButtonTrigger(XboxController.Button.kB)
-            .onTrue(
-                Commands.runOnce(() ->
-                    // intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_SETPOINT_CHANGE)
-                    shooterSubsystem.stateMachine.scheduleStateChange(Shooter.ShooterState.TEST_VOLTAGE_CONTROL)
-                ).ignoringDisable(true)
-            );
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kB)
+        //     .onTrue(
+        //         Commands.runOnce(() ->
+        //             // intakeSubsystem.stateMachine.scheduleStateChange(Intake.IntakeState.TEST_SETPOINT_CHANGE)
+        //             shooterSubsystem.stateMachine.scheduleStateChange(Shooter.ShooterState.TEST_VOLTAGE_CONTROL)
+        //         ).ignoringDisable(true)
+        //     );
         // operatorController
         //     .getButtonTrigger(XboxController.Button.kX)
         //     .onTrue(
@@ -297,21 +317,20 @@ public class ButtonBindings {
         //     .onTrue(shooterSubsystem.changeShooterRPMOffset(-10.0));
 
         // a
-        // Angle changeBy = Degrees.of(5);
+        Angle changeBy = Degrees.of(5);
 
-        // operatorController
-        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
-        //     .onTrue(intakeSubsystem.changeAngleOffset(changeBy.unaryMinus()));
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
+            .onTrue(intakeSubsystem.changeAngleOffset(changeBy.unaryMinus()));
 
-        // operatorController
-        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
-        //     .onTrue(intakeSubsystem.changeAngleOffset(changeBy));
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
+            .onTrue(intakeSubsystem.changeAngleOffset(changeBy));
 
-        // operatorController
-        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
-        //     .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()));
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+            .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()));
         // a
-
 
         // operatorController
         //     .getButtonTrigger(XboxController.Button.kRightBumper)
@@ -321,51 +340,51 @@ public class ButtonBindings {
         //         )
         //     )
         //     .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
-        final Voltage incrementVoltage = Volts.of(0.5);
-        final Voltage fineIncrementVoltage = Volts.of(0.01);
-        final Voltage decrementVoltage = incrementVoltage.times(-1);
-        final Voltage fineDecrementVoltage = fineIncrementVoltage.times(-1);
+        // final Voltage incrementVoltage = Volts.of(0.5);
+        // final Voltage fineIncrementVoltage = Volts.of(0.01);
+        // final Voltage decrementVoltage = incrementVoltage.times(-1);
+        // final Voltage fineDecrementVoltage = fineIncrementVoltage.times(-1);
 
-        operatorController
-            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
-            .onTrue(
-                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageShooter(incrementVoltage)).ignoringDisable(
-                    true
-                )
-            );
+        // operatorController
+        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
+        //     .onTrue(
+        //         Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageShooter(incrementVoltage)).ignoringDisable(
+        //             true
+        //         )
+        //     );
 
-        operatorController
-            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
-            .onTrue(
-                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageShooter(decrementVoltage)).ignoringDisable(
-                    true
-                )
-            );
+        // operatorController
+        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
+        //     .onTrue(
+        //         Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageShooter(decrementVoltage)).ignoringDisable(
+        //             true
+        //         )
+        //     );
 
-        operatorController
-            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
-            .onTrue(
-                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageIndexer(incrementVoltage)).ignoringDisable(
-                    true
-                )
-            );
+        // operatorController
+        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+        //     .onTrue(
+        //         Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageIndexer(incrementVoltage)).ignoringDisable(
+        //             true
+        //         )
+        //     );
 
-        operatorController
-            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.LEFT)
-            .onTrue(
-                Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageIndexer(decrementVoltage)).ignoringDisable(
-                    true
-                )
-            );
+        // operatorController
+        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.LEFT)
+        //     .onTrue(
+        //         Commands.runOnce(() -> shooterSubsystem.changeTestOutVoltageIndexer(decrementVoltage)).ignoringDisable(
+        //             true
+        //         )
+        //     );
 
-        operatorController
-            .getButtonTrigger(XboxController.Button.kA)
-            .onTrue(
-                Commands.runOnce(() -> {
-                    shooterSubsystem.setTestOutVoltageShooter(Volts.zero());
-                    shooterSubsystem.setTestOutVoltageIndexer(Volts.zero());
-                }).ignoringDisable(true)
-            );
+        // operatorController
+        //     .getButtonTrigger(XboxController.Button.kA)
+        //     .onTrue(
+        //         Commands.runOnce(() -> {
+        //             shooterSubsystem.setTestOutVoltageShooter(Volts.zero());
+        //             shooterSubsystem.setTestOutVoltageIndexer(Volts.zero());
+        //         }).ignoringDisable(true)
+        //     );
         // TODO: Climb deploy/retract toggle
         // StateCycle<Climb.ClimbState, Object> toggleClimbDeploy =
         //     climbSubsystem.stateMachine.createStateCycleWithPayload(

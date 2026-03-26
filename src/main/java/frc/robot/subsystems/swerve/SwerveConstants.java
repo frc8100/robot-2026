@@ -37,6 +37,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -69,6 +70,8 @@ import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 public class SwerveConstants {
 
     private SwerveConstants() {}
+
+    public static final ChassisSpeeds ZERO_CHASSIS_SPEEDS = new ChassisSpeeds();
 
     // this is inconsistently used
     public static final int NUMBER_OF_SWERVE_MODULES = 4;
@@ -162,7 +165,7 @@ public class SwerveConstants {
     // Current limiting
     // TODO: tune these values (https://docs.revrobotics.com/brushless/home/faq#neo-v1.1)
     public static final Current ANGLE_CONTINUOUS_CURRENT_LIMIT = Amps.of(23);
-    public static final Current DRIVE_CONTINUOUS_CURRENT_LIMIT = Amps.of(40);
+    public static final Current DRIVE_CONTINUOUS_CURRENT_LIMIT = Amps.of(44);
 
     /**
      * The time to wait after the robot is still before syncing the swerve module encoders.
@@ -200,9 +203,11 @@ public class SwerveConstants {
     // TODO: Tune these values
     public static final LinearForceFeedForwardConstants driveFFConstantsReal = new LinearForceFeedForwardConstants(
         0.1798,
-        0.1390,
-        0,
-        0.0563
+        // 0.13681,
+        0.13,
+        0.022796,
+        // 0.0563
+        0.0
     );
     public static final LinearForceFeedForwardConstants driveFFConstantsSim = new LinearForceFeedForwardConstants(
         // 0.0752,
@@ -219,8 +224,9 @@ public class SwerveConstants {
     // Angle Motor Characterization Values
     public static final SimpleFeedForwardConstants angleFFConstantsReal = new SimpleFeedForwardConstants(
         0.13338,
-        0.42676,
+        0.4443,
         0.0
+        // 0.037987
     );
     public static final SimpleFeedForwardConstants angleFFConstantsSim = new SimpleFeedForwardConstants(
         0.0,
@@ -309,7 +315,7 @@ public class SwerveConstants {
 
     public static final PIDConstants PP_INITIAL_TRANSLATION_PID = new PIDConstants(4.5, 0.1);
     public static final PIDConstants PP_ENDING_TRANSLATION_PID = new PIDConstants(4.67, 0.075);
-    public static final PIDConstants PP_ROTATION_PID = new PIDConstants(4.0, 0.02);
+    public static final PIDConstants PP_ROTATION_PID = new PIDConstants(1.5, 0.1);
 
     public static final PPHolonomicDriveController PP_INITIAL_PID_CONTROLLER = new PPHolonomicDriveController(
         SwerveConstants.PP_INITIAL_TRANSLATION_PID,

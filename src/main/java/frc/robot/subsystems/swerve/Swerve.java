@@ -44,6 +44,7 @@ import frc.robot.RobotActions;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
@@ -296,7 +297,9 @@ public class Swerve extends SubsystemBase {
 
     // SysId routines for drive and angle motors
     protected SysIdRoutine driveSysId = new SysIdRoutine(
-        new SysIdRoutine.Config(null, null, null, state -> Logger.recordOutput("Swerve/SysIdState", state.toString())),
+        new SysIdRoutine.Config(Volts.of(1.25).per(Seconds), Volts.of(8), Seconds.of(5), state ->
+            Logger.recordOutput("Swerve/SysIdState", state.toString())
+        ),
         new SysIdRoutine.Mechanism(voltage -> runCharacterization(voltage.in(Volts)), null, this)
     );
     protected SysIdRoutine angleSysId = new SysIdRoutine(
@@ -486,7 +489,7 @@ public class Swerve extends SubsystemBase {
      * Stops the drive by running zero chassis speeds.
      */
     public void stop() {
-        runVelocityChassisSpeeds(new ChassisSpeeds());
+        runVelocityChassisSpeeds(SwerveConstants.ZERO_CHASSIS_SPEEDS);
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates) {
@@ -849,22 +852,23 @@ public class Swerve extends SubsystemBase {
             autoAim.updateCalculatedResult(
                 getPose(),
                 targetPoseToRotateTo,
-                new ChassisSpeeds(),
-                new ChassisSpeeds(),
+                SwerveConstants.ZERO_CHASSIS_SPEEDS,
+                SwerveConstants.ZERO_CHASSIS_SPEEDS,
                 // desiredChassisSpeedAcceleration,
-                new ChassisSpeeds()
+                SwerveConstants.ZERO_CHASSIS_SPEEDS
             );
             setpointSpeeds.omegaRadiansPerSecond = autoAim.getRotationOutputRadiansPerSecond();
+            shouldRunSpeedsThisCycle = true;
 
             autoAim.latestCalculationResult.log();
             // debug
-            // Logger.recordOutput(
-            //     "AimToTarget/RotationErrorRad",
-            //     getRotation()
-            //         .plus(ShooterConstants.AIM_ROTATION_OFFSET)
-            //         .minus(new Rotation2d(autoAim.latestCalculationResult.getRotationTarget()))
-            //         .getRadians()
-            // );
+            Logger.recordOutput(
+                "AimToTarget/RotationErrorRad",
+                getRotation()
+                    .plus(ShooterConstants.AIM_ROTATION_OFFSET)
+                    .minus(new Rotation2d(autoAim.latestCalculationResult.getRotationTarget()))
+                    .getRadians()
+            );
         } else {
             currentConstraints = null;
         }

@@ -57,7 +57,7 @@ public class RobotActions {
          */
         HUB_AIM_TO(
             FieldLocations.HUB.getPose()
-                .transformBy(new Transform2d(new Translation2d(Inches.of(2), Inches.of(0)), Rotation2d.kZero))
+                .transformBy(new Transform2d(new Translation2d(Inches.of(1), Inches.of(0)), Rotation2d.kZero))
         );
 
         private final Pose2d blueAlliancePose;

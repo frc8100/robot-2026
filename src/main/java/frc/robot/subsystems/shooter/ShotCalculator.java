@@ -179,7 +179,7 @@ public class ShotCalculator {
     private final Config config;
 
     private final InvertibleInterpolatingDoubleTreeMap rpmMap = new InvertibleInterpolatingDoubleTreeMap();
-    private final InvertibleInterpolatingDoubleTreeMap tofMap = new InvertibleInterpolatingDoubleTreeMap();
+    public final InvertibleInterpolatingDoubleTreeMap tofMap = new InvertibleInterpolatingDoubleTreeMap();
     private final InterpolatingDoubleTreeMap correctionRpmMap = new InterpolatingDoubleTreeMap();
     private final InterpolatingDoubleTreeMap correctionTofMap = new InterpolatingDoubleTreeMap();
 

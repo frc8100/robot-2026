@@ -81,7 +81,7 @@ public class ControlConstants {
          * When pressed, zeroes the yaw offset.
          * Press when robot is facing towards the drive station to align the robot's forward direction with the field.
          */
-        public final XboxController.Button zeroYawOffsetButton = XboxController.Button.kY;
+        public final XboxController.Button zeroYawOffsetButton = XboxController.Button.kA;
 
         /**
          * When held, slows the robot down to {@link #slowMultiplier}

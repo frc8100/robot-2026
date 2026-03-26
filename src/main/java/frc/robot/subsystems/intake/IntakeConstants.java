@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -70,8 +71,9 @@ public final class IntakeConstants {
 
     // Intake positions
     public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(70);
-    public static final Angle INTAKE_RETRACTED_ANGLE_SETPOINT = INTAKE_RETRACTED_ANGLE.minus(Degrees.of(15));
-    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(170);
+    public static final Angle INTAKE_RETRACTED_ANGLE_SETPOINT = INTAKE_RETRACTED_ANGLE.minus(Degrees.of(5));
+    // public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(170);
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Radians.of(3.355);
 
     public static final SmartMotorControllerConfig deployMotorConfig = new SmartMotorControllerConfig()
         .withVendorConfig(WrappedSpark.createDefaultSparkMaxConfig())
@@ -80,7 +82,7 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing((5 * 5 * 22.0) / 15.0))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(11, 0.0, 0.0, DegreesPerSecond.of(400), DegreesPerSecondPerSecond.of(500))
+        .withClosedLoopController(11, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(400))
         .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(400), DegreesPerSecondPerSecond.of(500))
         .withClosedLoopTolerance(Degrees.of(1))
         // Feedforward Constants
@@ -93,12 +95,14 @@ public final class IntakeConstants {
         .withSimFeedforward(new ArmFeedforward(0.078431, 0.46875, 0.68997 * 2 * Math.PI, 0.025313 * 2 * Math.PI))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
-        .withStatorCurrentLimit(Amps.of(32))
+        .withStatorCurrentLimit(Amps.of(28))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.1));
 
-    public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(16);
-    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(16);
+    public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(15);
+    public static final Angle DEPLOY_TARGET_TOLERANCE_AT_REST = Degrees.of(35);
+    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(15);
+    public static final Angle DEPLOY_OFFSET_EPSILON = Degrees.of(2);
     public static final Angle INTAKE_SLIGHTLY_ABOVE_DEPLOYED_ANGLE = INTAKE_DEPLOYED_ANGLE.minus(
         DEPLOY_TARGET_TOLERANCE
     ).plus(Degrees.of(0.05));

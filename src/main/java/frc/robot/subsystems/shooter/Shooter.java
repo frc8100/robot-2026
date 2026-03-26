@@ -297,10 +297,10 @@ public class Shooter extends SubsystemBase {
             XboxController.Button.kRightBumper.value
         );
 
-        boolean autoAimCalculation =
-            (!shouldUseAimCalculation
-                    ? true
-                    : swerveSubsystem.autoAim.latestCalculationResult.result.confidence() > 50);
+        boolean autoAimCalculation = true;
+        // (!shouldUseAimCalculation
+        //         ? true
+        //         : swerveSubsystem.autoAim.latestCalculationResult.result.confidence() > 50);
 
         if ((shooterUpToSpeed || isBeingOverrided) && autoAimCalculation) {
             io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
@@ -427,7 +427,11 @@ public class Shooter extends SubsystemBase {
         // Look up the corresponding motor angular velocity for the given distance and update cache
         cachedTargetExitAngularVelocity.mut_replace(
             // ShooterConstants.distanceToMotorAngularVelocityMap.get(distanceToTarget.in(Meters)),
-            swerveSubsystem.autoAim.latestCalculationResult.result.rpm(),
+            swerveSubsystem.autoAim.shotCalculator.getBaseRPM(
+                swerveSubsystem.autoAim.latestCalculationResult.getDistanceToTarget().in(Meters)
+            ) +
+            swerveSubsystem.autoAim.shotCalculator.rpmOffset,
+            // swerveSubsystem.autoAim.latestCalculationResult.result.rpm(),
             RPM
         );
 
