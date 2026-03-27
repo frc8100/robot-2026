@@ -36,40 +36,40 @@
         "y": 5.9577101967799635
       },
       "prevControl": {
-        "x": 5.260570300267947,
-        "y": 5.642137643227796
+        "x": 5.332924393723252,
+        "y": 5.568231098430813
       },
       "nextControl": {
-        "x": 6.26831763708165,
-        "y": 6.4114750819783355
+        "x": 6.166537453993208,
+        "y": 6.520325509966993
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.312701252236136,
-        "y": 7.061037567084079
+        "x": 7.377232524964336,
+        "y": 6.758587731811698
       },
       "prevControl": {
-        "x": 6.955468081725794,
-        "y": 7.177948346519217
+        "x": 7.0199993544539945,
+        "y": 6.875498511246835
       },
       "nextControl": {
-        "x": 7.580338178847778,
-        "y": 6.973448719578425
+        "x": 7.644869451575978,
+        "y": 6.6709988843060435
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.864364937381902,
-        "y": 4.59477638639951
+        "x": 7.817146932952923,
+        "y": 4.584893009985735
       },
       "prevControl": {
-        "x": 7.896815742390848,
-        "y": 5.957710196775181
+        "x": 7.756990269465456,
+        "y": 5.920630175654698
       },
       "nextControl": null,
       "isLocked": false,
@@ -78,11 +78,15 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 1.0,
+      "waypointRelativePos": 0.9991701244813279,
       "rotationDegrees": -29.999999999999996
     },
     {
-      "waypointRelativePos": 3.278557114228457,
+      "waypointRelativePos": 2.9168443496801624,
+      "rotationDegrees": -35.0
+    },
+    {
+      "waypointRelativePos": 3.269709543568455,
       "rotationDegrees": -90.0
     }
   ],
@@ -121,7 +125,7 @@
         "maxVelocity": 1.2,
         "maxAcceleration": 4.0,
         "maxAngularVelocity": 540.0,
-        "maxAngularAcceleration": 720.0,
+        "maxAngularAcceleration": 320.0,
         "nominalVoltage": 10.0,
         "unlimited": false
       }
@@ -153,7 +157,7 @@
     },
     {
       "name": "RunIntakeRoller",
-      "waypointRelativePos": 3.1999999999999975,
+      "waypointRelativePos": 2.3983794733288324,
       "endWaypointRelativePos": 4.0,
       "command": {
         "type": "named",
@@ -167,7 +171,7 @@
     "maxVelocity": 3.5,
     "maxAcceleration": 5.0,
     "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxAngularAcceleration": 420.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
@@ -176,7 +180,7 @@
     "rotation": -90.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Left Neutral",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

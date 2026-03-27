@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left To Neutral"
+            "pathName": "Right To Neutral"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Left Go To Home And Shoot"
+            "pathName": "Right Go To Home And Shoot"
           }
         },
         {
@@ -44,7 +44,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left To Neutral"
+            "pathName": "Right To Neutral"
           }
         }
       ]

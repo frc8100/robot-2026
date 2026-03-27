@@ -283,7 +283,8 @@ public class Intake extends SubsystemBase {
      * @return The angle to use for visualization of the intake deploy state.
      */
     public Angle getDeployAngle() {
-        return deployStateForVisualization.mut_replace(inputs.deployMotorData.positionAngle);
+        // return deployStateForVisualization.mut_replace(inputs.deployMotorData.positionAngle);
+        return inputs.deployMotorData.positionAngle;
     }
 
     /**
@@ -439,13 +440,15 @@ public class Intake extends SubsystemBase {
      * Called periodically while in the {@link IntakeState#DEPLOYED_RESTING} state by the state machine.
      */
     private void handleDeployRest() {
-        if (!deploySetpointTestAngleOffset.isNear(Radians.zero(), IntakeConstants.DEPLOY_OFFSET_EPSILON)) {
-            io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
-        }
+        // if (!deploySetpointTestAngleOffset.isNear(Radians.zero(), IntakeConstants.DEPLOY_OFFSET_EPSILON)) {
+        //     io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
+        // } else {
+        //     runDeployDutyCycle(IntakeDeployDirection.DEPLOYING, 0.04);
+        // }
 
         // io.stopDeploy();
 
-        runDeployDutyCycle(IntakeDeployDirection.DEPLOYING, 0.04);
+        io.setDeploySetpoint(IntakeConstants.INTAKE_DEPLOYED_ANGLE, deploySetpointTestAngleOffset);
 
         if (getMeasuredDeployState() != MeasuredDeployState.DEPLOYED) {
             stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
@@ -460,7 +463,7 @@ public class Intake extends SubsystemBase {
     private void handleRetractRest() {
         // io.setDeploySetpoint(IntakeConstants.INTAKE_RETRACTED_ANGLE);
 
-        // runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.03);
+        runDeployDutyCycle(IntakeDeployDirection.RETRACTING, 0.02);
 
         if (getMeasuredDeployState() != MeasuredDeployState.RETRACTED) {
             stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);

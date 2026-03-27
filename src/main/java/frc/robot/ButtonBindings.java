@@ -155,13 +155,13 @@ public class ButtonBindings {
      * Creates button bindings for the robot.
      */
     public void configureButtonBindings() {
-        final boolean IS_USING_TWO_CONTROLLERS = true;
+        final boolean IS_USING_TWO_CONTROLLERS = false;
         Controller theOperatorControllerIfOverriden = IS_USING_TWO_CONTROLLERS ? operatorController : driverController;
 
         // Driver controller bindings
-        operatorController
-            .getButtonTrigger(ControlConstants.mainDriveControls.zeroYawOffsetButton)
-            .onTrue(Commands.runOnce(swerveSubsystem::zeroYawOffset));
+        // operatorController
+        //     .getButtonTrigger(ControlConstants.mainDriveControls.zeroYawOffsetButton)
+        //     .onTrue(Commands.runOnce(swerveSubsystem::zeroYawOffset));
 
         // Auto-aim toggle
         StateCycle<SwerveState, SwervePayload> toggleAutoAim = swerveSubsystem.stateMachine.createStateCycleWithPayload(
@@ -220,37 +220,64 @@ public class ButtonBindings {
         //     )
         //     .onFalse(Commands.runOnce(() -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)));
 
-        theOperatorControllerIfOverriden
+        driverController
             .getButtonTrigger(XboxController.Button.kY)
             .whileTrue(shooterSubsystem.setspeedShoot(ShooterSpeeds.HIGHEST));
 
-        theOperatorControllerIfOverriden
-            .getButtonTrigger(XboxController.Button.kA)
-            .onTrue(
-                Commands.runOnce(
-                    toggleAutoShoot::scheduleNextState
-                    // () -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.AUTO_TARGET_SHOOTING)
-                )
-            )
-            .onTrue(
-                Commands.runOnce(
-                    toggleAutoShoot::scheduleNextState
-                    // () -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)
-                )
-            );
+        operatorController
+            .getButtonTrigger(XboxController.Button.kY)
+            .whileTrue(shooterSubsystem.setspeedShoot(ShooterSpeeds.HIGHEST));
+
+        // theOperatorControllerIfOverriden
+        //     .getButtonTrigger(XboxController.Button.kA)
+        //     .onTrue(
+        //         Commands.runOnce(
+        //             toggleAutoShoot::scheduleNextState
+        //             // () -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.AUTO_TARGET_SHOOTING)
+        //         )
+        //     )
+        //     .onFalse(
+        //         Commands.runOnce(
+        //             toggleAutoShoot::scheduleNextState
+        //             // () -> shooterSubsystem.stateMachine.scheduleStateChange(ShooterState.IDLE)
+        //         )
+        //     );
 
         // operatorController
         //     .getButtonTrigger(XboxController.Button.kRightBumper)
         //     .whileTrue(shooterSubsystem.runIndexer());
 
-        theOperatorControllerIfOverriden
+        driverController
             .getButtonTrigger(ControlConstants.runIntakeRollers)
             // .whileTrue(intakeSubsystem.runRollerCommand())
             // .whileFalse(intakeSubsystem.stopRollerCommand());
-            .onTrue(Commands.runOnce(intakeSubsystem::toggleRollers));
+            // .onTrue(Commands.runOnce(intakeSubsystem::toggleRollers));
+            .onTrue(Commands.runOnce(() -> intakeSubsystem.setRollers(true)))
+            .onFalse(Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
+
+        operatorController
+            .getButtonTrigger(ControlConstants.runIntakeRollers)
+            .onTrue(Commands.runOnce(() -> intakeSubsystem.setRollers(true)))
+            .onFalse(Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
 
         // Intake deploy/retract toggle
-        theOperatorControllerIfOverriden
+        driverController
+            .getButtonTrigger(ControlConstants.toggleIntakeDeploy)
+            .onTrue(
+                Commands.runOnce(() -> {
+                    // If the intake is currently retracted or retracting, deploy it. Otherwise, retract it.
+                    if (
+                        intakeSubsystem.stateMachine.is(IntakeState.RETRACTED_RESTING) ||
+                        intakeSubsystem.stateMachine.is(IntakeState.TRANSITION_RETRACTING)
+                    ) {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_DEPLOYING);
+                    } else {
+                        intakeSubsystem.stateMachine.scheduleStateChange(IntakeState.TRANSITION_RETRACTING);
+                    }
+                })
+            );
+
+        operatorController
             .getButtonTrigger(ControlConstants.toggleIntakeDeploy)
             .onTrue(
                 Commands.runOnce(() -> {
@@ -329,7 +356,23 @@ public class ButtonBindings {
 
         operatorController
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
-            .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()));
+            .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()).ignoringDisable(true));
+
+        driverController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
+            .onTrue(intakeSubsystem.changeAngleOffset(changeBy.unaryMinus()));
+
+        driverController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
+            .onTrue(intakeSubsystem.changeAngleOffset(changeBy));
+
+        driverController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+            .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()).ignoringDisable(true));
+
+        theOperatorControllerIfOverriden
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.LEFT)
+            .whileTrue(shooterSubsystem.reverseIndexer());
         // a
 
         // operatorController

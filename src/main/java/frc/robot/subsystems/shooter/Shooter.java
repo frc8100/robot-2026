@@ -30,13 +30,16 @@ import frc.robot.Constants;
 import frc.robot.commands.AimToTarget;
 import frc.robot.subsystems.DeviceAlert;
 import frc.robot.subsystems.SparkAlert;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.Intake.IntakeState;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.util.FuelSim;
 import frc.util.statemachine.StateMachine;
 import frc.util.statemachine.StateMachineState;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -111,6 +114,7 @@ public class Shooter extends SubsystemBase {
 
     // Subsystem references
     private final Swerve swerveSubsystem;
+    private final Intake intakeSubsystem;
 
     // Caches
     private final MutAngularVelocity cachedTargetExitAngularVelocity = RadiansPerSecond.mutable(0.0);
@@ -159,9 +163,10 @@ public class Shooter extends SubsystemBase {
     public final CachedPredictedTrajectoryResult cachedCurrentTrajectoryResult = new CachedPredictedTrajectoryResult();
     public final CachedPredictedTrajectoryResult cachedFutureTrajectoryResult = new CachedPredictedTrajectoryResult();
 
-    public Shooter(ShooterIO io, Swerve swerveSubsystem) {
+    public Shooter(ShooterIO io, Swerve swerveSubsystem, Intake intakeSubsystem) {
         this.io = io;
         this.swerveSubsystem = swerveSubsystem;
+        this.intakeSubsystem = intakeSubsystem;
 
         // State machine bindings
         stateMachine.whileState(ShooterState.IDLE, this::handleIdleState);
@@ -254,10 +259,16 @@ public class Shooter extends SubsystemBase {
         // return run(() -> io.runShooterDutyCycle(Volts.of(12)));
     }
 
+    public Command reverseIndexer() {
+        return run(() -> io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED.unaryMinus()));
+    }
+
     private void handleManualShootState() {
-        boolean usingManualControls = ButtonBindings.operatorController.getRawButton(
-            XboxController.Button.kRightBumper.value
-        );
+        boolean usingManualControls =
+            // ButtonBindings.operatorController.getRawButton(
+            //     XboxController.Button.kRightBumper.value
+            // );
+            false;
 
         double controllerAngle = Math.atan2(
             -ButtonBindings.operatorController.getRawAxis(XboxController.Axis.kLeftY.value),
@@ -287,7 +298,7 @@ public class Shooter extends SubsystemBase {
     public void runIndexerIfShooterAtSpeed(boolean shouldUseAimCalculation) {
         boolean shooterUpToSpeed = inputs.leaderShootMotorData.velocity.isNear(
             cachedTargetExitAngularVelocity,
-            RadiansPerSecond.of(22.0)
+            RadiansPerSecond.of(17.0)
         );
 
         Logger.recordOutput("Shooter/UpToSpeed", shooterUpToSpeed);
@@ -302,7 +313,14 @@ public class Shooter extends SubsystemBase {
         //         ? true
         //         : swerveSubsystem.autoAim.latestCalculationResult.result.confidence() > 50);
 
-        if ((shooterUpToSpeed || isBeingOverrided) && autoAimCalculation) {
+        if (
+            ((shooterUpToSpeed &&
+                    intakeSubsystem
+                        .getDeployAngle()
+                        .gt(IntakeConstants.MINIMUM_DEPLOY_ANGLE_BEFORE_SHOOTER_INDEXER_RUNS)) ||
+                isBeingOverrided) &&
+            autoAimCalculation
+        ) {
             io.setIndexerVelocitySetpoint(ShooterConstants.INDEXER_SPEED);
             // io.runIndexerDutyCycle(Volts.of(6));
         } else {
@@ -485,13 +503,19 @@ public class Shooter extends SubsystemBase {
      * @return A command that runs all 4 sysid routines.
      */
     public Command shooterSysidCommand() {
+        Supplier<Command> shooterStopCommand = () ->
+            run(() -> io.setTargetShootMotorVelocity(RadiansPerSecond.zero())).withTimeout(3);
+
         return new SequentialCommandGroup(
             shooterSysidRoutine.quasistatic(SysIdRoutine.Direction.kForward),
-            Commands.waitSeconds(4),
+            // Commands.waitSeconds(4),
+            shooterStopCommand.get(),
             shooterSysidRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
-            Commands.waitSeconds(4),
+            // Commands.waitSeconds(4),
+            shooterStopCommand.get(),
             shooterSysidRoutine.dynamic(SysIdRoutine.Direction.kForward),
-            Commands.waitSeconds(4),
+            // Commands.waitSeconds(4),
+            shooterStopCommand.get(),
             shooterSysidRoutine.dynamic(SysIdRoutine.Direction.kReverse)
         );
     }

@@ -221,7 +221,8 @@ public class GamePiecePoseEstimator {
      * Logs the latest observed game piece poses by type.
      */
     public void logGamePiecePoses() {
-        if (!Constants.shouldLogAdditionalData()) {
+        // if (!Constants.shouldLogAdditionalData()) {
+        if (true) {
             return;
         }
 

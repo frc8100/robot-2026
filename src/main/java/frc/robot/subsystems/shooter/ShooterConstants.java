@@ -98,20 +98,20 @@ public final class ShooterConstants {
             0.005,
             0.0,
             0.0,
-            RadiansPerSecondPerSecond.of(750),
+            RadiansPerSecondPerSecond.of(1200),
             RadiansPerSecondPerSecond.per(Second).of(7500)
         )
         .withSimClosedLoopController(
             0.05,
             0.0,
             0.0,
-            RadiansPerSecondPerSecond.of(750),
+            RadiansPerSecondPerSecond.of(1200),
             RadiansPerSecondPerSecond.per(Second).of(7500)
         )
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0.1155, 0.030498 * 2 * Math.PI, 0.003663 * 2 * Math.PI))
         // .withFeedforward(new SimpleMotorFeedforward(0.0, 0.039507 * 2 * Math.PI, 0.0045979 * 2 * Math.PI))
-        .withSimFeedforward(new SimpleMotorFeedforward(0.086627, 0.020285 * 2 * Math.PI, 0.003377 * 2 * Math.PI))
+        .withSimFeedforward(new SimpleMotorFeedforward(0.029529, 0.029878 * 2 * Math.PI, 0.0025882 * 2 * Math.PI))
         .withGearing(1.5)
         // Motor properties to prevent over currenting.
         .withMotorInverted(false)
@@ -125,26 +125,26 @@ public final class ShooterConstants {
         .withControlMode(ControlMode.CLOSED_LOOP)
         // Feedback Constants (PID Constants)
         .withClosedLoopController(
-            0.008,
+            0.013,
             0.0,
             0.0,
-            RadiansPerSecondPerSecond.of(400),
-            RadiansPerSecondPerSecond.per(Second).of(800)
+            RadiansPerSecondPerSecond.of(600),
+            RadiansPerSecondPerSecond.per(Second).of(1000)
         )
         .withSimClosedLoopController(
-            0.1,
+            0.02,
             0.0,
             0.0,
-            RadiansPerSecondPerSecond.of(400),
-            RadiansPerSecondPerSecond.per(Second).of(800)
+            RadiansPerSecondPerSecond.of(600),
+            RadiansPerSecondPerSecond.per(Second).of(1000)
         )
         // Feedforward Constants
         .withFeedforward(new SimpleMotorFeedforward(0.36775, 0.021249 * 2 * Math.PI, 0.0017431 * 2 * Math.PI))
-        .withSimFeedforward(new SimpleMotorFeedforward(0.0, 0.059281 * 2 * Math.PI, 0.0046219 * 2 * Math.PI))
+        .withSimFeedforward(new SimpleMotorFeedforward(0.045321, 0.020221 * 2 * Math.PI, 0.011886 * 2 * Math.PI))
         .withGearing(1)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(52))
+        .withStatorCurrentLimit(Amps.of(55))
         .withOpenLoopRampRate(Seconds.of(0.125))
         .withMomentOfInertia(
             KilogramSquareMeters.of(

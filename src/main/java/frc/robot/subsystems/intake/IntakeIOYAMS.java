@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.revrobotics.PersistMode;
@@ -7,6 +9,7 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.CANIdConstants;
@@ -45,6 +48,7 @@ public class IntakeIOYAMS implements IntakeIO {
         // deployMotorWrapped.startClosedLoopController();
 
         enableClosedLoopControl();
+        deployMotorWrapped.overrideCurrentState(IntakeConstants.INTAKE_RETRACTED_ANGLE, RadiansPerSecond.zero());
     }
 
     private void disableClosedLoopControl() {

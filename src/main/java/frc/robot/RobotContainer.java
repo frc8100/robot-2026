@@ -128,7 +128,7 @@ public class RobotContainer {
 
                 intakeSubsystem = new Intake(new IntakeIOYAMS());
                 // intakeSubsystem = new Intake(new IntakeIO() {});
-                shooterSubsystem = new Shooter(new ShooterIOYAMS(), swerveSubsystem);
+                shooterSubsystem = new Shooter(new ShooterIOYAMS(), swerveSubsystem, intakeSubsystem);
                 // shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
 
@@ -212,7 +212,8 @@ public class RobotContainer {
                 intakeSubsystem = new Intake(intakeIO);
                 shooterSubsystem = new Shooter(
                     new ShooterIOSim(swerveSubsystem, intakeIO::removeFuelFromIntake, intakeIO::isAbleToShoot),
-                    swerveSubsystem
+                    swerveSubsystem,
+                    intakeSubsystem
                 );
                 climbSubsystem = new Climb(new ClimbIOSim());
 
@@ -256,7 +257,7 @@ public class RobotContainer {
                 questNavSubsystem = new QuestNavSubsystem(swerveSubsystem::addVisionMeasurement, new QuestNavIO() {});
                 visionSubsystem = new Vision(swerveSubsystem, questNavSubsystem, new VisionIO() {});
                 intakeSubsystem = new Intake(new IntakeIO() {});
-                shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem);
+                shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem, intakeSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
                 objectiveIO = new ObjectiveIO() {};
                 break;
@@ -287,7 +288,7 @@ public class RobotContainer {
         // NamedCommands.registerCommand("RunIntakeRoller", intakeSubsystem.runRollerCommand());
         // NamedCommands.registerCommand("StopIntakeRoller", intakeSubsystem.stopRollerCommand());
 
-        NamedCommands.registerCommand("SwerveStop", Commands.run(() -> swerveSubsystem.stop()));
+        NamedCommands.registerCommand("SwerveStop", Commands.runOnce(() -> swerveSubsystem.stop()));
         NamedCommands.registerCommand("RunIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(true)));
         NamedCommands.registerCommand("StopIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
 
@@ -443,14 +444,13 @@ public class RobotContainer {
         if (!Constants.shouldLogAdditionalData()) {
             return;
         }
+        // Pose3d robotPose3d = new Pose3d(swerveSubsystem.getActualPose());
+        // Pose3d pivotLocation = robotPose3d.transformBy(ClimbConstants.CLIMB_CENTER_OF_ROTATION);
 
-        Pose3d robotPose3d = new Pose3d(swerveSubsystem.getActualPose());
-        Pose3d pivotLocation = robotPose3d.transformBy(ClimbConstants.CLIMB_CENTER_OF_ROTATION);
-
-        Logger.recordOutput(
-            "Climb/RobotPose",
-            robotPose3d.rotateAround(pivotLocation.getTranslation(), climbSubsystem.getRobotTransform())
-        );
+        // Logger.recordOutput(
+        //     "Climb/RobotPose",
+        //     robotPose3d.rotateAround(pivotLocation.getTranslation(), climbSubsystem.getRobotTransform())
+        // );
     }
 
     /**
@@ -483,6 +483,8 @@ public class RobotContainer {
         if (!visionSubsystem.stateMachine.is(VisionState.DURING_MATCH)) {
             visionSubsystem.stateMachine.scheduleStateChange(Vision.VisionState.DURING_MATCH);
         }
+
+        intakeSubsystem.setRollers(false);
 
         // Reset objective
         objectiveIO.resetForTeleop();
