@@ -173,7 +173,13 @@ public class Intake extends SubsystemBase {
     private final MutAngle deploySetpointTestAngle = Degrees.mutable(0.0);
     private final MutAngle deploySetpointTestAngleOffset = Degrees.mutable(0.0);
 
-    private boolean isRollersRunning = false;
+    public enum RollerRunDirection {
+        OUTTAKING,
+        INTAKING,
+        IDLE,
+    }
+
+    private RollerRunDirection isRollersRunning = RollerRunDirection.IDLE;
 
     /**
      * Creates a new Intake subsystem.
@@ -196,7 +202,7 @@ public class Intake extends SubsystemBase {
 
         StateMachine.onDriverStationDisable.onTrue(
             Commands.runOnce(() -> {
-                isRollersRunning = false;
+                isRollersRunning = RollerRunDirection.IDLE;
             })
         );
 
@@ -303,11 +309,20 @@ public class Intake extends SubsystemBase {
     // }
 
     public void toggleRollers() {
-        isRollersRunning = !isRollersRunning;
+        // isRollersRunning = !isRollersRunning;
+        if (isRollersRunning == RollerRunDirection.INTAKING) {
+            isRollersRunning = RollerRunDirection.IDLE;
+        } else {
+            isRollersRunning = RollerRunDirection.INTAKING;
+        }
+    }
+
+    public void setRollers(RollerRunDirection set) {
+        isRollersRunning = set;
     }
 
     public void setRollers(boolean set) {
-        isRollersRunning = set;
+        isRollersRunning = set ? RollerRunDirection.INTAKING : RollerRunDirection.IDLE;
     }
 
     /**
@@ -504,10 +519,12 @@ public class Intake extends SubsystemBase {
         rollerDisconnectedAlert.updateConnectionStatus(inputs.rollerMotorConnected);
         deployDisconnectedAlert.updateConnectionStatus(inputs.deployMotorConnected);
 
-        if (isRollersRunning) {
+        if (isRollersRunning == RollerRunDirection.INTAKING) {
             io.runRollerDutyCycle(IntakeConstants.INTAKE_RUN_SPEED);
-        } else {
+        } else if (isRollersRunning == RollerRunDirection.IDLE) {
             io.runRollerDutyCycle(0.0);
+        } else if (isRollersRunning == RollerRunDirection.OUTTAKING) {
+            io.runRollerDutyCycle(-IntakeConstants.INTAKE_RUN_SPEED);
         }
 
         // Visualization

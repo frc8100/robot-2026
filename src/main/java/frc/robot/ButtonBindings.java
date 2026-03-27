@@ -354,9 +354,18 @@ public class ButtonBindings {
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.DOWN)
             .onTrue(intakeSubsystem.changeAngleOffset(changeBy));
 
+        // operatorController
+        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+        //     .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()).ignoringDisable(true));
+
         operatorController
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
-            .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()).ignoringDisable(true));
+            .onTrue(Commands.runOnce(() -> intakeSubsystem.setRollers(Intake.RollerRunDirection.OUTTAKING)))
+            .onFalse(Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
+
+        operatorController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.LEFT)
+            .whileTrue(shooterSubsystem.reverseIndexer());
 
         driverController
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.UP)
@@ -367,12 +376,17 @@ public class ButtonBindings {
             .onTrue(intakeSubsystem.changeAngleOffset(changeBy));
 
         driverController
-            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
-            .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()).ignoringDisable(true));
-
-        theOperatorControllerIfOverriden
             .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.LEFT)
             .whileTrue(shooterSubsystem.reverseIndexer());
+
+        driverController
+            .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+            .onTrue(Commands.runOnce(() -> intakeSubsystem.setRollers(Intake.RollerRunDirection.OUTTAKING)))
+            .onFalse(Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
+        // driverController
+        //     .getButtonTrigger(ButtonBindings.Controller.POVButtonDirection.RIGHT)
+        //     .onTrue(intakeSubsystem.setAngleOffset(Degrees.zero()).ignoringDisable(true));
+
         // a
 
         // operatorController
