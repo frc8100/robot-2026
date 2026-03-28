@@ -303,7 +303,7 @@ public class Intake extends SubsystemBase {
             stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_DEPLOYING),
             Commands.waitTime(wait),
             stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_RETRACTING),
-            Commands.waitTime(wait.div(1.75))
+            Commands.waitTime(wait.div(2.25))
         );
 
         for (int i = 0; i < iterations; i++) {
@@ -311,7 +311,7 @@ public class Intake extends SubsystemBase {
                 stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_DEPLOYING),
                 Commands.waitTime(wait),
                 stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_RETRACTING),
-                Commands.waitTime(wait.div(1.75))
+                Commands.waitTime(wait.div(2.25))
             );
         }
 

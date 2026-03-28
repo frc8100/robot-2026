@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Back Up"
+            "pathName": "Left Back Up"
           }
         },
         {
@@ -44,7 +44,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right to bump"
+            "pathName": "Left to bump"
           }
         }
       ]

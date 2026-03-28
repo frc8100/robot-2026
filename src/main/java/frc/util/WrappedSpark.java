@@ -80,7 +80,7 @@ public class WrappedSpark extends SparkWrapper {
 
         // If this motor has followers, reduce period to reduce latency of followers
         if (hasFollowers) {
-            sparkConfig.signals.appliedOutputPeriodMs(10);
+            sparkConfig.signals.appliedOutputPeriodMs(5);
         }
 
         return sparkConfig;

@@ -312,8 +312,9 @@ public class RobotContainer {
             setupSysIdRoutines();
         }
 
-        autoChooser.addDefaultOption("Actually move forward", robotActions.actuallyMoveForward());
-        autoChooser.addOption("Move forward specific distance", robotActions.moveForwardSpecificDistance());
+        // autoChooser.addDefaultOption("Actually move forward", robotActions.actuallyMoveForward());
+        // autoChooser.addOption("Move forward specific distance", robotActions.moveForwardSpecificDistance());
+        autoChooser.addOption("IntakeAgitate", intakeSubsystem.agitate());
 
         // Command to refresh the config
         SmartDashboard.putData("RefreshTunableConfig", TunableValue.getRefreshConfigCommand());

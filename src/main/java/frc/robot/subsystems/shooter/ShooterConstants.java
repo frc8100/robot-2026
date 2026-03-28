@@ -144,8 +144,9 @@ public final class ShooterConstants {
         .withGearing(1)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(55))
+        .withStatorCurrentLimit(Amps.of(60))
         .withOpenLoopRampRate(Seconds.of(0.125))
+        .withClosedLoopRampRate(Seconds.of(0.1))
         .withMomentOfInertia(
             KilogramSquareMeters.of(
                 SingleJointedArmSim.estimateMOI(WHEEL_DIAMETER.in(Meters), Pounds.of(2).in(Kilograms))
