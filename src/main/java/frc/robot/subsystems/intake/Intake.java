@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -291,6 +292,32 @@ public class Intake extends SubsystemBase {
     public Angle getDeployAngle() {
         // return deployStateForVisualization.mut_replace(inputs.deployMotorData.positionAngle);
         return inputs.deployMotorData.positionAngle;
+    }
+
+    public Command agitate() {
+        final Time wait = Seconds.of(0.5);
+
+        final int iterations = 8;
+
+        var group = new SequentialCommandGroup(
+            stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_DEPLOYING),
+            Commands.waitTime(wait),
+            stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_RETRACTING),
+            Commands.waitTime(wait.div(1.75))
+        );
+
+        for (int i = 0; i < iterations; i++) {
+            group.addCommands(
+                stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_DEPLOYING),
+                Commands.waitTime(wait),
+                stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_RETRACTING),
+                Commands.waitTime(wait.div(1.75))
+            );
+        }
+
+        group.addCommands(stateMachine.scheduleStateChangeCommand(IntakeState.TRANSITION_DEPLOYING));
+
+        return group;
     }
 
     /**

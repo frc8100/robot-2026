@@ -443,6 +443,20 @@ public class StateMachine<TStateEnum extends Enum<TStateEnum>, TPayload> {
         };
     }
 
+    public Command scheduleStateChangeCommand(TStateEnum newState) {
+        return new Command() {
+            @Override
+            public void initialize() {
+                scheduleStateChange(newState);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return true;
+            }
+        };
+    }
+
     /**
      * Unschedule any scheduled state change.
      */

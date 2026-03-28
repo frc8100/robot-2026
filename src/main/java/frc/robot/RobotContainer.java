@@ -291,6 +291,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("SwerveStop", Commands.runOnce(() -> swerveSubsystem.stop()));
         NamedCommands.registerCommand("RunIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(true)));
         NamedCommands.registerCommand("StopIntakeRoller", Commands.runOnce(() -> intakeSubsystem.setRollers(false)));
+        NamedCommands.registerCommand("IntakeAgitate", intakeSubsystem.agitate());
 
         NamedCommands.registerCommand("RunShooterLow", shooterSubsystem.setspeedShoot(Shooter.ShooterSpeeds.LOW));
         NamedCommands.registerCommand("RunShooterMedium", shooterSubsystem.setspeedShoot(Shooter.ShooterSpeeds.MEDIUM));

@@ -19,6 +19,10 @@ public class SparkAlert extends DeviceAlert {
     }
 
     private void buildFaultMessage(SparkBase.Faults faults) {
+        if (!SparkMotorControllerData.hasFault(faults)) {
+            return;
+        }
+
         alertMessageBuilder.append("[Faults: ");
 
         if (faults.motorType) {
@@ -55,6 +59,10 @@ public class SparkAlert extends DeviceAlert {
     }
 
     private void buildWarningMessage(SparkBase.Warnings warnings) {
+        if (!SparkMotorControllerData.hasWarning(warnings)) {
+            return;
+        }
+
         alertMessageBuilder.append("[Warnings: ");
 
         if (warnings.brownout) {

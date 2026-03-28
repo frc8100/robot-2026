@@ -60,7 +60,7 @@ public final class IntakeConstants {
         // Motor properties to prevent over currenting.
         .withMotorInverted(true)
         .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(47))
+        .withStatorCurrentLimit(Amps.of(50))
         .withVoltageCompensation(Volts.of(11.5))
         .withClosedLoopRampRate(Seconds.of(0.2))
         .withOpenLoopRampRate(Seconds.of(0.2));
@@ -71,7 +71,7 @@ public final class IntakeConstants {
 
     // Intake positions
     public static final Angle INTAKE_RETRACTED_ANGLE = Degrees.of(70);
-    public static final Angle INTAKE_RETRACTED_ANGLE_SETPOINT = INTAKE_RETRACTED_ANGLE.minus(Degrees.of(15));
+    public static final Angle INTAKE_RETRACTED_ANGLE_SETPOINT = INTAKE_RETRACTED_ANGLE.minus(Degrees.of(10));
     // public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(170);
     public static final Angle INTAKE_DEPLOYED_ANGLE = Radians.of(2.56);
 
@@ -82,7 +82,7 @@ public final class IntakeConstants {
         .withGearing(new MechanismGearing((5 * 5 * 22.0) / 15.0))
         // 15:22
         // Feedback Constants (PID Constants)
-        .withClosedLoopController(12, 0.0, 0.0, DegreesPerSecond.of(375), DegreesPerSecondPerSecond.of(400))
+        .withClosedLoopController(12, 0.0, 0.0, DegreesPerSecond.of(450), DegreesPerSecondPerSecond.of(700))
         .withSimClosedLoopController(7, 0.0, 0.0, DegreesPerSecond.of(400), DegreesPerSecondPerSecond.of(500))
         .withClosedLoopTolerance(Degrees.of(1))
         // Feedforward Constants
@@ -95,13 +95,13 @@ public final class IntakeConstants {
         .withSimFeedforward(new ArmFeedforward(0.078431, 0.46875, 0.68997 * 2 * Math.PI, 0.025313 * 2 * Math.PI))
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE)
-        .withStatorCurrentLimit(Amps.of(28))
+        .withStatorCurrentLimit(Amps.of(37))
         .withClosedLoopRampRate(Seconds.of(0.1))
         .withOpenLoopRampRate(Seconds.of(0.1));
 
     public static final Angle DEPLOY_TARGET_TOLERANCE = Degrees.of(15);
     public static final Angle DEPLOY_TARGET_TOLERANCE_AT_REST = Degrees.of(35);
-    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(11.5);
+    public static final Angle RETRACT_TARGET_TOLERANCE = Degrees.of(10.5);
     public static final Angle DEPLOY_OFFSET_EPSILON = Degrees.of(2);
     public static final Angle MINIMUM_DEPLOY_ANGLE_BEFORE_SHOOTER_INDEXER_RUNS = INTAKE_RETRACTED_ANGLE.plus(
         Degrees.of(20)
