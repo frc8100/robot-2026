@@ -8,6 +8,8 @@ public class CANIdConstants {
 
     private CANIdConstants() {}
 
+    public static final int POWER_DISTRIBUTION_ID = 40;
+
     // Intake
     public static final int DEPLOY_MOTOR_ID = 14;
     public static final int ROLLER_MOTOR_ID = 15;
