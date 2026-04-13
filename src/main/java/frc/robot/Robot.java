@@ -5,9 +5,13 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -15,6 +19,7 @@ import frc.robot.subsystems.CANIdConnections;
 import frc.robot.subsystems.swerve.OpponentRobotSim;
 import frc.util.FuelSim;
 import frc.util.SparkUtil;
+import java.lang.reflect.Field;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.motorsims.SimulatedBattery;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -32,6 +37,8 @@ import org.littletonrobotics.urcl.URCL;
  * project.
  */
 public class Robot extends LoggedRobot {
+
+    private static final Time loopOverrunWarningTimeout = Seconds.of(0.2);
 
     private Command autonomousCommand;
     private final RobotContainer robotContainer;
@@ -104,6 +111,17 @@ public class Robot extends LoggedRobot {
 
         // Start AdvantageKit logger
         Logger.start();
+
+        // Adjust loop overrun warning timeout
+        try {
+            Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
+            watchdogField.setAccessible(true);
+            Watchdog watchdog = (Watchdog) watchdogField.get(this);
+            watchdog.setTimeout(loopOverrunWarningTimeout.in(Seconds));
+        } catch (Exception e) {
+            DriverStation.reportWarning("Failed to disable loop overrun warnings.", false);
+        }
+        CommandScheduler.getInstance().setPeriod(loopOverrunWarningTimeout.in(Seconds));
 
         // Instantiate RobotContainer
         robotContainer = new RobotContainer();
