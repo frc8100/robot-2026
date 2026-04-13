@@ -1,5 +1,9 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Seconds;
+
+import edu.wpi.first.units.measure.Time;
+
 /**
  * Contains constants for the robot. Subsystem-specific constants should go in their own files.
  */
@@ -11,6 +15,11 @@ public final class Constants {
      * The current year.
      */
     public static final int YEAR = 2026;
+
+    /**
+     * The period of the main robot loop.
+     */
+    public static final Time LOOP_PERIOD_TIME = Seconds.of(0.02);
 
     /**
      * The period of the main robot loop, in seconds.
