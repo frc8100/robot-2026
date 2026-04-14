@@ -1,20 +1,17 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.battery;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Joules;
 import static edu.wpi.first.units.Units.Volts;
 import static edu.wpi.first.units.Units.Watts;
+import static edu.wpi.first.units.Units.derive;
 
+import edu.wpi.first.units.EnergyUnit;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Energy;
-import edu.wpi.first.units.measure.MutCurrent;
-import edu.wpi.first.units.measure.MutEnergy;
-import edu.wpi.first.units.measure.MutPower;
 import edu.wpi.first.units.measure.Power;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.CANIdConstants;
 import frc.robot.Constants;
-import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -22,26 +19,18 @@ public class BatteryLogger extends SubsystemBase {
 
     public static final int NUM_CHANNELS = 24;
 
-    @AutoLog
-    public static class BatteryLoggerIOInputs {
+    public static final EnergyUnit WattHours = derive(Joules).aggregate(3600).named("Watt-Hour").symbol("Wh").make();
 
-        public double[] channelCurrentsAmps = new double[NUM_CHANNELS];
-        public double totalCurrentAmps = 0.0;
-        public double currentBatteryVoltage = 12.0;
+    private final BatteryIO io;
+    private final BatteryIOInputsAutoLogged inputs = new BatteryIOInputsAutoLogged();
+
+    private Current accumulatedCurrent = Amps.zero();
+    private Power accumulatedPower = Watts.zero();
+    private Energy accumulatedEnergy = Joules.zero();
+
+    public BatteryLogger(BatteryIO io) {
+        this.io = io;
     }
-
-    private final BatteryLoggerIOInputsAutoLogged inputs = new BatteryLoggerIOInputsAutoLogged();
-
-    private final PowerDistribution powerDistribution = new PowerDistribution(
-        CANIdConstants.POWER_DISTRIBUTION_ID,
-        PowerDistribution.ModuleType.kRev
-    );
-
-    private final MutCurrent accumulatedCurrent = Amps.mutable(0.0);
-    private final MutPower accumulatedPower = Watts.mutable(0.0);
-    private final MutEnergy accumulatedEnergy = Joules.mutable(0.0);
-
-    public BatteryLogger() {}
 
     /**
      * @return The power (wattage) accumulated from the battery since the robot was enabled.
@@ -52,7 +41,7 @@ public class BatteryLogger extends SubsystemBase {
     }
 
     /**
-     * @return The current (amperage) accumulated from the battery since the robot was enabled.
+     * @return The energy (joules/watt-hours) accumulated from the battery since the robot was enabled.
      */
     @AutoLogOutput(key = "BatteryLogger/Accumulated/Energy")
     public Energy getAccumulatedEnergy() {
@@ -76,18 +65,24 @@ public class BatteryLogger extends SubsystemBase {
         return power.times(Constants.LOOP_PERIOD_TIME);
     }
 
+    /**
+     * Resets the accumulated energy and current values to zero.
+     */
+    // TODO: call this
+    public void resetAccumulated() {
+        accumulatedCurrent = Amps.zero();
+        accumulatedPower = Watts.zero();
+        accumulatedEnergy = Joules.zero();
+    }
+
     @Override
     public void periodic() {
-        // TODO: IO implementation
-        // TODO: reduce allocation by reusing existing array
-        inputs.channelCurrentsAmps = powerDistribution.getAllCurrents();
-        inputs.totalCurrentAmps = powerDistribution.getTotalCurrent();
-
+        io.updateInputs(inputs);
         Logger.processInputs("BatteryLogger", inputs);
 
         // Update accumulated energy and current
-        accumulatedCurrent.mut_plus(Amps.of(inputs.totalCurrentAmps));
-        accumulatedPower.mut_plus(getInstantaneousPower());
-        accumulatedEnergy.mut_plus(getInstantaneousEnergy());
+        accumulatedCurrent = accumulatedCurrent.plus(Amps.of(inputs.totalCurrentAmps));
+        accumulatedPower = accumulatedPower.plus(getInstantaneousPower());
+        accumulatedEnergy = accumulatedEnergy.plus(getInstantaneousEnergy());
     }
 }

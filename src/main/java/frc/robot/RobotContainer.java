@@ -17,6 +17,10 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.ShooterCharacterization;
 import frc.robot.commands.SwerveSysidRoutines;
+import frc.robot.subsystems.battery.BatteryIO;
+import frc.robot.subsystems.battery.BatteryIOReal;
+import frc.robot.subsystems.battery.BatteryIOSim;
+import frc.robot.subsystems.battery.BatteryLogger;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.ClimbConstants;
 import frc.robot.subsystems.climb.ClimbIO;
@@ -80,6 +84,8 @@ public class RobotContainer {
     private final Shooter shooterSubsystem;
     private final Climb climbSubsystem;
 
+    private final BatteryLogger batteryLogger;
+
     private final RobotActions robotActions;
 
     private ObjectiveIO objectiveIO = new ObjectiveIO() {};
@@ -136,6 +142,8 @@ public class RobotContainer {
 
                 // HttpCamera limelightPassthrough = new HttpCamera("Limelight", "http://limelight.local:5800/");
                 // CameraServer.startAutomaticCapture(limelightPassthrough);
+
+                batteryLogger = new BatteryLogger(new BatteryIOReal());
                 break;
             default:
             case SIM:
@@ -219,6 +227,8 @@ public class RobotContainer {
 
                 objectiveIO = new ObjectiveIODashboard();
 
+                batteryLogger = new BatteryLogger(new BatteryIOSim());
+
                 // Create an opponent robot simulation
                 // OpponentRobotSim opponentRobotSim1 = new OpponentRobotSim(
                 //     new Pose2d(10, 2, new Rotation2d()),
@@ -260,6 +270,7 @@ public class RobotContainer {
                 shooterSubsystem = new Shooter(new ShooterIO() {}, swerveSubsystem, intakeSubsystem);
                 climbSubsystem = new Climb(new ClimbIO() {});
                 objectiveIO = new ObjectiveIO() {};
+                batteryLogger = new BatteryLogger(new BatteryIO() {});
                 break;
         }
         // Set up auto routines

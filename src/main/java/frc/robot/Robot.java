@@ -240,7 +240,7 @@ public class Robot extends LoggedRobot {
         }
 
         SimulatedArena.getInstance().simulationPeriodic();
-        RoboRioSim.setVInCurrent(SimulatedBattery.getTotalCurrentDrawn().in(Amps));
+        // RoboRioSim.setVInCurrent(SimulatedBattery.getTotalCurrentDrawn().in(Amps));
         robotContainer.simulationPeriodic();
         FuelSim.getInstance().updateSim();
 
