@@ -33,6 +33,8 @@ public class BatterySimulation {
 
     public record ElectricalAppliance(int pdhPortId, Supplier<Current> currentSupplier, String name) {}
 
+    public static final Current CURRENT_EPSILON = Amps.of(0.01);
+
     private static BatterySimulation instance = null;
 
     public static BatterySimulation getInstance() {
@@ -51,26 +53,11 @@ public class BatterySimulation {
         return instance;
     }
 
-    // Nominal voltage for a fully charged battery
-    private static final Voltage BATTERY_NOMINAL_VOLTAGE = Volts.of(12.5);
+    private final List<ElectricalAppliance> electricalAppliances = new ArrayList<>();
 
-    // Filter to smooth the current readings.
-    private final LinearFilter currentFilter = LinearFilter.movingAverage(50);
+    private final double[] cachedChannelCurrentsAmps = new double[BatteryLogger.NUM_CHANNELS];
 
-    private final ElectricalAppliance[] electricalAppliances;
-
-    // The current battery voltage in volts.
-    private Voltage batteryVoltageVolts = BATTERY_NOMINAL_VOLTAGE;
-
-    private BatterySimulation() {
-        this.electricalAppliances = new ElectricalAppliance[BatteryLogger.NUM_CHANNELS];
-
-        for (int i = 0; i < BatteryLogger.NUM_CHANNELS; i++) {
-            int portId = i;
-
-            electricalAppliances[i] = new ElectricalAppliance(portId, Amps::zero, "Channel " + portId);
-        }
-    }
+    private BatterySimulation() {}
 
     /**
      *
@@ -100,81 +87,32 @@ public class BatterySimulation {
 
     /**
      *
-     *
-     * <h2>Updates the battery simulation.</h2>
-     *
-     * <p>Calculates the battery voltage based on the current drawn by all appliances.
-     *
-     * <p>The battery voltage is clamped to avoid going below the brownout voltage.
+    //  *
+    //  * <h2>Obtains the total current drawn from the battery.</h2>
+    //  *
+    //  * <p>Iterates through all the appliances to obtain the total current used.
+    //  *
+    //  * @return The total current as a {@link Current} object.
      */
-    public void simulationSubTick() {
-        double totalCurrentAmps = getTotalCurrentDrawn().in(Amps);
-        totalCurrentAmps = currentFilter.calculate(totalCurrentAmps);
-
-        batteryVoltageVolts = Volts.of(
-            BatterySim.calculateLoadedBatteryVoltage(BATTERY_NOMINAL_VOLTAGE.in(Volts), 0.02, totalCurrentAmps)
-        );
-
-        if (Double.isNaN(batteryVoltageVolts.in(Volts)) || Double.isInfinite(batteryVoltageVolts.in(Volts))) {
-            batteryVoltageVolts = Volts.of(12.0);
-            DriverStation.reportError(
-                "[MapleSim] Internal Library Error: Calculated battery voltage is invalid" +
-                ", reverting to normal operation voltage...",
-                false
-            );
-        }
-        if (batteryVoltageVolts.lt(Volts.of(RoboRioSim.getBrownoutVoltage()))) {
-            batteryVoltageVolts = Volts.of(RoboRioSim.getBrownoutVoltage());
-            DriverStation.reportError("[MapleSim] BrownOut Detected, protecting battery voltage...", false);
-        }
-
-        RoboRioSim.setVInVoltage(batteryVoltageVolts.in(Volts));
-        // SmartDashboard.putNumber("BatterySim/TotalCurrent (Amps)", totalCurrentAmps);
-        // SmartDashboard.putNumber("BatterySim/BatteryVoltage (Volts)", batteryVoltageVolts);
+    private Current getTotalCurrentDrawn() {
+        double totalCurrentAmps = electricalAppliances
+            .stream()
+            .mapToDouble(appliance -> {
+                double currentAmps = appliance.currentSupplier.get().in(Amps);
+                cachedChannelCurrentsAmps[appliance.pdhPortId] = currentAmps;
+                return currentAmps;
+            })
+            .sum();
+        return Amps.of(totalCurrentAmps);
     }
 
     /**
-     *
-     *
-     * <h2>Obtains the voltage of the battery.</h2>
-     *
-     * @return The battery voltage as a {@link Voltage} object.
+     * @return An array of the current drawn from each channel in amps. The index of the array corresponds to the PDH port number.
+     * Note: This returns a reference to an array that will be modified.
      */
-    public Voltage getBatteryVoltage() {
-        return batteryVoltageVolts;
+    public double[] getCachedChannelCurrentsAmps() {
+        return cachedChannelCurrentsAmps;
     }
 
-    /**
-     *
-     *
-     * <h2>Obtains the total current drawn from the battery.</h2>
-     *
-     * <p>Iterates through all the appliances to obtain the total current used.
-     *
-     * @return The total current as a {@link Current} object.
-     */
-    public Current getTotalCurrentDrawn() {
-        // double totalCurrentAmps = electricalAppliances
-        //     .stream()
-        //     .mapToDouble(currentSupplier -> currentSupplier.get().in(Amps))
-        //     .sum();
-        return Amps.of(0);
-    }
-
-    /**
-     *
-     *
-     * <h2>Clamps the voltage according to the supplied voltage and the battery's capabilities.</h2>
-     *
-     * <p>If the supplied voltage exceeds the battery's maximum voltage, it will be reduced to match the battery's
-     * voltage.
-     *
-     * @param voltage The voltage to be clamped.
-     * @return The clamped voltage as a {@link Voltage} object.
-     */
-    public Voltage clamp(Voltage voltage) {
-        return Volts.of(
-            MathUtil.clamp(voltage.in(Volts), -batteryVoltageVolts.in(Volts), batteryVoltageVolts.in(Volts))
-        );
-    }
+    public void periodic() {}
 }
