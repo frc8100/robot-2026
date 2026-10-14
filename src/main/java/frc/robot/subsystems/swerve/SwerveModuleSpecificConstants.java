@@ -1,6 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.subsystems.CANIdConnections;
 
 /**
@@ -35,15 +34,15 @@ public final class SwerveModuleSpecificConstants {
     }
 
     public static final RobotSwerveModuleConstants FRONT_LEFT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        0.04736328125
+        0.482666015625 + 0.5
     );
     public static final RobotSwerveModuleConstants FRONT_RIGHT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        -0.265869140625
+        0.245361328125 + 0.5
     );
     public static final RobotSwerveModuleConstants BACK_LEFT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        0.24609375
+        -0.116455078125 + 0.5
     );
     public static final RobotSwerveModuleConstants BACK_RIGHT_MODULE_CONSTANTS = new RobotSwerveModuleConstants(
-        -0.371337890625
+        0.0498046875 + 0.5
     );
 }

@@ -38,14 +38,15 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.CANIdConstants;
 import frc.robot.Constants;
 import frc.robot.ControlConstants;
 import frc.robot.RobotActions;
 import frc.robot.commands.AimToTarget;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.subsystems.DeviceAlert;
 import frc.robot.subsystems.questnav.QuestNavSubsystem;
 import frc.robot.subsystems.shooter.ShooterConstants;
-import frc.robot.subsystems.swerve.Swerve.SwervePayload;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOInputsAutoLogged;
 import frc.robot.subsystems.swerve.module.Module;
@@ -260,6 +261,7 @@ public class Swerve extends SubsystemBase {
      */
     public final GyroIO gyroIO;
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+    private final DeviceAlert gyroDisconnectedAlert;
 
     /**
      * Raw gyro rotation. Used for the pose estimator.
@@ -328,6 +330,7 @@ public class Swerve extends SubsystemBase {
         }
 
         this.gyroIO = gyroIO;
+        gyroDisconnectedAlert = new DeviceAlert(CANIdConstants.PIGEON_ID, "PigeonGyro");
 
         poseEstimator = new SwerveDrivePoseEstimator(
             kinematics,
@@ -726,6 +729,8 @@ public class Swerve extends SubsystemBase {
             module.periodic();
         }
         odometryLock.unlock();
+
+        gyroDisconnectedAlert.updateConnectionStatus(gyroInputs.connected);
 
         // Update cached values
         cachedSpeeds = kinematics.toChassisSpeeds(getModuleStates());

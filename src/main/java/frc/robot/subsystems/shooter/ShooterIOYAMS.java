@@ -12,7 +12,6 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
@@ -79,7 +78,7 @@ public class ShooterIOYAMS implements ShooterIO {
         "Shooter/Shooter",
         leaderShootMotorWrapped
     );
-    public final TunableValue.SparkFeedforwardTunable deployTunableFF = new TunableValue.SparkFeedforwardTunable(
+    public final TunableValue.SparkFeedforwardTunable shooterTunableFF = new TunableValue.SparkFeedforwardTunable(
         "Shooter/Shooter",
         leaderShootMotorWrapped
     );
